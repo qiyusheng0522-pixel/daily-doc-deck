@@ -29,6 +29,13 @@
       "when": 1794995809797,
       "tag": "0003_cognitive_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794996143001,
+      "tag": "0004_cognitive_stage_values",
+      "breakpoints": true
     }
   ]
 }
