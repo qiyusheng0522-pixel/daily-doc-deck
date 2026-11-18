@@ -18,7 +18,7 @@ export default function RiskAnalysisCard({ a, at, current, onAdopt }: { a: RiskA
       {onAdopt && (current === a.risk
         ? <p className="mt-2 text-success">✓ 已确认为{a.risk}</p>
         : <Button size="sm" className="mt-2 w-full" onClick={() => onAdopt(a.risk)}>采纳为风险等级</Button>)}
-      <p className="mt-1.5 text-[10px] text-muted-foreground">模型分析仅供参考，以医生确认为准</p>
+      <p className="mt-1.5 text-[10px] text-muted-foreground">模型根据量表自动分级，结果已同步到档案</p>
     </div>
   );
 }

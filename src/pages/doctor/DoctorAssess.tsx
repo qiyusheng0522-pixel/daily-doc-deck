@@ -18,6 +18,9 @@ export default function DoctorAssess() {
   const qc = useQueryClient();
   const { data: p } = usePatient(id);
   const { data: history = [] } = useScaleAssessments(id);
+  const [chosen, setChosen] = useState<ScaleKey[]>([]);
+  const [libOpen, setLibOpen] = useState(true);
+  const [openH, setOpenH] = useState<string | null>(null);
   const [active, setActive] = useState<ScaleKey>("scd_q9");
   const [picks, setPicks] = useState<Record<ScaleKey, Record<number, number>>>({ scd_q9: {}, mmse: {}, moca: {}, adl: {} });
   const [done, setDone] = useState<Partial<Record<ScaleKey, number>>>({});
@@ -41,7 +44,7 @@ export default function DoctorAssess() {
     setDone({ ...done, [active]: total });
     qc.invalidateQueries({ queryKey: ["patient", p.id] }); qc.invalidateQueries({ queryKey: ["scale-assessments", p.id] }); qc.invalidateQueries({ queryKey: ["patients"] });
     toast({ title: `${scale.name} 已保存：${total} 分` });
-    const next = SCALES.find((s) => s.key !== active && done[s.key] == null);
+    const next = SCALES.find((s) => chosen.includes(s.key) && s.key !== active && done[s.key] == null);
     if (next) setActive(next.key);
   };
 
@@ -55,15 +58,10 @@ export default function DoctorAssess() {
       try { msg = msg ?? (await (error as { context?: Response })?.context?.json())?.error; } catch { /* ignore */ }
       return toast({ title: "分析失败", description: msg ?? "请稍后重试" });
     }
-    qc.invalidateQueries({ queryKey: ["patient", p.id] });
-    toast({ title: `模型分析：${(data.analysis as RiskAnalysis).risk}` });
-  };
-
-  const adopt = async (risk: "低风险" | "中风险" | "高风险") => {
-    const { error } = await supabase.from("patients").update({ cognitive_risk: risk, next_reassess: RISK_PLAN[risk].reassess }).eq("id", p.id);
-    if (error) return toast({ title: "保存失败", description: error.message });
+    const risk = (data.analysis as RiskAnalysis).risk;
+    await supabase.from("patients").update({ cognitive_risk: risk, next_reassess: RISK_PLAN[risk].reassess }).eq("id", p.id);
     qc.invalidateQueries({ queryKey: ["patient", p.id] }); qc.invalidateQueries({ queryKey: ["patients"] });
-    toast({ title: `已确认为${risk}`, description: `复评周期：${RISK_PLAN[risk].reassess}` });
+    toast({ title: `模型分析：${(data.analysis as RiskAnalysis).risk}` });
   };
 
   return (
@@ -74,8 +72,25 @@ export default function DoctorAssess() {
         <span className="w-10" />
       </div>
       <div className="space-y-3 p-3">
-        <div className="grid grid-cols-4 gap-1.5">
-          {SCALES.map((s) => (
+        <Card className="p-3 shadow-soft">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold">量表库 <span className="text-xs font-normal text-muted-foreground">选择本次要评估的量表</span></p>
+            {chosen.length > 0 && <button className="text-xs text-primary" onClick={() => setLibOpen(!libOpen)}>{libOpen ? "收起" : "重新选择"}</button>}
+          </div>
+          {libOpen && <div className="mt-2 space-y-1.5">
+            {SCALES.map((s) => { const on = chosen.includes(s.key); return (
+              <button key={s.key} onClick={() => setChosen(on ? chosen.filter((k) => k !== s.key) : [...chosen, s.key])}
+                className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left ${on ? "border-primary bg-primary/10" : "bg-card"}`}>
+                <span><span className="text-sm font-medium">{s.name}</span><br /><span className="text-[11px] text-muted-foreground">{s.desc} · 满分 {s.max} · {s.items.length} 项</span></span>
+                <span className={`flex h-5 w-5 items-center justify-center rounded border ${on ? "border-primary bg-primary text-primary-foreground" : ""}`}>{on && <Check className="h-3 w-3" />}</span>
+              </button>); })}
+            <Button className="w-full" disabled={chosen.length === 0} onClick={() => { setLibOpen(false); setActive(SCALES.find((s) => chosen.includes(s.key))!.key); }}>开始评估（{chosen.length}）</Button>
+          </div>}
+        </Card>
+
+        {!libOpen && chosen.length > 0 && <>
+        <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${chosen.length}, minmax(0, 1fr))` }}>
+          {SCALES.filter((s) => chosen.includes(s.key)).map((s) => (
             <button key={s.key} onClick={() => setActive(s.key)}
               className={`rounded-lg border px-1 py-2 text-center ${active === s.key ? "border-primary bg-primary/10 text-primary" : "bg-card"}`}>
               <p className="text-[11px] font-semibold">{s.name.replace("（Barthel）", "")}</p>
@@ -104,24 +119,30 @@ export default function DoctorAssess() {
           </div>
           <Button className="mt-3 w-full" disabled={saving} onClick={save}><Check className="mr-1 h-4 w-4" />保存 {scale.name}</Button>
         </Card>
+        </>}
 
         <Card className="p-3 shadow-soft">
           <p className="text-sm font-semibold">模型风险分析</p>
-          <p className="mb-2 text-[11px] text-muted-foreground">完成量表后，由模型结合各项得分自动分析风险等级（已完成 {Object.keys(done).length}/4）</p>
+          <p className="mb-2 text-[11px] text-muted-foreground">完成量表后，由模型结合各项得分自动分析风险等级，风险等级自动更新到档案（已完成 {Object.keys(done).length}/{chosen.length || "-"}）</p>
           <Button className="w-full" variant="secondary" disabled={analyzing || Object.keys(done).length === 0} onClick={analyze}>
             {analyzing ? <><Loader2 className="mr-1 h-4 w-4 animate-spin" />分析中…</> : <><Sparkles className="mr-1 h-4 w-4" />完成评估并智能分析</>}
           </Button>
-          {p.ai_risk && <div className="mt-3"><RiskAnalysisCard a={p.ai_risk as RiskAnalysis} at={p.ai_risk_at} current={p.cognitive_risk} onAdopt={adopt} /></div>}
+          {p.ai_risk && <div className="mt-3"><RiskAnalysisCard a={p.ai_risk as RiskAnalysis} at={p.ai_risk_at} current={p.cognitive_risk} /></div>}
         </Card>
 
         <Card className="p-3 shadow-soft">
           <p className="mb-1 text-sm font-semibold">历史量表记录 <span className="text-xs font-normal text-muted-foreground">({history.length})</span></p>
-          {history.length === 0 ? <p className="text-xs text-muted-foreground">暂无</p> : history.map((h) => (
-            <div key={h.id} className="flex justify-between border-b py-1.5 text-xs last:border-0">
-              <span>{SCALES.find((s) => s.key === h.scale)?.name ?? h.scale}</span>
-              <span className="text-muted-foreground">{h.total} 分 · {new Date(h.created_at).toLocaleDateString("zh-CN")}</span>
-            </div>
-          ))}
+          {history.length === 0 ? <p className="text-xs text-muted-foreground">暂无</p> : history.map((h) => { const sc = SCALES.find((s) => s.key === h.scale); return (
+            <div key={h.id} className="border-b py-1.5 text-xs last:border-0">
+              <button className="flex w-full justify-between" onClick={() => setOpenH(openH === h.id ? null : h.id)}>
+                <span className="font-medium">{sc?.name ?? h.scale}</span>
+                <span className="text-muted-foreground"><span className="font-semibold text-primary">{h.total}</span>{sc ? ` / ${sc.max}` : ""} 分 · {new Date(h.created_at).toLocaleDateString("zh-CN")} · {h.assessed_by ?? ""} {openH === h.id ? "▲" : "▼"}</span>
+              </button>
+              {openH === h.id && <div className="mt-1 space-y-0.5 rounded bg-muted/50 p-2">
+                {Object.entries((h.items ?? {}) as Record<string, unknown>).map(([k, v]) => (
+                  <p key={k} className="flex justify-between gap-2"><span className="text-muted-foreground">{k}</span><span>{String(v)}</span></p>))}
+              </div>}
+            </div>); })}
         </Card>
       </div>
     </div>

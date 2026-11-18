@@ -504,10 +504,10 @@ export function useMeds(patientId?: string) {
 export function useCreateReferral() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { patientId: string; reason: string; doctorName?: string; direction?: "上转" | "下转"; toCommunity?: string }) => {
+    mutationFn: async (input: { patientId: string; reason: string; doctorName?: string; direction?: "上转" | "下转"; toCommunity?: string; dept?: string }) => {
       const { data, error } = await supabase
         .from("referrals")
-        .insert({ patient_id: input.patientId, reason: input.reason, doctor_name: input.doctorName ?? null, status: "待接收", direction: input.direction ?? "下转", ...(input.direction === "上转" ? { from_hospital: "小市社区", to_community: "南京市鼓楼医院" } : input.toCommunity ? { to_community: input.toCommunity } : {}) })
+        .insert({ patient_id: input.patientId, reason: input.reason, doctor_name: input.doctorName ?? null, status: "待接收", dept: input.dept ?? null, direction: input.direction ?? "下转", ...(input.direction === "上转" ? { from_hospital: "小市社区", to_community: "南京市鼓楼医院" } : input.toCommunity ? { to_community: input.toCommunity } : {}) })
         .select("*")
         .single();
       if (error) throw error;
