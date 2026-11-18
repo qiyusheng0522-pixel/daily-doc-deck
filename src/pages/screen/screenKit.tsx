@@ -13,7 +13,7 @@ export function Panel({ title, sub, extra, children, className = "" }: { title: 
   return (
     <section className={`scr-panel flex flex-col overflow-hidden ${className}`}>
       <header className="scr-title flex items-center justify-between px-3 py-1.5">
-        <h3 className="text-[15px] font-bold text-scr-text">{title}{sub && <span className="ml-2 text-xs font-normal text-scr-dim">{sub}</span>}</h3>
+        <h3 className="flex items-center gap-2 text-[15px] font-bold text-scr-text"><span aria-hidden className="h-3.5 w-1 shrink-0 rounded-sm bg-scr-cyan shadow-[0_0_8px_hsl(var(--scr-cyan)/0.8)]" />{title}{sub && <span className="text-xs font-normal text-scr-dim">{sub}</span>}</h3>
         {extra}
       </header>
       <div className="min-h-0 flex-1 p-2">{children}</div>

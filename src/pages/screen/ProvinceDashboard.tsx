@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Activity, AlertTriangle, ArrowLeft, ArrowLeftRight, Building2, CalendarDays, CalendarCheck, ChevronRight, ClipboardCheck, Dumbbell, MapPin, Users, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowLeftRight, Building2, CalendarDays, CalendarCheck, ChevronRight, ClipboardCheck, Dumbbell, Layers, MapPin, Search, Users, X } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -20,9 +20,9 @@ function Trend({ region, population = false, onDrill }: { region?: Region; popul
     <Legend items={[{ k: population ? "服务人群" : "筛查人数", c: C.cyan }, { k: population ? "实际筛查" : "干预人数", c: C.green }]} />
     <div className="min-h-0 flex-1"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data} margin={{ top: 12, right: 12, left: -18, bottom: 0 }} onClick={s => { if (s?.activeLabel) onDrill({ key: population ? "elders" : "screening", region: region?.name, period: String(s.activeLabel) }); }}>
       <defs><linearGradient id={`provinceTrend-${region?.name ?? "all"}-${population}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.cyan} stopOpacity={.4} /><stop offset="100%" stopColor={C.cyan} stopOpacity={.02} /></linearGradient></defs>
-      <CartesianGrid stroke={C.grid} vertical={false} /><XAxis dataKey="month" {...axis} tickFormatter={v => String(v).slice(5) + "月"} minTickGap={8} /><YAxis {...axis} /><ChartTooltip {...tip} formatter={(v: number, name: string) => [`${v}万人`, name]} />
-      <Area type="monotone" isAnimationActive={false} name={population ? "服务人群" : "筛查人数"} dataKey={population ? "elders" : "screening"} stroke={C.cyan} fill={`url(#provinceTrend-${region?.name ?? "all"}-${population})`} strokeWidth={2.5} dot={{ r: 3, fill: C.cyan }} activeDot={{ r: 6 }} />
-      <Area type="monotone" isAnimationActive={false} name={population ? "实际筛查" : "干预人数"} dataKey={population ? "screening" : "intervention"} stroke={C.green} fillOpacity={.08} fill={C.green} strokeWidth={2.5} dot={{ r: 3, fill: C.green }} activeDot={{ r: 6 }} />
+      <CartesianGrid stroke={C.grid} vertical={false} /><XAxis dataKey="month" {...axis} tickFormatter={v => String(v).slice(5) + "月"} minTickGap={8} /><YAxis {...axis} domain={[0, "auto"]} /><ChartTooltip {...tip} formatter={(v: number, name: string) => [`${v}万人`, name]} />
+      <Area type="natural" isAnimationActive={false} name={population ? "服务人群" : "筛查人数"} dataKey={population ? "elders" : "screening"} stroke={C.cyan} fill={`url(#provinceTrend-${region?.name ?? "all"}-${population})`} strokeWidth={2.5} dot={{ r: 3, fill: C.cyan }} activeDot={{ r: 6 }} />
+      <Area type="natural" isAnimationActive={false} name={population ? "实际筛查" : "干预人数"} dataKey={population ? "screening" : "intervention"} stroke={C.green} fillOpacity={.08} fill={C.green} strokeWidth={2.5} dot={{ r: 3, fill: C.green }} activeDot={{ r: 6 }} />
     </AreaChart></ResponsiveContainer></div>
   </div>;
 }
@@ -32,6 +32,33 @@ function Risk({ region, onDrill }: { region?: Region; onDrill: (d: Drill) => voi
   return <div className="flex h-full min-h-[145px] items-center gap-1">
     <div className="relative h-[145px] w-[42%] shrink-0"><ResponsiveContainer><PieChart><Pie isAnimationActive={false} data={data} dataKey="value" innerRadius="64%" outerRadius="92%" stroke="none" startAngle={90} endAngle={-270}>{data.map(r => <Cell key={r.name} fill={r.color} className="cursor-pointer" onClick={() => onDrill({ key: "risk", region: region?.name, risk: r.name })} />)}</Pie><ChartTooltip {...tip} formatter={(v: number) => [`${v}万人`, "人数"]} /></PieChart></ResponsiveContainer><div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><b className="text-lg">{total}万</b><span className="text-[11px] text-scr-dim">服务人群</span></div></div>
     <div className="min-w-0 flex-1 space-y-1">{data.map(r => <HoverData key={r.name} title={`${r.name} · ${r.value}万人`} text={`占服务人群 ${r.pct}%；统计范围：${region ? region.name + "市" : "江苏省"}。`}><Button variant="screen" className="h-7 w-full justify-start gap-1 border-transparent px-1 text-[11px]" onClick={() => onDrill({ key: "risk", region: region?.name, risk: r.name })}><span className="h-2 w-2 shrink-0 rounded-sm" style={{ background: r.color }} /><span>{r.name}</span><span className="ml-auto tabular-nums">{r.pct}%（{r.value}万）</span></Button></HoverData>)}</div>
+  </div>;
+}
+const FLOW = [
+  { key: "screening", label: "筛查评估", icon: Search, bar: 25.5, display: "25.5", unit: "万人", text: "年度已完成 AD-8 认知初筛的老年人数；点击可按设区市查看明细。" },
+  { key: "risk", label: "风险分层", icon: Layers, bar: 27.6, display: "27.6", unit: "万人", text: "服务人群风险分层；风险分布明细可按设区市查看。" },
+  { key: "intervention", label: "分类干预", icon: Dumbbell, bar: 4.74, display: "4.74", unit: "万人", text: "年度接受认知训练与分级干预的老年人数。" },
+  { key: "followup", label: "随访管理", icon: Users, bar: 6.3, display: "6.3", unit: "万人", text: "年度纳入持续随访服务的人数。" },
+  { key: "referral", label: "双向转诊", icon: ArrowLeftRight, bar: 0.4317, display: "4,317", unit: "人", text: "年度登记的上转与下转服务人数。" },
+];
+function Flow({ onDrill }: { onDrill: (d: Drill) => void }) {
+  const max = Math.max(...FLOW.map(f => f.bar));
+  return <div className="flex h-full flex-col justify-center gap-1 px-1">
+    {FLOW.map(f => {
+      const width = Math.max(12, Math.sqrt(f.bar / max) * 100);
+      return <HoverData key={f.key} title={`${f.label} · ${f.display}${f.unit}`} text={f.text}>
+        <Button variant="screen" className="h-[44px] w-full justify-start gap-3 rounded-lg border-transparent bg-transparent px-2 hover:bg-scr-line/25" onClick={() => onDrill({ key: f.key })}>
+          <span className="province-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-scr-cyan/70"><f.icon className="!h-5 !w-5 text-scr-cyan" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="mb-1 block text-[11px] leading-none text-scr-dim">{f.label}</span>
+            <span className="block h-3.5 overflow-hidden rounded-full bg-scr-line/25 shadow-[inset_0_1px_4px_hsl(var(--scr-bg)/0.9)]">
+              <span className="block h-full rounded-full" style={{ width: `${width}%`, background: "linear-gradient(90deg, hsl(var(--scr-cyan)), hsl(var(--scr-blue)))", boxShadow: "0 0 10px hsl(var(--scr-cyan) / 0.55)" }} />
+            </span>
+          </span>
+          <span className="w-[86px] shrink-0 text-right"><b className="text-lg font-black tabular-nums text-scr-text">{f.display}</b><span className="ml-1 text-xs text-scr-dim">{f.unit}</span></span>
+        </Button>
+      </HoverData>;
+    })}
   </div>;
 }
 function MetricButton({ index, region, compact = false, onDrill }: { index: number; region?: Region; compact?: boolean; onDrill: (d: Drill) => void }) {
@@ -68,7 +95,7 @@ export default function ProvinceDashboard({ nav, onOverview }: { nav: string; on
     <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">{METRICS.slice(0, 6).map((m, i) => <MetricButton key={m.key} index={i} onDrill={open} />)}</section>
     <div className="province-grid">
       <div className="flex min-w-0 flex-col gap-3">
-        <Panel title="服务全流程概览" sub="年度服务量"><div className="flex flex-col">{[{ key: "screening", label: "筛查评估", icon: ClipboardCheck }, { key: "risk", label: "风险分层", icon: Activity }, { key: "intervention", label: "分类干预", icon: Dumbbell }, { key: "followup", label: "随访管理", icon: Users }, { key: "referral", label: "双向转诊", icon: ArrowLeftRight }].map((f, i) => <div key={f.key}><HoverData title={f.label} text={i === 1 ? "服务人群风险分层；风险分布明细可按设区市查看。" : metricFor(f.key).definition}><Button variant="screen" className="h-[43px] w-full justify-start rounded-none border-x-0 border-t-0 px-3" onClick={() => open({ key: f.key })}><f.icon className="!h-6 !w-6 text-scr-cyan" /><span className="text-sm">{f.label}</span><b className="ml-auto text-lg">{i === 1 ? "27.6万人" : formatValue(metricFor(f.key).total, f.key)}</b><ChevronRight className="text-scr-dim" /></Button></HoverData>{i < 4 && <div className="h-2 text-center text-[10px] leading-none text-scr-cyan">▼</div>}</div>)}</div></Panel>
+        <Panel title="服务全流程数据" sub="年度服务量"><Flow onDrill={open} /></Panel>
         <Panel title="人群风险分布" sub="N=27.6万" className="h-[208px]"><Risk onDrill={open} /></Panel>
         <Panel title="服务人群趋势" sub="人数 / 万人" extra={<Button variant="screen" size="icon" className="h-6 w-6" aria-label="查看服务人群趋势详情" onClick={() => open({ key: "elders" })}><ChevronRight /></Button>} className="h-[208px]"><Trend population onDrill={open} /></Panel>
       </div>
