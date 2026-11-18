@@ -7,10 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import ActionSheet from "@/components/nurse/ActionSheet";
-import { planConfirmed } from "@/data/cognitive";
+import { planConfirmed, needsReferral, COMMUNITY_STATIONS } from "@/data/cognitive";
+import PlanReview from "@/components/cognitive/PlanReview";
+import { Camera } from "lucide-react";
 import AiAdvicePanel from "@/components/cognitive/AiAdvicePanel";
 import {
-  usePatient, useReferrals, usePatientEducation, useTrainingRecords, useCreateReferral, useCreateUpload, type Patient,
+  usePatient, usePatientDocuments, useReferrals, usePatientEducation, useTrainingRecords, useCreateReferral, useCreateUpload, type Patient,
 } from "@/data/patients";
 import { RISK_PLAN, TRAINING_DOMAINS, scaleLevel, suggestRisk } from "@/data/cognitive";
 import { useQueryClient } from "@tanstack/react-query";
@@ -45,6 +47,9 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const [grade, setGrade] = useState<null | { risk: "低风险" | "中风险" | "高风险"; refer: boolean; plan: string }>(null);
   const [saving, setSaving] = useState(false);
   const { data: trainings = [] } = useTrainingRecords(id);
+  const { data: docs = [] } = usePatientDocuments(id);
+  const [station, setStation] = useState<string>(COMMUNITY_STATIONS[0]);
+  const [uploading, setUploading] = useState(false);
   const [edit, setEdit] = useState<null | { kind: "profile" | "assess"; v: Record<string, string> }>(null);
 
   if (isLoading) return <p className="p-6 text-sm text-muted-foreground">加载中…</p>;
@@ -86,11 +91,19 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     qc.invalidateQueries({ queryKey: ["patient", p.id] }); qc.invalidateQueries({ queryKey: ["patients"] });
     setEdit(null); toast({ title: edit.kind === "profile" ? "档案已保存" : "评估结果已更新" });
   };
-  const confirmPlan = async () => {
-    const { error } = await supabase.from("patients").update({ ai_plan_confirmed_at: new Date().toISOString(), ai_plan_confirmed_by: "评估医生" }).eq("id", p.id);
-    if (error) return toast({ title: "确认失败", description: error.message });
-    qc.invalidateQueries({ queryKey: ["patient", p.id] });
-    toast({ title: "干预方案已确认", description: "社区护理康复端和家庭端将按此方案执行" });
+  const uploadDocs = async (files: FileList | null) => {
+    if (!files?.length) return;
+    setUploading(true);
+    for (const file of Array.from(files)) {
+      if (file.size > 10 * 1024 * 1024) { toast({ title: `${file.name} 超过 10MB` }); continue; }
+      const path = `${p.id}/${Date.now()}-${file.name.replace(/[^\w.]/g, "_")}`;
+      const { error } = await supabase.storage.from("patient-docs").upload(path, file);
+      if (error) { toast({ title: "上传失败", description: error.message }); continue; }
+      await supabase.from("patient_documents").insert({ patient_id: p.id, path, kind: "检查检验", uploaded_by: "评估医生" });
+    }
+    setUploading(false);
+    qc.invalidateQueries({ queryKey: ["patient-docs", p.id] });
+    toast({ title: "建档材料已上传" });
   };
   const plan = p.cognitive_risk ? RISK_PLAN[p.cognitive_risk] : null;
   const myRefs = referrals.filter((r) => r.patient_id === p.id);
@@ -99,12 +112,12 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     const direction = sheet === "up" ? "上转" : "下转";
     const reason = note.trim() || (direction === "上转"
       ? `AD-8 ${p.ad8 ?? "-"}，MMSE ${p.mmse ?? "-"}，MoCA ${p.moca ?? "-"}，疑似认知障碍，申请记忆门诊确诊`
-      : `确诊${p.cognitive_diagnosis ?? ""}，回小市社区训练站接续认知训练`);
+      : `确诊${p.cognitive_diagnosis ?? ""}，回${station}接续认知训练`);
     createReferral.mutate(
-      { patientId: p.id, reason, direction, doctorName: role === "doctor" ? "记忆门诊" : "训练站评估师" },
+      { patientId: p.id, reason, direction, toCommunity: direction === "下转" ? station : undefined, doctorName: role === "doctor" ? "记忆门诊" : "训练站评估师" },
       {
         onSuccess: () => {
-          toast({ title: direction === "上转" ? "上转单已推送鼓楼医院记忆门诊" : "已下转小市社区训练站",
+          toast({ title: direction === "上转" ? "上转单已推送鼓楼医院记忆门诊" : `已下转${station}`,
             description: direction === "上转" ? "筛查评估后 3 个工作日内推送" : "训练站需在接诊后 5 个工作日内建档" });
           setSheet(null); setNote("");
         },
@@ -141,7 +154,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
                 <MessageSquare className="mr-1 h-4 w-4" />沟通
               </Button>
             )}
-            {role !== "doctor" && (
+            {role !== "doctor" && needsReferral(p.cognitive_risk) && (
               <Button size="sm" className="flex-1" onClick={() => setSheet("up")}><Send className="mr-1 h-4 w-4" />开上转单</Button>
             )}
             {role === "doctor" && (
@@ -160,17 +173,11 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </Card>
 
         {role === "doctor" && <AiAdvicePanel key={p.id} patientId={p.id} name={p.name} saved={p.ai_plan} savedAt={p.ai_plan_at} />}
+        {role === "doctor" && <PlanReview p={p} showCurrent={false} />}
         {role === "community" && (planConfirmed(p)
           ? <AiAdvicePanel key={p.id} patientId={p.id} name={p.name} saved={p.ai_plan} savedAt={p.ai_plan_at} />
           : <div className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">干预方案待评估医生确认，确认后在此显示并下发执行。</div>)}
-        {role === "doctor" && p.ai_plan && (
-          <Card className="flex items-center justify-between p-3 shadow-soft">
-            <p className="text-xs">{p.ai_plan_confirmed_at
-              ? <span className="text-success">✓ 医生已确认 · {new Date(p.ai_plan_confirmed_at).toLocaleDateString("zh-CN")}</span>
-              : <span className="text-warning">模型方案待医生确认，确认后下发执行</span>}</p>
-            {(!p.ai_plan_confirmed_at || (p.ai_plan_at && p.ai_plan_at > p.ai_plan_confirmed_at)) && <Button size="sm" onClick={confirmPlan}>确认方案</Button>}
-          </Card>
-        )}
+        {role === "community" && !needsReferral(p.cognitive_risk) && p.cognitive_risk && <p className="px-1 text-[11px] text-muted-foreground">低风险无需转诊：与家庭医生联合制定随访评估计划并开展健康宣教。</p>}
 
         <Card className="p-4 shadow-soft">
           <div className="mb-2 flex items-center justify-between"><p className="flex items-center gap-1 text-sm font-semibold"><Brain className="h-4 w-4 text-accent" />认知风险评估</p>{role === "doctor" && <Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => openEdit("assess")}>编辑</Button>}</div>
@@ -229,6 +236,11 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           </Card>
         )}
 
+        {docs.length > 0 && <Card className="p-4 shadow-soft">
+          <p className="mb-2 text-sm font-semibold">建档材料 <span className="text-xs font-normal text-muted-foreground">({docs.length})</span></p>
+          <div className="grid grid-cols-4 gap-1">{docs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer"><img src={d.url} alt={d.kind} className="h-16 w-full rounded object-cover" /></a>)}</div>
+        </Card>}
+
         <Card className="p-4 shadow-soft">
           <p className="mb-2 text-sm font-semibold">平台转诊记录</p>
           {myRefs.length === 0 ? <p className="text-xs text-muted-foreground">暂无转诊</p> : myRefs.map((r) => (
@@ -273,6 +285,17 @@ export default function CognitiveDetail({ role }: { role: Role }) {
                   onChange={(e) => setEdit({ ...edit, v: { ...edit.v, [k]: e.target.value } })} />
               </label>
             ))}
+            {edit.kind === "profile" && (
+              <div className="col-span-2 space-y-2">
+                <p className="text-xs">建档材料（检查检验报告、影像等）</p>
+                <label className="flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-dashed py-3 text-xs text-primary">
+                  <Camera className="h-4 w-4" />{uploading ? "上传中…" : "拍照 / 选择图片上传"}
+                  <input type="file" accept="image/*,application/pdf" capture="environment" multiple className="hidden" disabled={uploading}
+                    onChange={(e) => { uploadDocs(e.target.files); e.target.value = ""; }} />
+                </label>
+                {docs.length > 0 && <div className="grid grid-cols-4 gap-1">{docs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer"><img src={d.url} alt={d.kind} className="h-16 w-full rounded object-cover" /></a>)}</div>}
+              </div>
+            )}
           </div>
         )}
       </ActionSheet>
@@ -301,9 +324,17 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       </ActionSheet>
 
       <ActionSheet open={!!sheet} onOpenChange={(o) => !o && setSheet(null)}
-        title={sheet === "up" ? "开具上转单 · 鼓楼医院记忆门诊" : "确诊下转 · 小市社区训练站"}
+        title={sheet === "up" ? "开具上转单 · 鼓楼医院记忆门诊" : "确诊下转 · 选择承接社区"}
         description={sheet === "up" ? "疑似认知障碍，筛查评估后 3 个工作日内推送" : "填写诊疗建议，训练站接诊后 5 个工作日内建档"}
         footer={<Button className="w-full" disabled={createReferral.isPending} onClick={submit}>确认提交</Button>}>
+        {sheet === "down" && (
+          <div className="mb-3 space-y-1.5">
+            {COMMUNITY_STATIONS.map((c) => (
+              <button key={c} onClick={() => setStation(c)}
+                className={`w-full rounded-lg border px-3 py-2 text-left text-sm ${station === c ? "border-primary bg-primary/10 font-medium text-primary" : ""}`}>{c}</button>
+            ))}
+          </div>
+        )}
         <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={4}
           placeholder={sheet === "up" ? "转诊原因（留空将自动带入量表分数）" : "诊疗建议，如：多奈哌齐 5mg 睡前；每周 2 次小组认知训练"} />
       </ActionSheet>

@@ -78,6 +78,7 @@ Deno.serve(async (req) => {
     if (!out) return json({ error: "模型未返回内容，请稍后重试" }, 502);
     const advice = JSON.parse(out);
     await sb.from("patients").update({ ai_plan: advice, ai_plan_at: new Date().toISOString() }).eq("id", patientId);
+    await sb.from("treatment_plans").insert({ patient_id: patientId, plan: advice, risk: p.cognitive_risk ?? null });
     return json({ advice });
   } catch (e) {
     if (e instanceof GatewayError) {

@@ -64,6 +64,13 @@
       "when": 1795008054298,
       "tag": "0008_training_records_plan_confirm",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795008610459,
+      "tag": "0009_plan_history_and_documents",
+      "breakpoints": true
     }
   ]
 }

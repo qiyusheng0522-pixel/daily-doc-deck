@@ -305,6 +305,37 @@ export function useTrainingRecords(patientId?: string) {
   });
 }
 
+export type TreatmentPlan = { id: string; patient_id: string; plan: unknown; risk: string | null; confirmed_at: string | null; confirmed_by: string | null; created_at: string };
+
+/** 历史治疗方案（每次模型生成一条，最新在前） */
+export function useTreatmentPlans(patientId?: string) {
+  return useQuery({
+    queryKey: ["treatment-plans", patientId],
+    enabled: !!patientId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("treatment_plans").select("*").eq("patient_id", patientId!).order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as TreatmentPlan[];
+    },
+  });
+}
+
+/** 建档材料（检查检验照片等），返回带短时签名链接 */
+export function usePatientDocuments(patientId?: string) {
+  return useQuery({
+    queryKey: ["patient-docs", patientId],
+    enabled: !!patientId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("patient_documents").select("*").eq("patient_id", patientId!).order("created_at", { ascending: false });
+      if (error) throw error;
+      return Promise.all((data ?? []).map(async (d) => {
+        const { data: s } = await supabase.storage.from("patient-docs").createSignedUrl(d.path, 3600);
+        return { ...d, url: s?.signedUrl ?? null };
+      }));
+    },
+  });
+}
+
 export function useNurseTasks() {
   return useQuery({
     queryKey: ["nurse-tasks"],
@@ -456,10 +487,10 @@ export function useMeds(patientId?: string) {
 export function useCreateReferral() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { patientId: string; reason: string; doctorName?: string; direction?: "上转" | "下转" }) => {
+    mutationFn: async (input: { patientId: string; reason: string; doctorName?: string; direction?: "上转" | "下转"; toCommunity?: string }) => {
       const { data, error } = await supabase
         .from("referrals")
-        .insert({ patient_id: input.patientId, reason: input.reason, doctor_name: input.doctorName ?? null, status: "待接收", direction: input.direction ?? "下转", ...(input.direction === "上转" ? { from_hospital: "小市社区", to_community: "南京市鼓楼医院" } : {}) })
+        .insert({ patient_id: input.patientId, reason: input.reason, doctor_name: input.doctorName ?? null, status: "待接收", direction: input.direction ?? "下转", ...(input.direction === "上转" ? { from_hospital: "小市社区", to_community: "南京市鼓楼医院" } : input.toCommunity ? { to_community: input.toCommunity } : {}) })
         .select("*")
         .single();
       if (error) throw error;

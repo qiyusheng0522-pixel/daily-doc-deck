@@ -57,7 +57,17 @@ export function suggestRisk(s: { mmse: number | null; moca: number | null; adl: 
 }
 
 /** 方案已由医生确认，且确认时间不早于最近一次生成 */
-export function planConfirmed(p: { ai_plan?: unknown; ai_plan_at?: string | null; ai_plan_confirmed_at?: string | null } | null | undefined): boolean {
-  if (!p?.ai_plan || !p.ai_plan_confirmed_at) return false;
+export function planConfirmed(p: { ai_plan?: unknown; ai_plan_at?: string | null; ai_plan_confirmed_at?: string | null; cognitive_risk?: string | null } | null | undefined): boolean {
+  if (!p?.ai_plan) return false;
+  if (!needsReferral(p.cognitive_risk)) return true; // 低风险：社区与家庭医生联合制定，无需上级医生确认
+  if (!p.ai_plan_confirmed_at) return false;
   return !p.ai_plan_at || p.ai_plan_at <= p.ai_plan_confirmed_at;
 }
+
+/** 仅中、高风险需开具双向转诊单，由上级指导中心确诊并制定治疗方案 */
+export function needsReferral(risk: string | null | undefined): boolean {
+  return risk === "中风险" || risk === "高风险";
+}
+
+/** 可下转承接的社区认知训练站（试点：小市先行） */
+export const COMMUNITY_STATIONS = ["小市社区认知训练站", "第二试点社区认知训练站（名称待定）"] as const;

@@ -8,4 +8,5 @@
 - Screening-center records live in `screenings` (separate from patients; optional patient_id link) so intake data can later sync from the physical-exam system.
 - Model-generated rehab plans are saved to patients.ai_plan by the cognitive-advice function so doctor, community and family ends show the same plan.
 - Training sessions live in `training_records` (one row per session) so all ends share history; doctor confirmation of model plans is stored on patients (ai_plan_confirmed_at/by).
+- Plan history lives in `treatment_plans` (one row per generation); PlanView/PlanReview are the single plan renderers so patient detail and doctor review stay identical. Exam photos go to private bucket `patient-docs` + `patient_documents`.
 <!-- AGENT-MEMORY:END -->
