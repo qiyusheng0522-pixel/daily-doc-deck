@@ -7,6 +7,7 @@ import {
 import medicalAvatar from "@/assets/medical-avatar.png";
 import mallBanner from "@/assets/mall-banner.jpg";
 import { useCurrentPatient } from "@/data/patients";
+import { planConfirmed } from "@/data/cognitive";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 import PatientActionSheet from "@/components/patient/PatientActionSheet";
 import {
@@ -27,7 +28,7 @@ const days = ["07/15", "07/16", "07/17", "07/18", "07/19"];
 const PatientPlan = () => {
   const navigate = useNavigate();
   const { data: me } = useCurrentPatient();
-  const ai = me?.ai_plan as Advice | null | undefined;
+  const ai = (planConfirmed(me) ? me?.ai_plan : null) as Advice | null | undefined;
   const [tab, setTab] = useState<"nutrition" | "tcm">("nutrition");
   const [activeDay, setActiveDay] = useState("07/15");
   const [expandBreakfast, setExpandBreakfast] = useState(true);
@@ -126,7 +127,7 @@ const PatientPlan = () => {
       {/* 模型生成康复训练方案 */}
       <section className="mx-3 rounded-2xl bg-card p-4 shadow-sm ring-1 ring-border/60">
         <h3 className="text-base font-semibold">我的康复训练方案</h3>
-        <p className="text-[11px] text-muted-foreground">由智能体根据评估结果生成，社区训练站审核{me?.ai_plan_at ? ` · ${new Date(me.ai_plan_at).toLocaleDateString("zh-CN")}` : ""}</p>
+        <p className="text-[11px] text-muted-foreground">由智能体根据评估结果生成，评估医生确认后下发{ai && me?.ai_plan_confirmed_at ? ` · ${new Date(me.ai_plan_confirmed_at).toLocaleDateString("zh-CN")}` : ""}</p>
         {ai ? (
           <div className="mt-2 space-y-2 text-sm">
             <p className="rounded-lg bg-primary/5 p-2.5 text-[13px] leading-relaxed">{ai.summary}</p>

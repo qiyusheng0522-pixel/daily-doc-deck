@@ -24,3 +24,12 @@ describe("分级干预内容", () => {
   it("高风险纳入家庭病床", () => expect(RISK_PLAN["高风险"].community.join()).toContain("家庭病床"));
   it("低风险无需转诊", () => expect(RISK_PLAN["低风险"].doctor[0]).toContain("无需转诊"));
 });
+
+import { planConfirmed } from "@/data/cognitive";
+describe("plan visibility", () => {
+  it("hides unconfirmed or regenerated plans", () => {
+    expect(planConfirmed({ ai_plan: {}, ai_plan_at: "2026-01-02", ai_plan_confirmed_at: null })).toBe(false);
+    expect(planConfirmed({ ai_plan: {}, ai_plan_at: "2026-01-03", ai_plan_confirmed_at: "2026-01-02" })).toBe(false);
+    expect(planConfirmed({ ai_plan: {}, ai_plan_at: "2026-01-01", ai_plan_confirmed_at: "2026-01-02" })).toBe(true);
+  });
+});

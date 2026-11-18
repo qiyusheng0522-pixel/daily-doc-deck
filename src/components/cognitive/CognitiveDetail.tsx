@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import ActionSheet from "@/components/nurse/ActionSheet";
+import { planConfirmed } from "@/data/cognitive";
 import AiAdvicePanel from "@/components/cognitive/AiAdvicePanel";
 import {
   usePatient, useReferrals, usePatientEducation, useTrainingRecords, useCreateReferral, useCreateUpload, type Patient,
@@ -158,7 +159,10 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           </div>
         </Card>
 
-        {role !== "nurse" && <AiAdvicePanel key={p.id} patientId={p.id} name={p.name} saved={p.ai_plan} savedAt={p.ai_plan_at} />}
+        {role === "doctor" && <AiAdvicePanel key={p.id} patientId={p.id} name={p.name} saved={p.ai_plan} savedAt={p.ai_plan_at} />}
+        {role === "community" && (planConfirmed(p)
+          ? <AiAdvicePanel key={p.id} patientId={p.id} name={p.name} saved={p.ai_plan} savedAt={p.ai_plan_at} />
+          : <div className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">干预方案待评估医生确认，确认后在此显示并下发执行。</div>)}
         {role === "doctor" && p.ai_plan && (
           <Card className="flex items-center justify-between p-3 shadow-soft">
             <p className="text-xs">{p.ai_plan_confirmed_at

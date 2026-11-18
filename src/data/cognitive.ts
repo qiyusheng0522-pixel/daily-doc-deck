@@ -55,3 +55,9 @@ export function suggestRisk(s: { mmse: number | null; moca: number | null; adl: 
   if ((s.mmse != null && s.mmse < 27) || (s.moca != null && s.moca < 26)) return "中风险";
   return "低风险";
 }
+
+/** 方案已由医生确认，且确认时间不早于最近一次生成 */
+export function planConfirmed(p: { ai_plan?: unknown; ai_plan_at?: string | null; ai_plan_confirmed_at?: string | null } | null | undefined): boolean {
+  if (!p?.ai_plan || !p.ai_plan_confirmed_at) return false;
+  return !p.ai_plan_at || p.ai_plan_at <= p.ai_plan_confirmed_at;
+}
