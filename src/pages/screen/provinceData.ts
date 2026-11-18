@@ -51,11 +51,13 @@ export function formatValue(value: number, key: string) {
   return `${value.toLocaleString("zh-CN", { maximumFractionDigits: 2 })}${metricFor(key).unit}`;
 }
 export const MONTHS = ["2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"];
+// 月度累计进度曲线：先快后慢并带一段平台期，末月等于年度总量，让平滑弧线清晰可见
+const PROFILE = { screening: [.30, .52, .58, .72, .88, 1], intervention: [.26, .48, .56, .70, .87, 1], elders: [.34, .55, .61, .74, .88, 1] };
 export function serviceTrend(region?: Region) {
   const screening = region ? regionalValue(region, "screening") : 25.5;
   const intervention = region ? regionalValue(region, "intervention") : 4.74;
   const elders = region?.elders ?? 27.6;
-  return MONTHS.map((month, i) => ({ month, screening: +(screening * (0.48 + i * .104)).toFixed(2), intervention: +(intervention * (.4 + i * .12)).toFixed(2), elders: +(elders * (.5 + i * .1)).toFixed(2) }));
+  return MONTHS.map((month, i) => ({ month, screening: +(screening * PROFILE.screening[i]).toFixed(2), intervention: +(intervention * PROFILE.intervention[i]).toFixed(2), elders: +(elders * PROFILE.elders[i]).toFixed(2) }));
 }
 export const RISKS = [
   { name: "低风险", pct: 70.5, color: "hsl(var(--scr-cyan))" },
