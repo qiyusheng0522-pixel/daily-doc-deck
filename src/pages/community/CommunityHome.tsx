@@ -9,7 +9,6 @@ import {
   useUploads,
   useEducationItems,
   useMyProfile,
-  sourceLabel,
 } from "@/data/patients";
 
 const CommunityHome = () => {
@@ -24,13 +23,6 @@ const CommunityHome = () => {
   const waitingReferrals = referrals.filter((r) => r.status === "待接收" && r.direction === "下转");
   const followupPending = followups.filter((f) => f.status !== "已完成").length;
   const abnormal = managed.filter((p) => p.abnormal);
-
-  const flow = [
-    { label: "初筛·分类干预·随访", n: followupPending, unit: "待随访", to: "/community/followup" },
-    { label: "接收上级确诊对象", n: waitingReferrals.length, unit: "待接收", to: "/community/patients?tab=new" },
-    { label: "双向转诊单", n: referrals.filter((r) => r.direction === "上转").length, unit: "已上转", to: "/community/patients" },
-    { label: "建档·干预管理", n: managed.filter((p) => p.community_stage === "干预中").length, unit: "干预中", to: "/community/patients" },
-  ];
 
   const todoItems = [
     {
@@ -104,21 +96,6 @@ const CommunityHome = () => {
         <p className="mt-0.5 text-[11px] opacity-90">小市社区认知训练站 · 对接南京市鼓楼医院 · 记忆门诊</p>
       </Card>
 
-      <Card className="p-3 shadow-soft">
-        <p className="mb-2 text-sm font-semibold">核心工作</p>
-        <div className="grid grid-cols-4 gap-1.5">
-          {flow.map((f, i) => (
-            <button key={f.label} onClick={() => navigate(f.to)} className="rounded-lg bg-primary/5 px-1 py-2 text-center">
-              <p className="text-[10px] text-muted-foreground">{i + 1}</p>
-              <p className="text-lg font-bold text-primary">{f.n}</p>
-              <p className="text-[10px] text-muted-foreground">{f.unit}</p>
-              <p className="mt-0.5 text-[11px] font-medium leading-tight">{f.label}</p>
-            </button>
-          ))}
-        </div>
-        <p className="mt-2 text-[11px] text-muted-foreground">进入老人档案：AD-8 初筛、开上转单、干预建档、安排训练与家庭任务、登记执行与随访</p>
-      </Card>
-
       <div className="flex items-center justify-between px-1 pt-1">
         <div className="flex items-center gap-1.5">
           <Activity className="h-4 w-4 text-accent" />
@@ -181,28 +158,6 @@ const CommunityHome = () => {
         </div>
       </Card>
 
-      <Card className="overflow-hidden">
-        <div className="flex items-center justify-between border-b px-4 py-3">
-          <h3 className="text-sm font-semibold">在管患者来源</h3>
-          <span className="text-[11px] text-muted-foreground">共 {managed.length} 位</span>
-        </div>
-        <div className="divide-y">
-          {managed.map((p) => (
-            <div key={p.id} className="flex items-center gap-2 px-4 py-2.5">
-              <span className="text-[13px] font-medium">{p.name}</span>
-              <span
-                className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                  p.source === "南京市鼓楼医院" ? "bg-primary/10 text-primary" : "bg-accent/10 text-accent"
-                }`}
-              >
-                {sourceLabel(p.source)}
-              </span>
-              <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{p.community_stage}</span>
-              {p.abnormal && <span className="ml-auto text-[10px] text-destructive">异常</span>}
-            </div>
-          ))}
-        </div>
-      </Card>
     </div>
   );
 };
