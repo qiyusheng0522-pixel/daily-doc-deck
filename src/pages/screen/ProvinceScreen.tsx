@@ -1,16 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  Activity, AlertTriangle, ArrowLeftRight, ArrowUp, Bot, Brain, Building2, CalendarCheck, ClipboardCheck,
-  Dumbbell, FileText, Gauge, Home, Info, Layers, MapPin, Search, Sun, Target, TrendingUp, Users, Wrench,
-} from "lucide-react";
-import {
-  Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, Pie, PieChart,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from "recharts";
+import { Link, useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import ProvinceDashboard from "./ProvinceDashboard";
+import { ArrowLeftRight, AlertTriangle, Bot, Brain, Building2, CalendarCheck, ClipboardCheck, Dumbbell, FileText, Gauge, Home, MapPin, Search, Users } from "lucide-react";
 import { JS_CITIES, JS_VIEWBOX } from "@/data/jiangsuMap";
 import { CityView, CountyView } from "./LevelViews";
-import { C, Legend, Panel, axis, tip } from "./screenKit";
 import { GL_AREAS, GL_STATIONS, GL_VIEWBOX, NJ_AREAS, NJ_VIEWBOX } from "@/data/nanjingMap";
 
 
@@ -97,109 +91,6 @@ const NAV_COUNTY = [
   { label: "小组训练", icon: Dumbbell }, { label: "随访预警", icon: AlertTriangle }, { label: "档案质量", icon: FileText },
 ];
 
-const KPIS = [
-  { label: "训练站总数", value: "156", unit: "个", sub: "目标 200 | 进度 78%", icon: Building2 },
-  { label: "服务老年人", value: "27.6", unit: "万人", delta: "+18.7%", icon: Users },
-  { label: "筛查覆盖率", value: "92.4%", delta: "+3.8pct", icon: ClipboardCheck },
-  { label: "干预指导率", value: "91.1%", delta: "+5.2pct", icon: Target },
-  { label: "到院转化率", value: "72.6%", delta: "+6.9pct", icon: ArrowLeftRight },
-  { label: "认知改善率", value: "46.8%", delta: "+12.1pct", icon: Brain },
-];
-
-const FLOW = [
-  { k: "建档", v: "27.6万", icon: FileText }, { k: "筛查", v: "25.5万", icon: Search },
-  { k: "评估", v: "7.9万", icon: ClipboardCheck }, { k: "分层", v: "7.2万", icon: Layers },
-  { k: "干预训练", v: "6.6万", icon: Dumbbell }, { k: "随访", v: "6.3万", icon: CalendarCheck },
-  { k: "转诊", v: "5,842", icon: ArrowLeftRight },
-];
-
-const riskData = (total: number, pct = [70.5, 18.9, 7.1, 3.5]) =>
-  ["低风险", "中风险", "高风险", "极高风险"].map((name, i) => ({
-    name, pct: pct[i], value: +(total * pct[i] / 100).toFixed(2),
-  }));
-const RISK_COLORS = [C.blue, C.green, C.gold, C.red];
-
-const months = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月"];
-const trend = (scale: number) => months.map((m, i) => ({
-  m, a: +((8 + i * 2.3) * scale).toFixed(2), b: +((5 + i * 1.4) * scale).toFixed(2), c: +((3 + i * 1.2) * scale).toFixed(2),
-}));
-
-const QTREND = [
-  { q: "2026Q1", a: 81, b: 76, c: 66 }, { q: "2026Q2", a: 85, b: 82, c: 68 },
-  { q: "2026Q3", a: 89, b: 87, c: 70 }, { q: "2026Q4", a: 92.4, b: 91.1, c: 72.6 },
-];
-const EFFECT = [
-  { k: "认知功能改善率", pre: 34.7, post: 46.8 }, { k: "日常生活能力提升率", pre: 30.7, post: 41.3 },
-  { k: "高风险人群稳定率", pre: 81.2, post: 88.7 },
-];
-const AGENT = [
-  { k: "量表评估完成率", v: "72%", icon: ClipboardCheck }, { k: "训练任务完成率", v: "88.7%", icon: Dumbbell },
-  { k: "随访完成率", v: "95.7%", icon: CalendarCheck }, { k: "宣教触达率", v: "98.1%", icon: Users },
-];
-const ALERTS = [
-  { k: "高风险人群超期未随访", n: 23, t: "10-28 14:12", icon: AlertTriangle, c: "text-scr-red" },
-  { k: "待接收上转申请", n: 18, t: "10-28 13:40", icon: AlertTriangle, c: "text-scr-gold" },
-  { k: "下转对象待建档", n: 7, t: "10-28 11:26", icon: Info, c: "text-scr-cyan" },
-];
-
-export function TrendChart({ data, labels, xKey = "m" }: { data: object[]; labels: string[]; xKey?: string }) {
-  const cols = [C.cyan, C.green, C.purple];
-  return (
-    <div className="flex h-full flex-col">
-      <Legend items={labels.map((k, i) => ({ k, c: cols[i] }))} />
-      <div className="min-h-0 flex-1">
-        <ResponsiveContainer>
-          <AreaChart data={data} margin={{ top: 6, right: 10, left: -18, bottom: 0 }}>
-            <defs>
-              {cols.map((c, i) => (
-                <linearGradient key={i} id={`g${i}${xKey}${labels[0]}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={c} stopOpacity={0.35} /><stop offset="100%" stopColor={c} stopOpacity={0} />
-                </linearGradient>
-              ))}
-            </defs>
-            <CartesianGrid stroke={C.grid} vertical={false} />
-            <XAxis dataKey={xKey} {...axis} />
-            <YAxis {...axis} />
-            <Tooltip {...tip} />
-            {(["a", "b", "c"] as const).map((k, i) => (
-              <Area key={k} dataKey={k} name={labels[i]} stroke={cols[i]} strokeWidth={2} fill={`url(#g${i}${xKey}${labels[0]})`} dot={{ r: 2 }} />
-            ))}
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
-}
-
-export function RiskDonut({ total, label, pct, unit = "万" }: { total: number; label: string; pct?: number[]; unit?: string }) {
-  const data = riskData(total, pct).map((d) => unit === "人" ? { ...d, value: Math.round(d.value) } : d);
-  return (
-    <div className="flex h-full items-center gap-3">
-      <div className="relative h-full min-h-[110px] w-[44%]">
-        <ResponsiveContainer>
-          <PieChart>
-            <Pie data={data} dataKey="value" innerRadius="68%" outerRadius="92%" stroke="none" startAngle={90} endAngle={-270}>
-              {data.map((_, i) => <Cell key={i} fill={RISK_COLORS[i]} />)}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-scr-text">
-          <span className="text-lg font-bold">{label}</span><span className="text-[11px] text-scr-dim">服务人群</span>
-        </div>
-      </div>
-      <ul className="flex-1 space-y-2 text-[13px] text-scr-text">
-        {data.map((d, i) => (
-          <li key={d.name} className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded-sm" style={{ background: RISK_COLORS[i] }} />
-            <span className="w-16">{d.name}</span>
-            <span className="ml-auto tabular-nums">{d.pct}%（{d.value}{unit}）</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 function AreaMap({ level, city, onPick }: { level: Level; city: string; onPick: (c: string) => void }) {
   const cfg = LEVELS[level];
   if (level === "county") {
@@ -261,19 +152,18 @@ function useClock() {
 }
 
 export default function ProvinceScreen() {
+  const [params, setParams] = useSearchParams();
   const [nav, setNav] = useState("总体概览");
   const [level, setLevelRaw] = useState<Level>("province");
   const cfg = LEVELS[level];
   const [city, setCity] = useState(cfg.def);
   const setLevel = (l: Level) => { setLevelRaw(l); setCity(LEVELS[l].def); setNav(l === "county" ? "运营总览" : "总体概览"); };
+  useEffect(() => {
+    const requested = params.get("level");
+    if (requested === "city" || requested === "county" || requested === "province") setLevel(requested);
+  }, [params]);
   const clock = useClock();
   const cs = cfg.areas[city] ?? cfg.areas[cfg.def];
-  const PROV = cfg.base;
-  const kpis = level === "province" ? KPIS : KPIS.map((k, i) => i === 0
-    ? { ...k, value: String(Object.keys(cfg.areas).length > 13 ? 0 : level === "city" ? 22 : 13), sub: level === "city" ? "目标 30 | 进度 73%" : "目标 15 | 进度 87%" }
-    : i === 1 ? { ...k, value: level === "city" ? "3.21" : "3,800", unit: level === "city" ? "万人" : "人" }
-    : i === 2 ? { ...k, value: `${cfg.base.screen}%` } : i === 3 ? { ...k, value: `${cfg.base.guide}%` }
-    : i === 5 ? { ...k, value: `${cfg.base.improve}%` } : k);
   const mapSection = (
           <section className="scr-panel relative flex flex-col p-3">
             <div className="flex gap-2">
@@ -297,177 +187,37 @@ export default function ProvinceScreen() {
           </section>
 
   );
-  const diff = (a: number, b: number) => `${a >= b ? "▲" : "▼"} ${Math.abs(a - b).toFixed(1)}pct`;
-  const fmtElders = (v: number) => cfg.eldersUnit === "人" ? `${v} 人` : `${v} 万`;
-  const scaleFlow = (v: string) => {
-    if (level === "province") return v;
-    const n = v.endsWith("万") ? parseFloat(v) * 10000 : parseFloat(v.replace(",", ""));
-    const r = Math.round(n * cfg.flowScale);
-    return r >= 10000 ? `${(r / 10000).toFixed(2)}万` : r.toLocaleString();
-  };
-
   return (
-    <div className="min-h-screen bg-scr-bg text-scr-text" style={{ backgroundImage: "radial-gradient(ellipse at 50% 40%, hsl(215 90% 18%) 0%, transparent 65%)" }}>
+    <div className="province-screen min-h-screen bg-scr-bg text-scr-text">
       {/* Header */}
-      <header className="relative flex h-16 items-center justify-between px-6">
-        <Link to="/" className="flex items-center gap-2 text-lg font-bold">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-scr-red text-scr-gold">★</span>{cfg.org}
-        </Link>
-        <h1 className="scr-glow absolute left-1/2 -translate-x-1/2 text-[28px] font-black tracking-[0.12em]">{cfg.title}</h1>
-        <div className="flex items-center gap-6 text-sm text-scr-dim">
-          <span className="tabular-nums">{clock}</span>
-          <span className="flex items-center gap-1"><Sun className="h-4 w-4" />南京 18-24℃</span>
-        </div>
+      <header className="province-header grid items-center gap-2 px-4 py-3 xl:grid-cols-[1fr_2.6fr_1fr]">
+        <Link to="/" className="flex items-center gap-2 text-sm font-bold"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-scr-red text-scr-gold">★</span>{cfg.org}</Link>
+        <h1 className="scr-glow pb-2 text-center text-xl font-black xl:text-[25px]">{cfg.title}</h1>
+        <div className="flex items-center justify-end gap-2 text-xs text-scr-dim"><CalendarCheck className="h-4 w-4" /><span className="tabular-nums">{clock}</span></div>
       </header>
 
       {/* Nav */}
-      <nav className="flex justify-center gap-3 px-6 pb-3">
+      <nav className="flex flex-wrap justify-center gap-2 px-4 py-2">
         {(level === "province" ? NAV : level === "city" ? NAV_CITY : NAV_COUNTY).map(({ label, icon: I }) => (
-          <button key={label} onClick={() => setNav(label)}
-            className={`flex items-center gap-2 border px-6 py-1.5 text-sm transition [clip-path:polygon(10%_0,100%_0,90%_100%,0_100%)] ${nav === label ? "border-scr-cyan bg-scr-line/60 font-bold text-scr-text" : "border-scr-line/50 bg-scr-panel/60 text-scr-dim hover:text-scr-text"}`}>
+          <Button variant="screen" key={label} onClick={() => setNav(label)}
+            className={`flex h-8 items-center gap-2 border px-3 py-1.5 text-xs transition ${nav === label ? "border-scr-cyan bg-scr-line/60 font-bold text-scr-text" : "border-scr-line/50 bg-scr-panel/60 text-scr-dim hover:text-scr-text"}`}>
             <I className="h-4 w-4" />{label}
-          </button>
+          </Button>
         ))}
       </nav>
 
-      <div className="flex justify-center gap-2 pb-3">
+      <div className="flex flex-wrap justify-center gap-2 px-3 pb-3">
         <span className="self-center text-xs text-scr-dim">驾驶舱视角：</span>
         {(Object.keys(LEVELS) as Level[]).map((l) => (
-          <button key={l} onClick={() => setLevel(l)}
-            className={`rounded-full border px-5 py-1 text-sm transition ${level === l ? "border-scr-gold bg-scr-gold/20 font-bold text-scr-gold" : "border-scr-line/50 text-scr-dim hover:text-scr-text"}`}>
+          <Button variant="screen" key={l} onClick={() => { setLevel(l); setParams({ level: l }); }}
+            className={`h-7 rounded-full border px-3 py-1 text-xs transition ${level === l ? "border-scr-gold bg-scr-gold/20 font-bold text-scr-gold" : "border-scr-line/50 text-scr-dim hover:text-scr-text"}`}>
             {LEVELS[l].tab}
-          </button>
+          </Button>
         ))}
       </div>
 
       <main className="space-y-3 px-4 pb-4">
-        {level !== "province" ? (level === "city" ? <CityView map={mapSection} area={city} /> : <CountyView map={mapSection} area={city} />) : (<>
-        {/* KPI strip */}
-        <section className="scr-panel grid grid-cols-6 divide-x divide-scr-line/30 py-3">
-          {kpis.map(({ label, value, unit, sub, delta, icon: I }) => (
-            <div key={label} className="flex items-center justify-center gap-4">
-              <span className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-scr-cyan/60 bg-scr-line/30"><I className="h-7 w-7 text-scr-cyan" /></span>
-              <div>
-                <div className="text-sm text-scr-dim">{label}</div>
-                <div className="text-2xl font-black text-scr-gold">{value}{unit && <span className="ml-1 text-sm font-normal text-scr-text">{unit}</span>}</div>
-                {sub ? <div className="text-xs text-scr-dim">{sub}</div> : <div className="flex items-center text-xs text-scr-green"><ArrowUp className="h-3 w-3" />{delta}</div>}
-              </div>
-            </div>
-          ))}
-        </section>
-
-        <div className="grid grid-cols-[1fr_1.6fr_1fr] gap-3">
-          {/* Left */}
-          <div className="flex flex-col gap-3">
-            <Panel title="服务全流程概览" sub="(年度服务量)">
-              <div className="flex items-start justify-between">
-                {FLOW.map(({ k, v: raw, icon: I }, i) => { const v = scaleFlow(raw); return (
-                  <div key={k} className="flex items-start">
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-scr-cyan/50 bg-scr-line/25"><I className="h-5 w-5 text-scr-cyan" /></span>
-                      <span className="text-xs text-scr-dim">{k}</span>
-                      <span className="text-sm font-bold">{v}</span>
-                    </div>
-                    {i < FLOW.length - 1 && <span className="mt-2.5 px-0.5 text-scr-cyan">→</span>}
-                  </div>
-                ); })}
-              </div>
-            </Panel>
-            <Panel title="人群风险分布" sub={`(N=${cfg.totalLabel})`} className="h-44"><RiskDonut unit={cfg.eldersUnit} total={cfg.eldersUnit === "人" ? cfg.total * 10000 : cfg.total} label={cfg.totalLabel} /></Panel>
-            <Panel title="认知健康管理人群趋势" sub="(万人)" className="h-52"><TrendChart data={trend(cfg.total / 27.6)} labels={["建档人数", "干预人数", "随访人数"]} /></Panel>
-            <Panel title="近期重点预警" extra={<span className="text-xs text-scr-dim">更多 ›</span>}>
-              <ul className="divide-y divide-scr-line/25 text-sm">
-                {ALERTS.map(({ k, n, t, icon: I, c }) => (
-                  <li key={k} className="flex items-center gap-2 py-2">
-                    <I className={`h-4 w-4 ${c}`} /><span className="flex-1">{k}</span>
-                    <span className="w-14 font-bold">{n} 人</span><span className="text-xs text-scr-dim tabular-nums">{t}</span>
-                  </li>
-                ))}
-              </ul>
-            </Panel>
-          </div>
-
-          {mapSection}
-
-          {/* Right */}
-          <div className="flex flex-col gap-3">
-            <Panel title="关键服务指标趋势" extra={<span className="rounded border border-scr-line/60 px-2 text-xs text-scr-dim">年度</span>} className="h-56">
-              <div className="flex h-full flex-col">
-                <Legend items={[{ k: "筛查覆盖率", c: C.cyan }, { k: "干预指导率", c: C.green }, { k: "转诊完成率", c: C.gold }]} />
-                <div className="min-h-0 flex-1">
-                  <ResponsiveContainer>
-                    <LineChart data={QTREND} margin={{ top: 8, right: 40, left: -18, bottom: 0 }}>
-                      <CartesianGrid stroke={C.grid} vertical={false} />
-                      <XAxis dataKey="q" {...axis} /><YAxis domain={[60, 100]} unit="%" {...axis} />
-                      <Tooltip {...tip} />
-                      <Line dataKey="a" name="筛查覆盖率" stroke={C.cyan} strokeWidth={2.5}><LabelList dataKey="a" position="right" fill={C.cyan} fontSize={11} formatter={(v: number) => v === 92.4 ? "92.4%" : ""} /></Line>
-                      <Line dataKey="b" name="干预指导率" stroke={C.green} strokeWidth={2.5}><LabelList dataKey="b" position="right" fill={C.green} fontSize={11} formatter={(v: number) => v === 91.1 ? "91.1%" : ""} /></Line>
-                      <Line dataKey="c" name="转诊完成率" stroke={C.gold} strokeWidth={2.5}><LabelList dataKey="c" position="right" fill={C.gold} fontSize={11} formatter={(v: number) => v === 72.6 ? "72.6%" : ""} /></Line>
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </Panel>
-            <Panel title="干预效果评估" sub="(干预前后对比)" className="h-52">
-              <div className="flex h-full flex-col">
-                <Legend items={[{ k: "干预前", c: C.blue }, { k: "干预后", c: C.green }]} />
-                <div className="min-h-0 flex-1">
-                  <ResponsiveContainer>
-                    <BarChart data={EFFECT} margin={{ top: 18, right: 4, left: 4, bottom: 0 }} barGap={4}>
-                      <XAxis dataKey="k" {...axis} interval={0} />
-                      <Tooltip {...tip} cursor={{ fill: "hsl(var(--scr-line) / 0.1)" }} />
-                      <Bar dataKey="pre" name="干预前" fill={C.blue} barSize={26}><LabelList dataKey="pre" position="top" fill="hsl(var(--scr-text))" fontSize={11} formatter={(v: number) => `${v}%`} /></Bar>
-                      <Bar dataKey="post" name="干预后" fill={C.green} barSize={26}><LabelList dataKey="post" position="top" fill={C.gold} fontSize={11} formatter={(v: number) => `${v}%`} /></Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </Panel>
-            <Panel title="智能体应用成效" sub="(人机协同)">
-              <div className="grid grid-cols-4 gap-2">
-                {AGENT.map(({ k, v, icon: I }) => (
-                  <div key={k} className="flex flex-col items-center gap-1 rounded border border-scr-line/40 bg-scr-line/10 py-2 text-center">
-                    <I className="h-6 w-6 text-scr-cyan" /><span className="px-1 text-[11px] text-scr-dim">{k}</span>
-                    <span className="text-lg font-black text-scr-gold">{v}</span>
-                  </div>
-                ))}
-              </div>
-            </Panel>
-          </div>
-        </div>
-
-        {/* City detail */}
-        <section className="scr-panel p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-lg font-bold"><MapPin className="h-5 w-5 text-scr-cyan" />{city}{cfg.suffix}<span className="text-sm font-normal text-scr-dim">服务管理详情</span></h3>
-            <div className="flex gap-6 text-sm text-scr-dim">
-              <span>{level === "province" ? "较全省均值" : level === "city" ? "较全市均值" : "较全区均值"}：</span>
-              <span>筛查覆盖率 <b className="text-scr-green">{diff(cs.screen, PROV.screen)}</b></span>
-              <span>干预指导率 <b className="text-scr-green">{diff(cs.guide, PROV.guide)}</b></span>
-              <span>认知改善率 <b className="text-scr-green">{diff(cs.improve, PROV.improve)}</b></span>
-            </div>
-          </div>
-          <div className="grid h-52 grid-cols-[1fr_1.6fr_1.2fr] gap-4">
-            <ul className="space-y-1.5 text-sm">
-              {[
-                { k: cfg.countLabel, v: `${cs.stations} ${cfg.countUnit}`, I: Building2 }, { k: "服务老年人", v: fmtElders(cs.elders), I: Users },
-                { k: "筛查覆盖率", v: `${cs.screen}%`, I: ClipboardCheck }, { k: "干预指导率", v: `${cs.guide}%`, I: Activity },
-                { k: "转诊完成率", v: `${cs.referral}%`, I: ArrowLeftRight }, { k: "认知改善率", v: `${cs.improve}%`, I: TrendingUp },
-              ].map(({ k, v, I }) => (
-                <li key={k} className="flex items-center gap-3 border-b border-scr-line/20 pb-1">
-                  <I className="h-4 w-4 text-scr-cyan" /><span className="w-24 text-scr-dim">{k}</span><span className="text-lg font-black text-scr-gold">{v}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="flex flex-col"><h4 className="text-sm font-bold">{city}{cfg.suffix}服务趋势 <span className="font-normal text-scr-dim">(万人)</span></h4>
-              <div className="min-h-0 flex-1"><TrendChart data={trend(cfg.eldersUnit === "人" ? cs.elders / 276000 : cs.elders / 27.6)} labels={["筛查人数", "干预人数", "随访人数"]} /></div>
-            </div>
-            <div className="flex flex-col"><h4 className="text-sm font-bold">{city}{cfg.suffix}人群风险分布 <span className="font-normal text-scr-dim">(N={fmtElders(cs.elders)})</span></h4>
-              <div className="min-h-0 flex-1"><RiskDonut unit={cfg.eldersUnit} total={cs.elders} label={fmtElders(cs.elders)} pct={[71.3, 18.6, 6.8, 3.3]} /></div>
-            </div>
-          </div>
-        </section>
-        </>)}
+        {level === "province" ? <ProvinceDashboard nav={nav} onOverview={() => setNav("总体概览")} /> : level === "city" ? <CityView map={mapSection} area={city} /> : <CountyView map={mapSection} area={city} />}
       </main>
     </div>
   );

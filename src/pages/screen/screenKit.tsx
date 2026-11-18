@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 export const C = {
   cyan: "hsl(var(--scr-cyan))", green: "hsl(var(--scr-green))", gold: "hsl(var(--scr-gold))",
-  red: "hsl(var(--scr-red))", blue: "hsl(210 90% 58%)", purple: "hsl(265 80% 70%)",
+  red: "hsl(var(--scr-red))", blue: "hsl(var(--scr-blue))", purple: "hsl(var(--scr-violet))",
   dim: "hsl(var(--scr-dim))", grid: "hsl(var(--scr-line) / 0.2)",
 };
 
