@@ -1,0 +1,1 @@
+CREATE POLICY referrals_doctor_update ON public.referrals FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'doctor'::app_role)) WITH CHECK (public.has_role(auth.uid(), 'doctor'::app_role));

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import ActionSheet from "@/components/nurse/ActionSheet";
-import { planConfirmed, needsReferral, COMMUNITY_STATIONS } from "@/data/cognitive";
+import { planConfirmed, needsReferral, COMMUNITY_STATIONS, DIAG_DEPTS, AD8_ITEMS } from "@/data/cognitive";
 import PlanReview from "@/components/cognitive/PlanReview";
 import { Camera } from "lucide-react";
 import AiAdvicePanel from "@/components/cognitive/AiAdvicePanel";
@@ -51,6 +51,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const [station, setStation] = useState<string>(COMMUNITY_STATIONS[0]);
   const [uploading, setUploading] = useState(false);
   const [task, setTask] = useState<null | { domain: string; activity: string; setting: string; date: string; duration: string }>(null);
+  const [ad8, setAd8] = useState<null | boolean[]>(null);
+  const [accept, setAccept] = useState<null | { rid: string; dept: string; diag: string; feedback: string }>(null);
   const [fu, setFu] = useState<null | { item: string; note: string }>(null);
   const [edit, setEdit] = useState<null | { kind: "profile" | "assess"; v: Record<string, string> }>(null);
 
@@ -131,8 +133,36 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     if (error) return toast({ title: "保存失败", description: error.message });
     refresh(); setFu(null); toast({ title: "随访已记录" });
   };
+  const saveAd8 = async () => {
+    if (!ad8) return;
+    const total = ad8.filter(Boolean).length;
+    setSaving(true);
+    await supabase.from("scale_assessments").insert({ patient_id: p.id, scale: "ad8", items: Object.fromEntries(AD8_ITEMS.map((t, i) => [t, ad8[i] ? 1 : 0])), total, assessed_by: "社区护理康复" });
+    const { error } = await supabase.from("patients").update({ ad8: total }).eq("id", p.id);
+    setSaving(false);
+    if (error) return toast({ title: "保存失败", description: error.message });
+    qc.invalidateQueries({ queryKey: ["patient", p.id] }); qc.invalidateQueries({ queryKey: ["patients"] }); setAd8(null);
+    toast({ title: `AD-8 初筛 ${total} 分`, description: total >= 2 ? "阳性：建议进一步 MMSE/MoCA 评估，中高风险开具上转单" : "阴性：健康宣教，每年复评" });
+  };
+  const buildFile = async () => {
+    const { error } = await supabase.from("patients").update({ community_stage: "干预中" }).eq("id", p.id);
+    if (error) return toast({ title: "建档失败", description: error.message });
+    qc.invalidateQueries({ queryKey: ["patient", p.id] }); qc.invalidateQueries({ queryKey: ["patients"] });
+    toast({ title: "已建档，进入干预管理", description: "按分级干预方案安排训练与随访" });
+  };
+  const saveAccept = async () => {
+    if (!accept || !accept.feedback.trim()) return toast({ title: "请填写指导意见" });
+    setSaving(true);
+    const { error } = await supabase.from("referrals").update({ status: "已接收", received_at: new Date().toISOString(), dept: accept.dept, feedback: accept.feedback.trim().slice(0, 1000) }).eq("id", accept.rid);
+    if (!error && accept.diag.trim()) await supabase.from("patients").update({ cognitive_diagnosis: accept.diag.trim().slice(0, 60), refer_dept: accept.dept }).eq("id", p.id);
+    setSaving(false);
+    if (error) return toast({ title: "提交失败", description: error.message });
+    qc.invalidateQueries(); setAccept(null);
+    toast({ title: "已接诊确认", description: "指导意见已反馈至社区训练站" });
+  };
   const plan = p.cognitive_risk ? RISK_PLAN[p.cognitive_risk] : null;
   const myRefs = referrals.filter((r) => r.patient_id === p.id);
+  const pendingUp = myRefs.find((r) => r.direction === "上转" && r.status === "待接收");
 
   const submit = () => {
     const direction = sheet === "up" ? "上转" : "下转";
@@ -198,6 +228,13 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           </div>
         </Card>
 
+        {role === "doctor" && pendingUp && (
+          <Card className="border-warning/40 bg-warning/5 p-3 shadow-soft">
+            <p className="text-sm font-semibold">上转待接诊 · 来自{pendingUp.from_hospital}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{pendingUp.reason}</p>
+            <Button size="sm" className="mt-2 w-full" onClick={() => setAccept({ rid: pendingUp.id, dept: DIAG_DEPTS[0], diag: p.cognitive_diagnosis ?? "", feedback: "" })}>接诊确认并反馈指导意见</Button>
+          </Card>
+        )}
         {role === "doctor" && <AiAdvicePanel key={p.id} patientId={p.id} name={p.name} saved={p.ai_plan} savedAt={p.ai_plan_at} />}
         {role === "doctor" && <PlanReview p={p} showCurrent={false} />}
         {role === "community" && (planConfirmed(p)
@@ -206,6 +243,12 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         {role === "community" && (
           <Card className="p-3 shadow-soft">
             <p className="mb-2 text-sm font-semibold">训练站工作</p>
+            <div className="mb-2 grid grid-cols-2 gap-2">
+              <Button size="sm" variant="outline" onClick={() => setAd8(AD8_ITEMS.map(() => false))}>AD-8 初筛评估</Button>
+              {p.community_stage === "新接收"
+                ? <Button size="sm" onClick={buildFile}>干预建档</Button>
+                : <Button size="sm" variant="outline" disabled>{p.community_stage === "干预中" ? "干预管理中" : "已建档"}</Button>}
+            </div>
             <div className="grid grid-cols-3 gap-2">
               <Button size="sm" variant="outline" onClick={() => setTask({ domain: TRAINING_DOMAINS[0], activity: "", setting: "站内小组", date: new Date().toISOString().slice(0, 10), duration: "30" })}>安排小组训练</Button>
               <Button size="sm" variant="outline" onClick={() => setTask({ domain: TRAINING_DOMAINS[0], activity: "", setting: "家庭任务", date: new Date().toISOString().slice(0, 10), duration: "20" })}>发放家庭任务</Button>
@@ -284,6 +327,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             <div key={r.id} className="mb-2 rounded-lg border p-2 text-xs">
               <p className="font-medium">{r.direction} · {r.from_hospital} → {r.to_community} <span className="text-muted-foreground">({r.status})</span></p>
               <p className="text-muted-foreground">{r.reason}</p>
+              {r.feedback && <p className="mt-1 rounded bg-primary/5 p-1.5"><span className="font-medium text-primary">指导意见{r.dept ? `（${r.dept}）` : ""}：</span>{r.feedback}</p>}
             </div>
           ))}
         </Card>
@@ -356,6 +400,26 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         )}
       </ActionSheet>
 
+      <ActionSheet open={!!ad8} onOpenChange={(o) => !o && setAd8(null)} title="AD-8 初筛评估" description="询问知情者，近几年是否出现以下变化（≥2 分为阳性）"
+        footer={<Button className="w-full" disabled={saving} onClick={saveAd8}>保存（{ad8?.filter(Boolean).length ?? 0} 分）</Button>}>
+        {ad8 && <div className="space-y-1.5">{AD8_ITEMS.map((t, i) => (
+          <button key={t} onClick={() => setAd8(ad8.map((v, j) => (j === i ? !v : v)))}
+            className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-xs ${ad8[i] ? "border-primary bg-primary/10 text-primary" : ""}`}>
+            <span>{i + 1}. {t}</span><span className="ml-2 shrink-0">{ad8[i] ? "是" : "否"}</span></button>))}</div>}
+      </ActionSheet>
+
+      <ActionSheet open={!!accept} onOpenChange={(o) => !o && setAccept(null)} title="接诊确认并反馈" description="三级医院确诊后反馈指导意见至社区训练站"
+        footer={<Button className="w-full" disabled={saving} onClick={saveAccept}>确认接诊</Button>}>
+        {accept && (
+          <div className="space-y-2">
+            <div className="grid grid-cols-3 gap-1">{DIAG_DEPTS.map((d) => (
+              <button key={d} onClick={() => setAccept({ ...accept, dept: d })} className={`rounded border py-1.5 text-xs ${accept.dept === d ? "border-primary bg-primary/10 text-primary" : ""}`}>{d}</button>))}</div>
+            <Input value={accept.diag} maxLength={60} onChange={(e) => setAccept({ ...accept, diag: e.target.value })} placeholder="确诊诊断，如：轻度认知障碍（MCI）" />
+            <Textarea rows={4} maxLength={1000} value={accept.feedback} onChange={(e) => setAccept({ ...accept, feedback: e.target.value })} placeholder="指导意见：用药、训练重点、复评时间、需注意事项…" />
+          </div>
+        )}
+      </ActionSheet>
+
       <ActionSheet open={!!fu} onOpenChange={(o) => !o && setFu(null)} title="记录随访" description="每月随访，记录老人状态与家庭训练执行情况"
         footer={<Button className="w-full" disabled={saving} onClick={saveFu}>保存</Button>}>
         {fu && (
@@ -391,7 +455,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       </ActionSheet>
 
       <ActionSheet open={!!sheet} onOpenChange={(o) => !o && setSheet(null)}
-        title={sheet === "up" ? "开具上转单 · 鼓楼医院记忆门诊" : "确诊下转 · 选择承接社区"}
+        title={sheet === "up" ? "开具上转单 · 鼓楼医院记忆门诊" : "确诊下转 · 选择承接机构"}
         description={sheet === "up" ? "疑似认知障碍，筛查评估后 3 个工作日内推送" : "填写诊疗建议，训练站接诊后 5 个工作日内建档"}
         footer={<Button className="w-full" disabled={createReferral.isPending} onClick={submit}>确认提交</Button>}>
         {sheet === "down" && (

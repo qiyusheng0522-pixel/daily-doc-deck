@@ -69,6 +69,25 @@ const DoctorHome = () => {
         <KpiCell num={upQueue.length} label="待确诊" color="text-amber-600" />
       </section>
 
+      <section className="rounded-2xl bg-card p-4 shadow-sm ring-1 ring-border/60">
+        <p className="mb-2 text-sm font-semibold">指导中心职责</p>
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          {[
+            { t: "确诊", d: "记忆门诊 / 神经内科 / 老年医学科", n: upQueue.length, u: "待确诊", to: upQueue[0] ? `/doctor/patients/${upQueue[0].patient_id}` : "/doctor/patients" },
+            { t: "接诊确认并反馈", d: "上转接诊，反馈指导意见", n: upQueue.length, u: "待接诊", to: upQueue[0] ? `/doctor/patients/${upQueue[0].patient_id}` : "/doctor/patients" },
+            { t: "下转并给诊疗建议", d: "下转社区训练站或县级龙头医院", n: referrals.filter((r) => r.direction === "下转").length, u: "已下转", to: "/doctor/patients" },
+            { t: "技术与方案支撑", d: "审核模型方案，量表评估", n: patients.filter((p) => p.ai_plan && !p.ai_plan_confirmed_at && (p.cognitive_risk === "中风险" || p.cognitive_risk === "高风险")).length, u: "待确认方案", to: "/doctor/plans" },
+          ].map((x) => (
+            <button key={x.t} onClick={() => navigate(x.to)} className="rounded-xl bg-primary/5 p-2.5 text-left">
+              <p className="font-semibold">{x.t}</p>
+              <p className="text-[10px] text-muted-foreground">{x.d}</p>
+              <p className="mt-1"><span className="text-base font-bold text-primary">{x.n}</span> <span className="text-[10px] text-muted-foreground">{x.u}</span></p>
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-[10px] text-muted-foreground">县级龙头医院承接部分市级下转患者的接续管理（下转时可选择）</p>
+      </section>
+
       <section className="grid grid-cols-2 gap-3">
         <TileCard
           to="/doctor/patients"

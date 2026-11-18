@@ -1,0 +1,1 @@
+ALTER TABLE public.referrals ADD COLUMN dept text, ADD COLUMN feedback text;

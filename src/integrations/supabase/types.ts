@@ -704,8 +704,10 @@ export type Database = {
       referrals: {
         Row: {
           created_at: string
+          dept: string | null
           direction: string
           doctor_name: string | null
+          feedback: string | null
           from_hospital: string
           id: string
           patient_id: string
@@ -716,8 +718,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dept?: string | null
           direction?: string
           doctor_name?: string | null
+          feedback?: string | null
           from_hospital?: string
           id?: string
           patient_id: string
@@ -728,8 +732,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dept?: string | null
           direction?: string
           doctor_name?: string | null
+          feedback?: string | null
           from_hospital?: string
           id?: string
           patient_id?: string

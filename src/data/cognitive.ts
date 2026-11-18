@@ -70,4 +70,9 @@ export function needsReferral(risk: string | null | undefined): boolean {
 }
 
 /** 可下转承接的社区认知训练站（试点：小市先行） */
-export const COMMUNITY_STATIONS = ["小市社区认知训练站", "第二试点社区认知训练站（名称待定）"] as const;
+export const COMMUNITY_STATIONS = ["小市社区认知训练站", "第二试点社区认知训练站（名称待定）", "县级龙头医院（接续管理）"] as const;
+
+/** 上级指导中心确诊科室 */
+export const DIAG_DEPTS = ["记忆门诊", "神经内科", "老年医学科"] as const;
+
+export const AD8_ITEMS = ["判断力出现问题（如做决定困难、财务决定错误）", "对活动和嗜好的兴趣降低", "重复相同的问题、故事或陈述", "学习使用工具、电器或小器具有困难", "忘记正确的月份或年份", "处理复杂的财务问题有困难", "记不住约会时间", "每天都有思考和记忆方面的问题"] as const;

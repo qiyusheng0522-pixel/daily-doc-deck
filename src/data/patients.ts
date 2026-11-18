@@ -125,6 +125,8 @@ export type Referral = {
   direction: "上转" | "下转";
   created_at: string;
   received_at: string | null;
+  dept?: string | null;
+  feedback?: string | null;
 };
 
 export type Followup = {

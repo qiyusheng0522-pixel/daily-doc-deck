@@ -26,10 +26,10 @@ const CommunityHome = () => {
   const abnormal = managed.filter((p) => p.abnormal);
 
   const flow = [
-    { label: "承接建档", n: waitingReferrals.length, unit: "待接收", to: "/community/patients?tab=new" },
-    { label: "训练与家庭任务", n: managed.filter((p) => p.community_stage === "干预中").length, unit: "干预中", to: "/community/patients" },
-    { label: "记录执行", n: managed.length, unit: "在管", to: "/community/patients" },
-    { label: "随访", n: followupPending, unit: "待随访", to: "/community/followup" },
+    { label: "初筛·分类干预·随访", n: followupPending, unit: "待随访", to: "/community/followup" },
+    { label: "接收上级确诊对象", n: waitingReferrals.length, unit: "待接收", to: "/community/patients?tab=new" },
+    { label: "双向转诊单", n: referrals.filter((r) => r.direction === "上转").length, unit: "已上转", to: "/community/patients" },
+    { label: "建档·干预管理", n: managed.filter((p) => p.community_stage === "干预中").length, unit: "干预中", to: "/community/patients" },
   ];
 
   const todoItems = [
@@ -116,7 +116,7 @@ const CommunityHome = () => {
             </button>
           ))}
         </div>
-        <p className="mt-2 text-[11px] text-muted-foreground">进入老人档案可安排小组训练、发放家庭任务、登记执行和随访</p>
+        <p className="mt-2 text-[11px] text-muted-foreground">进入老人档案：AD-8 初筛、开上转单、干预建档、安排训练与家庭任务、登记执行与随访</p>
       </Card>
 
       <div className="flex items-center justify-between px-1 pt-1">
