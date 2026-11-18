@@ -1,11 +1,13 @@
 import type { CognitiveRisk } from "./patients";
 
 /** 风险分层对应的干预方案与复评周期（依据训练站分级干预随访流程图） */
-export const RISK_PLAN: Record<CognitiveRisk, { group: string; reassess: string; actions: string[] }> = {
+export const RISK_PLAN: Record<CognitiveRisk, { group: string; reassess: string; actions: string[]; doctor: string[]; community: string[] }> = {
   低风险: {
     group: "认知正常 / 主观认知下降",
     reassess: "每年 1 次",
     actions: ["训练站治疗师、家庭医生联合制定随访评估计划", "健康宣教"],
+    doctor: ["无需转诊确诊，确认分级即可", "留在社区，每年复评 1 次"],
+    community: ["与家庭医生联合制定随访评估计划", "推送健康宣教", "每年复评 1 次"],
   },
   中风险: {
     group: "轻度认知障碍、轻度痴呆、中度痴呆",
@@ -16,6 +18,8 @@ export const RISK_PLAN: Record<CognitiveRisk, { group: string; reassess: string;
       "家庭作业每周 1-2 次，每次 20-30 分钟",
       "风险因素管理",
     ],
+    doctor: ["接收上转单，记忆门诊确诊 / 制定治疗方案", "下转训练站并给出诊疗建议", "每 6 个月复评时提供指导"],
+    community: ["筛查评估后 3 个工作日内开具上转单", "下转接诊后 5 个工作日内建档", "认知训练：每周 1-3 次 × 20-30 分钟，6-12 人小组", "布置家庭作业：每周 1-2 次 × 20-30 分钟", "其他非药物干预 + 风险因素管理", "每 6 个月复评"],
   },
   高风险: {
     group: "重度痴呆",
@@ -25,6 +29,8 @@ export const RISK_PLAN: Record<CognitiveRisk, { group: string; reassess: string;
       "长期护理或家庭病床服务，上门评估与康复干预",
       "风险因素管理",
     ],
+    doctor: ["接收上转单，确诊 / 制定治疗方案", "下转并建议长期护理或家庭病床", "每 3 个月复评时提供指导"],
+    community: ["筛查评估后 3 个工作日内开具上转单", "符合条件的行动不便老人纳入家庭病床", "上门评估与康复干预", "风险因素管理", "每 3 个月复评"],
   },
 };
 

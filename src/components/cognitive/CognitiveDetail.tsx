@@ -166,7 +166,14 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           <Card className="p-4 shadow-soft">
             <p className="text-sm font-semibold">分级干预方案 · {p.cognitive_risk}</p>
             <p className="text-[11px] text-muted-foreground">{plan.group} · 复评{plan.reassess}</p>
-            <ul className="mt-2 list-disc space-y-1 pl-4 text-xs">{plan.actions.map((a) => <li key={a}>{a}</li>)}</ul>
+            <div className="mt-2 space-y-2">
+              {([["doctor", "评估医生要做"], ["community", "社区训练站要做"]] as const).map(([k, label]) => (
+                <div key={k} className={`rounded-lg border p-2.5 ${role === k ? "border-primary bg-primary/5" : "opacity-70"}`}>
+                  <p className="mb-1 text-xs font-semibold">{label}{role === k && <span className="ml-1 text-primary">· 我</span>}</p>
+                  <ol className="list-decimal space-y-1 pl-4 text-xs">{plan[k].map((a) => <li key={a}>{a}</li>)}</ol>
+                </div>
+              ))}
+            </div>
             {p.cognitive_risk !== "低风险" && (
               <>
                 <p className="mt-3 text-[11px] text-muted-foreground">认知训练八大领域</p>
