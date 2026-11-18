@@ -13,8 +13,8 @@ import { ad8Positive } from "@/data/cognitive";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Row = Tables<"screenings">;
-const STATUSES = ["全部", "待核对", "已核对", "已转介", "已预约"] as const;
-const TARGETS = ["小市社区认知训练站", "鼓楼医院记忆门诊"];
+const STATUSES = ["全部", "待核对", "已核对", "已沟通", "已预约"] as const;
+const TARGETS = ["小市社区认知训练站"];
 const OPERATOR = "体检中心 王筛查";
 
 function useScreenings() {
@@ -30,7 +30,7 @@ function useScreenings() {
 
 const tone: Record<string, string> = {
   待核对: "bg-warning/15 text-warning", 已核对: "bg-primary/10 text-primary",
-  已转介: "bg-accent/15 text-accent", 已预约: "bg-success/15 text-success",
+  已沟通: "bg-accent/15 text-accent", 已预约: "bg-success/15 text-success",
 };
 
 export default function ScreeningCenter() {
@@ -67,8 +67,8 @@ export default function ScreeningCenter() {
       save.mutate({ id: row.id, ad8: n, status: "已核对", verified_by: OPERATOR, note: note || null },
         { onSuccess: () => toast({ title: "初筛结果已核对", description: ad8Positive(n) ? "AD-8 ≥2 分为阳性，请登记转介" : "阴性：纳入宣教与年度复查" }) });
     } else if (kind === "refer") {
-      save.mutate({ id: row.id, status: "已转介", refer_to: target, note: note || null },
-        { onSuccess: () => toast({ title: `已转介至${target}` }) });
+      save.mutate({ id: row.id, status: "已沟通", refer_to: target, note: note || null },
+        { onSuccess: () => toast({ title: "已电话沟通", description: `老人同意前往${target}，请登记预约` }) });
     } else {
       if (!when) return toast({ title: "请选择预约时间" });
       save.mutate({ id: row.id, status: "已预约", appointment_at: new Date(when).toISOString(), note: note || null },
@@ -92,7 +92,7 @@ export default function ScreeningCenter() {
             <header className="flex items-center gap-2 border-b bg-card px-4 py-3">
               <Link to="/" aria-label="返回首页" className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></Link>
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground"><Stethoscope className="h-4 w-4" /></div>
-              <div className="min-w-0 flex-1"><h1 className="text-base font-semibold">体检中心筛查端</h1><p className="text-[11px] text-muted-foreground">核对初筛 · 登记转介 · 预约</p></div>
+              <div className="min-w-0 flex-1"><h1 className="text-base font-semibold">体检中心筛查端</h1><p className="text-[11px] text-muted-foreground">筛出异常 · 电话沟通 · 预约到训练站</p></div>
               <Button variant="ghost" size="icon" disabled title="体检系统接口尚未接入" aria-label="从体检系统同步（未接入）"><RefreshCw className="h-4 w-4" /></Button>
             </header>
             <main className="flex-1 space-y-3 overflow-y-auto bg-muted/30 p-3">
@@ -117,27 +117,27 @@ export default function ScreeningCenter() {
                       <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
                         <span>体检：{r.exam_date}</span><span>电话：{r.phone}</span>
                         <span>AD-8：<b className={pos ? "text-destructive" : "text-foreground"}>{r.ad8}</b> {pos ? "阳性" : "阴性"}</span>
-                        <span className="truncate">去向：{r.refer_to ?? "—"}</span>
+                        <span className="truncate">训练站：{r.refer_to ?? "—"}</span>
                         {r.appointment_at && <span className="col-span-2">预约：{new Date(r.appointment_at).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>}
                       </div>
                       <div className="flex justify-end">
                         {r.status === "待核对" && <Button size="sm" variant="outline" onClick={() => open("verify", r)}><CheckCircle2 className="mr-1 h-3.5 w-3.5" />核对</Button>}
-                        {r.status === "已核对" && pos && <Button size="sm" onClick={() => open("refer", r)}><Send className="mr-1 h-3.5 w-3.5" />登记转介</Button>}
+                        {r.status === "已核对" && pos && <Button size="sm" onClick={() => open("refer", r)}><Send className="mr-1 h-3.5 w-3.5" />电话沟通</Button>}
                         {r.status === "已核对" && !pos && <span className="text-xs text-muted-foreground">宣教 + 年度复查</span>}
-                        {r.status === "已转介" && <Button size="sm" onClick={() => open("book", r)}><CalendarClock className="mr-1 h-3.5 w-3.5" />预约</Button>}
+                        {r.status === "已沟通" && <Button size="sm" onClick={() => open("book", r)}><CalendarClock className="mr-1 h-3.5 w-3.5" />预约</Button>}
                         {r.status === "已预约" && <span className="text-xs text-success">已完成</span>}
                       </div>
                     </Card>
                   );
                 })}
-              <p className="flex gap-1 text-[11px] leading-4 text-muted-foreground"><ClipboardList className="h-3.5 w-3.5 shrink-0" />AD-8 ≥2 分为阳性，转介至训练站做 MMSE/MoCA 评估或至记忆门诊；&lt;2 分纳入宣教与年度复查。</p>
+              <p className="flex gap-1 text-[11px] leading-4 text-muted-foreground"><ClipboardList className="h-3.5 w-3.5 shrink-0" />AD-8 ≥2 分为异常，电话沟通后预约到小市社区认知训练站进一步评估；&lt;2 分纳入宣教与年度复查。</p>
             </main>
             {act && (
               <div className="absolute inset-0 z-30 flex items-end bg-foreground/40" onClick={() => setAct(null)}>
                 <div role="dialog" aria-label="操作" className="w-full space-y-3 rounded-t-2xl bg-card p-4" onClick={(e) => e.stopPropagation()}>
-                  <h2 className="font-semibold">{act.kind === "verify" ? "核对初筛结果" : act.kind === "refer" ? "登记转介" : "登记预约"} · {act.row.name}</h2>
+                  <h2 className="font-semibold">{act.kind === "verify" ? "核对初筛结果" : act.kind === "refer" ? "电话沟通记录" : "预约到训练站"} · {act.row.name}</h2>
                   {act.kind === "verify" && <div><p className="mb-1 text-sm">AD-8 得分（0-8）</p><Input type="number" min={0} max={8} value={ad8} onChange={(e) => setAd8(e.target.value)} /></div>}
-                  {act.kind === "refer" && <div className="grid grid-cols-2 gap-2">{TARGETS.map((t) => <button key={t} onClick={() => setTarget(t)} className={`rounded-lg border p-3 text-sm ${target === t ? "border-primary bg-primary/10 text-primary" : ""}`}>{t}</button>)}</div>}
+                  {act.kind === "refer" && <div className="rounded-lg border bg-muted/40 p-3 text-sm"><p>📞 {act.row.phone ?? "未留电话"}</p><p className="mt-1 text-xs text-muted-foreground">告知初筛异常，邀请到 {TARGETS[0]} 做进一步评估；在备注写下沟通结果。</p></div>}
                   {act.kind === "book" && <div><p className="mb-1 text-sm">预约时间（{act.row.refer_to}）</p><Input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} /></div>}
                   <div><p className="mb-1 text-sm">备注</p><Textarea rows={2} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} /></div>
                   <div className="grid grid-cols-2 gap-2"><Button variant="outline" onClick={() => setAct(null)}>取消</Button><Button disabled={save.isPending} onClick={submit}>确认</Button></div>
