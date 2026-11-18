@@ -4,12 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 // 四端共用的数据层：所有患者与流程记录都来自同一个数据库。
 // 端与端之间看到的必须是同一个人，所以这里只做读取与写入，不再放任何硬编码名单。
 
-export type Source = "南京市鼓楼医院" | "兰园社区";
-export type HospitalStage = "待入院" | "院中" | "待出院" | "历史";
-export type CommunityStage = "新接收" | "随访中" | "复诊待约" | "历史";
+export type Source = "南京市鼓楼医院" | "小市社区" | "兰园社区";
+export type CognitiveRisk = "低风险" | "中风险" | "高风险";
+/** 护士端(评估师/治疗管理师)阶段 */
+export type HospitalStage = "待评估" | "评估中" | "待转诊" | "历史";
+/** 社区端(认知训练站)阶段 */
+export type CommunityStage = "新接收" | "干预中" | "待复评" | "历史";
 export type FollowupStatus = "待随访" | "需复访" | "已完成";
 export type ReferralStatus = "待接收" | "已接收";
-export type TaskKind = "待办" | "宣教" | "出院下转";
+export type TaskKind = "待办" | "宣教" | "转诊";
 export type TaskStatus = "待执行" | "已完成";
 
 export type Patient = {
@@ -42,6 +45,15 @@ export type Patient = {
   vitals_flags: Record<string, "正常" | "偏高" | "偏低" | "异常">;
   risk_tags: string[];
   lifestyle_warnings: string[];
+  ad8: number | null;
+  mmse: number | null;
+  moca: number | null;
+  scd_q9: number | null;
+  adl: number | null;
+  cognitive_risk: CognitiveRisk | null;
+  cognitive_diagnosis: string | null;
+  next_reassess: string | null;
+  caregiver: string | null;
   created_at: string;
 };
 
@@ -104,6 +116,7 @@ export type Referral = {
   reason: string | null;
   status: ReferralStatus;
   doctor_name: string | null;
+  direction: "上转" | "下转";
   created_at: string;
   received_at: string | null;
 };
@@ -159,7 +172,7 @@ export type Med = {
 export const DEMO_PATIENT_NAME = "王建国";
 
 const PATIENT_FIELDS =
-  "id, name, gender, age, phone, diagnosis, allergy, source, bed_number, id_no, vip, stroke_type, condition_category, hospital_stage, community_stage, abnormal, last_visit, refer_dept, refer_doctor, nihss, mrs, limb_power, bp, hr, ldl, glucose, vitals_flags, risk_tags, lifestyle_warnings, created_at";
+  "id, name, gender, age, phone, diagnosis, allergy, source, bed_number, id_no, vip, stroke_type, condition_category, hospital_stage, community_stage, abnormal, last_visit, refer_dept, refer_doctor, nihss, mrs, limb_power, bp, hr, ldl, glucose, vitals_flags, risk_tags, lifestyle_warnings, ad8, mmse, moca, scd_q9, adl, cognitive_risk, cognitive_diagnosis, next_reassess, caregiver, created_at";
 
 async function pick<T>(query: { then: (r: (v: { data: T | null; error: unknown }) => void) => unknown }, label: string): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -427,10 +440,10 @@ export function useMeds(patientId?: string) {
 export function useCreateReferral() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { patientId: string; reason: string; doctorName?: string }) => {
+    mutationFn: async (input: { patientId: string; reason: string; doctorName?: string; direction?: "上转" | "下转" }) => {
       const { data, error } = await supabase
         .from("referrals")
-        .insert({ patient_id: input.patientId, reason: input.reason, doctor_name: input.doctorName ?? null, status: "待接收" })
+        .insert({ patient_id: input.patientId, reason: input.reason, doctor_name: input.doctorName ?? null, status: "待接收", direction: input.direction ?? "下转", ...(input.direction === "上转" ? { from_hospital: "小市社区", to_community: "南京市鼓楼医院" } : {}) })
         .select("*")
         .single();
       if (error) throw error;
@@ -478,7 +491,7 @@ export function useCreateUpload() {
       if (error) throw error;
       const { error: e2 } = await supabase
         .from("patients")
-        .update({ community_stage: "复诊待约", last_visit: "刚刚上传鼓楼" })
+        .update({ community_stage: "待复评", last_visit: "刚刚上传鼓楼" })
         .eq("id", input.patientId);
       if (e2) throw e2;
       return data as Upload;
