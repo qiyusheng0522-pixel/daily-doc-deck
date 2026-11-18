@@ -32,7 +32,7 @@ const NurseHandover = () => {
         onSuccess: () => {
           toast({
             title: "交接已发送",
-            description: `${selected.name} 已下转兰园社区，等待社区接收`,
+            description: `${selected.name} 已下转小市社区，等待社区接收`,
           });
           setSelected(null);
           setNote("");
@@ -78,7 +78,7 @@ const NurseHandover = () => {
               <p className="mb-1.5 text-xs font-medium text-muted-foreground">护理记录汇总</p>
               <div className="rounded-lg bg-muted/40 p-3 text-xs leading-relaxed">
                 主要诊断 {selected.diagnosis}。当前血压 {selected.bp}、心率 {selected.hr}、LDL {selected.ldl}、空腹血糖 {selected.glucose}；
-                NIHSS {selected.nihss}、mRS {selected.mrs}、{selected.limb_power}。过敏史：{selected.allergy ?? "无"}。
+                MMSE {selected.nihss}、MoCA {selected.mrs}、{selected.limb_power}。过敏史：{selected.allergy ?? "无"}。
                 建议社区每周随访血压一次，并按医嘱继续二级预防用药。
               </div>
             </div>
@@ -118,7 +118,7 @@ const NurseHandover = () => {
               <p className="mb-1.5 text-xs font-medium text-muted-foreground">转交去向</p>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: "转入社区", desc: "兰园社区卫生站 · 神经内科随访" },
+                  { label: "转入社区", desc: "小市社区认知训练站 · 记忆门诊随访" },
                   { label: "居家护理", desc: "由家属/居家护理协助" },
                 ].map((r) => (
                   <div key={r.label} className="rounded-lg border bg-card p-3 text-left">

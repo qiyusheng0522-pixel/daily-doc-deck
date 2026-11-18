@@ -33,7 +33,7 @@ const GUIDE_SEEN_KEY = "patient-guide-seen-v1";
 
 const guideSteps = [
   { key: "upload", title: "第 1 步 · 档案上传", desc: "拍照上传出院小结/病历,OCR 自动识别", cta: "去拍照", icon: Camera, to: "/patient/archive" },
-  { key: "assess", title: "第 2 步 · 风险评估", desc: "填写卒中专病量表,评估复发风险", cta: "去填写", icon: ClipboardList, to: "/patient/assessment" },
+  { key: "assess", title: "第 2 步 · 风险评估", desc: "填写认知量表,评估复发风险", cta: "去填写", icon: ClipboardList, to: "/patient/assessment" },
   { key: "plan", title: "第 3 步 · 查看方案", desc: "查看专属健康方案,开启每日打卡", cta: "去查看", icon: FileText, to: "/patient/plan" },
 ];
 
@@ -174,7 +174,7 @@ const PatientHome = () => {
           </div>
         </div>
         <p className="mb-4 text-base leading-relaxed opacity-95">
-          出院小结、检验报告、用药清单,拍一拍即可建立您的卒中健康档案。
+          出院小结、检验报告、用药清单,拍一拍即可建立您的认知健康档案。
         </p>
         <Button size="lg" className="w-full bg-white text-primary hover:bg-white/90">
           <Camera className="mr-2 h-5 w-5" /> 立即拍照录入
@@ -314,9 +314,9 @@ const PatientHome = () => {
         </div>
       </div>
 
-      {/* 卒中专病量表 */}
+      {/* 认知评估量表 */}
       <div>
-        <h2 className="mb-2 px-1 text-lg font-semibold">卒中专病量表</h2>
+        <h2 className="mb-2 px-1 text-lg font-semibold">认知评估量表</h2>
         <Link
           to="/patient/assessment"
           className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-sky-50 to-cyan-50 p-4 dark:from-sky-950/40 dark:to-cyan-950/40"
@@ -326,12 +326,12 @@ const PatientHome = () => {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 whitespace-nowrap">
-              <p className="truncate text-base font-semibold">Essen 脑卒中风险评估</p>
+              <p className="truncate text-base font-semibold">Essen 认知风险评估</p>
               <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
                 已填写
               </span>
             </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">卒中患者自评量表</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">AD-8 自评量表</p>
           </div>
           <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
         </Link>
@@ -349,8 +349,8 @@ const PatientHome = () => {
         </div>
         <div className="space-y-2">
           {[
-            { title: "卒中识别 BEFAST 口诀", tag: "科普", read: "3 min" },
-            { title: "卒中后如何居家康复训练", tag: "康复", read: "6 min" },
+            { title: "认知障碍早期信号识别 BEFAST 口诀", tag: "科普", read: "3 min" },
+            { title: "居家认知训练怎么做", tag: "康复", read: "6 min" },
             { title: "抗血小板药物长期服用要点", tag: "用药", read: "4 min" },
           ].map((a) => (
             <div key={a.title} className="flex items-center gap-3 rounded-xl border bg-card p-3">
@@ -367,7 +367,7 @@ const PatientHome = () => {
       </div>
 
       <div className="pb-2 text-center text-xs text-muted-foreground">
-        <Activity className="mr-1 inline h-3 w-3" /> 数据同步自 南京市鼓楼医院 · 神经内科
+        <Activity className="mr-1 inline h-3 w-3" /> 数据同步自 南京市鼓楼医院 · 记忆门诊
       </div>
 
       {/* 任务详情 ActionSheet */}

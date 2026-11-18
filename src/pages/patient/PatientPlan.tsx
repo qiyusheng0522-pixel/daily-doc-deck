@@ -98,7 +98,7 @@ const PatientPlan = () => {
               </div>
               <p className="text-[12px] leading-relaxed text-foreground/85">
                 综合 <b>{diseaseTags.length} 项病症</b> 与 <b>{lifestyleTags.length} 项生活问题</b>,Essen 评分 <b className="text-rose-600">{riskOverview.essenScore} 分</b>,
-                提示 1 年内卒中复发风险约 <b className="text-rose-600">{riskOverview.recurrenceRisk}</b>。建议优先干预
+                提示 1 年内认知衰退风险约 <b className="text-rose-600">{riskOverview.recurrenceRisk}</b>。建议优先干预
                 {riskOverview.priority.map((p, i) => (
                   <span key={p}>{i === 0 ? "" : "、"}<b className="text-primary">{p}</b></span>
                 ))}。
@@ -130,10 +130,10 @@ const PatientPlan = () => {
           <h3 className="text-base font-semibold">我的健康解读与目标</h3>
         </div>
         <p className="text-sm leading-relaxed text-foreground/90">
-          您目前处于 <b className="text-primary">缺血性脑卒中</b> 二级预防阶段。近 7 天您的
+          您目前处于 <b className="text-primary">轻度认知障碍</b> 二级预防阶段。近 7 天您的
           <b className="text-primary">血压偏高</b>、<b className="text-primary">LDL 尚未达标</b>,
           日常久坐较多,饮水仅 <b className="text-primary">1000-1500ml</b>,口味偏咸,入睡偏晚,
-          提示您 <b className="text-rose-600">卒中复发风险偏高</b>。
+          提示您 <b className="text-rose-600">认知衰退风险偏高</b>。
         </p>
         <div className="mt-3 rounded-xl bg-primary/5 p-3 text-sm leading-relaxed text-foreground/90 ring-1 ring-primary/10">
           <p className="mb-1 text-xs font-semibold text-primary">我的 3 个月目标</p>
@@ -159,7 +159,7 @@ const PatientPlan = () => {
                 通用方案 · 免费
               </span>
             </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">基于卒中二级预防饮食指南通用建议</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">基于MIND护脑饮食通用建议</p>
           </div>
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-100 dark:bg-cyan-900/40">
             <Utensils className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
@@ -280,7 +280,7 @@ const PatientPlan = () => {
             <HeartPulse className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">卒中康复建议:每周 ≥150 分钟中等强度有氧,循序渐进</p>
+        <p className="text-xs text-muted-foreground">认知训练建议:每周 ≥150 分钟中等强度有氧,循序渐进</p>
 
         <div className="mt-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-border/60 dark:bg-card">
           <div className="flex items-center justify-between text-sm">
@@ -327,9 +327,9 @@ const PatientPlan = () => {
           <ExerciseCard
             done
             gradient="from-amber-300 to-orange-400"
-            title="卒中康复慢走"
+            title="有氧慢走"
             level="入门"
-            tags={["#缺血性卒中", "#血压偏高", "#久坐少动"]}
+            tags={["#轻度认知障碍", "#血压偏高", "#久坐少动"]}
             time="午餐后 13:00"
             duration="15-20 分钟"
             coach="社区康复指导员 · 06:00"
@@ -585,7 +585,7 @@ function UnfilledPlanGuide({
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold">填写评估问卷</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Essen / NIHSS / mRS / 饮食 / 用药依从</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Essen / MMSE / MoCA / 饮食 / 用药依从</p>
         </div>
         <ArrowRight className="h-4 w-4 text-muted-foreground" />
       </button>

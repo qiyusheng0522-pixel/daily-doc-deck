@@ -3,6 +3,7 @@ import { Users, MessageSquare, ClipboardCheck, Wallet, CalendarClock, Bell } fro
 import {
   usePatients,
   usePlanReviews,
+  useReferrals,
   useMyProfile,
 } from "@/data/patients";
 
@@ -20,12 +21,22 @@ const DoctorHome = () => {
   const { data: patients = [] } = usePatients("all");
   const { data: reviews = [] } = usePlanReviews();
   const { data: profile } = useMyProfile();
+  const { data: referrals = [] } = useReferrals();
+  const upQueue = referrals.filter((r) => r.direction === "上转" && r.status === "待接收");
 
   const pendingReviews = reviews.filter((r) => r.status === "审核中").length;
   const activePatients = patients.filter((p) => p.hospital_stage !== "历史").length;
 
   // 待办直接来自方案审核队列：审核中的每一条都是一件真实的待处理事项。
-  const todoList = reviews
+  const todoList = [
+    ...upQueue.map((r) => ({
+      id: r.id,
+      type: "审核" as const,
+      title: `${r.patients?.name ?? "患者"} · 上转待确诊（${r.from_hospital}）`,
+      time: r.created_at.slice(5, 16).replace("T", " "),
+      to: `/doctor/patients/${r.patient_id}`,
+    })),
+    ...reviews
     .filter((r) => r.status === "审核中")
     .slice(0, 5)
     .map((r) => ({
@@ -34,7 +45,8 @@ const DoctorHome = () => {
       title: `${r.patients?.name ?? "患者"} · ${r.category}审核`,
       time: r.submitted_at.slice(5, 16).replace("T", " "),
       to: `/doctor/plans`,
-    }));
+    })),
+  ];
 
   const todoCount = todoList.length;
   const greetingName = profile?.full_name ?? "医生";
@@ -47,14 +59,14 @@ const DoctorHome = () => {
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           今日有 <span className="font-medium text-foreground">{todoCount}</span> 项待处理事项，
-          <span className="text-primary">{profile?.department ?? "神经内科"} · 卒中管理</span>
+          <span className="text-primary">{profile?.department ?? "记忆门诊"} · 认知管理</span>
         </p>
       </section>
 
       <section className="grid grid-cols-3 divide-x divide-border rounded-2xl bg-card py-5 shadow-sm ring-1 ring-border/60">
         <KpiCell num={patients.length} label="患者" color="text-primary" />
         <KpiCell num={activePatients} label="在期" color="text-emerald-600" />
-        <KpiCell num={pendingReviews} label="待审核" color="text-amber-600" />
+        <KpiCell num={upQueue.length} label="待确诊" color="text-amber-600" />
       </section>
 
       <section className="grid grid-cols-2 gap-3">

@@ -36,7 +36,7 @@ const CommunityPatients = () => {
   const receive = useReceiveReferral();
 
   // 护士端「出院转交」发出的下转单在这里接收；接收后患者才进入社区在管列表。
-  const pendingReferrals = referrals.filter((r) => r.status === "待接收");
+  const pendingReferrals = referrals.filter((r) => r.status === "待接收" && r.direction === "下转");
 
   const receiveReferral = (r: (typeof pendingReferrals)[number]) => {
     receive.mutate(
@@ -85,7 +85,7 @@ const CommunityPatients = () => {
     navigate(`/community/chat/patient/${p.id}`, {
       state: {
         referral: {
-          dept: p.refer_dept ?? "神经内科",
+          dept: p.refer_dept ?? "记忆门诊",
           doctor: p.refer_doctor ?? "王主任",
           url: "https://www.njglyy.com/",
         },
@@ -97,7 +97,7 @@ const CommunityPatients = () => {
     if (!uploadFor) return;
     const p = uploadFor;
     upload.mutate(
-      { patientId: p.id, note: `社区随访记录上传，申请${p.refer_dept ?? "神经内科"}复诊` },
+      { patientId: p.id, note: `社区随访记录上传，申请${p.refer_dept ?? "记忆门诊"}复诊` },
       {
         onSuccess: () => {
           setUploadFor(null);
@@ -293,13 +293,13 @@ const CommunityPatients = () => {
           <div className="space-y-3 py-2 text-xs">
             <div className="rounded-lg border p-3">
               <p className="text-muted-foreground">接收科室</p>
-              <p className="mt-1 font-medium">南京市鼓楼医院 · {referFor.refer_dept ?? "神经内科"}</p>
+              <p className="mt-1 font-medium">南京市鼓楼医院 · {referFor.refer_dept ?? "记忆门诊"}</p>
             </div>
             <div className="rounded-lg border p-3">
               <p className="text-muted-foreground">推荐医生</p>
               <p className="mt-1 flex items-center gap-1.5 font-medium">
                 <Stethoscope className="h-3.5 w-3.5 text-primary" />
-                {referFor.refer_doctor ?? "王主任"} · {referFor.refer_dept ?? "神经内科"}
+                {referFor.refer_doctor ?? "王主任"} · {referFor.refer_dept ?? "记忆门诊"}
               </p>
             </div>
             <div className="rounded-lg bg-muted/40 p-3 text-muted-foreground">

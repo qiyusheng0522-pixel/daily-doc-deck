@@ -20,13 +20,13 @@ type Person = {
 };
 
 const people: Person[] = [
-  { id: "d1", name: "王建国", role: "doctor", title: "主任医师 · 教授", dept: "神经内科", hospital: "南京市鼓楼医院", specialty: "缺血性卒中 / 二级预防", years: 28, online: true, avatarBg: "bg-sky-100 text-sky-700", qr: "王主任 · 企业微信" },
-  { id: "d2", name: "李慧敏", role: "doctor", title: "副主任医师", dept: "神经内科", hospital: "南京市鼓楼医院", specialty: "TIA / 脑动脉硬化", years: 18, online: false, avatarBg: "bg-violet-100 text-violet-700", qr: "李医生 · 企业微信" },
-  { id: "d3", name: "张俊(助理)", role: "doctor", title: "主治医师", dept: "神经内科", hospital: "南京市鼓楼医院", specialty: "常规咨询 · 报告解读", years: 8, online: true, isAssistant: true, avatarBg: "bg-emerald-100 text-emerald-700", qr: "张医生 · 助理组企微" },
-  { id: "d4", name: "陈明", role: "doctor", title: "主治医师", dept: "康复医学科", hospital: "南京市鼓楼医院", specialty: "卒中康复 / 肢体训练", years: 10, online: false, avatarBg: "bg-amber-100 text-amber-700", qr: "陈医生 · 企业微信" },
+  { id: "d1", name: "王建国", role: "doctor", title: "主任医师 · 教授", dept: "记忆门诊", hospital: "南京市鼓楼医院", specialty: "轻度认知障碍 / 二级预防", years: 28, online: true, avatarBg: "bg-sky-100 text-sky-700", qr: "王主任 · 企业微信" },
+  { id: "d2", name: "李慧敏", role: "doctor", title: "副主任医师", dept: "记忆门诊", hospital: "南京市鼓楼医院", specialty: "主观认知下降 / 脑动脉硬化", years: 18, online: false, avatarBg: "bg-violet-100 text-violet-700", qr: "李医生 · 企业微信" },
+  { id: "d3", name: "张俊(助理)", role: "doctor", title: "主治医师", dept: "记忆门诊", hospital: "南京市鼓楼医院", specialty: "常规咨询 · 报告解读", years: 8, online: true, isAssistant: true, avatarBg: "bg-emerald-100 text-emerald-700", qr: "张医生 · 助理组企微" },
+  { id: "d4", name: "陈明", role: "doctor", title: "主治医师", dept: "康复医学科", hospital: "南京市鼓楼医院", specialty: "认知训练 / 肢体训练", years: 10, online: false, avatarBg: "bg-amber-100 text-amber-700", qr: "陈医生 · 企业微信" },
 
   { id: "m1", name: "刘雯", role: "manager", title: "高级健康管理师", dept: "慢病管理中心", hospital: "南京市鼓楼医院", specialty: "饮食 / 运动 / 用药随访", years: 6, online: true, avatarBg: "bg-cyan-100 text-cyan-700", qr: "刘管理师 · 企微群" },
-  { id: "m2", name: "赵倩", role: "manager", title: "健康管理师", dept: "兰园社区卫生服务中心", hospital: "兰园社区", specialty: "居家随访 / 生活方式干预", years: 4, online: true, avatarBg: "bg-rose-100 text-rose-700", qr: "赵管理师 · 企微群" },
+  { id: "m2", name: "赵倩", role: "manager", title: "健康管理师", dept: "小市社区卫生服务中心", hospital: "小市社区", specialty: "居家随访 / 生活方式干预", years: 4, online: true, avatarBg: "bg-rose-100 text-rose-700", qr: "赵管理师 · 企微群" },
   { id: "m3", name: "孙艺", role: "manager", title: "健康管理师", dept: "慢病管理中心", hospital: "南京市鼓楼医院", specialty: "心理疏导 / 依从性", years: 3, online: false, avatarBg: "bg-orange-100 text-orange-700", qr: "孙管理师 · 企微群" },
 ];
 

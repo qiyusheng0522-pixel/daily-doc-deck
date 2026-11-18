@@ -50,7 +50,7 @@ export const riskOverview = {
 };
 
 export const riskSummaryText =
-  "您为 缺血性脑卒中 二级预防重点人群：血压偏高、LDL 未达标、颈动脉斑块、房颤史，同时存在口味偏咸、久坐少动、饮水不足、入睡延迟等生活方式问题。综合评估提示 卒中复发风险偏高，需立即干预。";
+  "您为 轻度认知障碍 二级预防重点人群：血压偏高、LDL 未达标、颈动脉斑块、房颤史，同时存在口味偏咸、久坐少动、饮水不足、入睡延迟等生活方式问题。综合评估提示 认知衰退风险偏高，需立即干预。";
 
 export type RiskCatalogItem = { label: string; value: string; tone: string; icon: string };
 

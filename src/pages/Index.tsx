@@ -10,7 +10,7 @@ const Index = () => {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground">
             <Activity className="h-5 w-5" />
           </div>
-          <span className="text-lg font-semibold">卒中智慧医护平台</span>
+          <span className="text-lg font-semibold">老年认知训练站平台</span>
         </div>
         <span className="text-sm text-muted-foreground">v1.0</span>
       </header>
@@ -21,7 +21,7 @@ const Index = () => {
             选择您的工作角色
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            围绕卒中全病程管理,为医生、护士、社区与患者提供协同工作流
+            围绕认知障碍防治康管一体化,为医生、护士、社区与患者提供协同工作流
           </p>
         </div>
 
@@ -85,7 +85,7 @@ const Index = () => {
               </div>
               <h2 className="text-2xl font-semibold">社区端小程序</h2>
               <p className="mt-2 text-muted-foreground">
-                接收下转卒中患者、随访任务、血压录入与一键上转
+                接收下转认知障碍患者、随访任务、AD-8 初筛、分级干预与一键上转
               </p>
               <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-success" />医院下转患者档案</li>
@@ -109,11 +109,11 @@ const Index = () => {
               </div>
               <h2 className="text-2xl font-semibold">患者用户端</h2>
               <p className="mt-2 text-muted-foreground">
-                健康档案、卒中量表评估、AI 助手与个性化健康方案
+                健康档案、认知量表评估、AI 助手与个性化健康方案
               </p>
               <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary" />OCR 拍照录入病历</li>
-                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Essen / NIHSS 量表评估</li>
+                <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Essen / MMSE 量表评估</li>
                 <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary" />专属饮食与二级预防方案</li>
               </ul>
               <Button className="mt-8 w-full bg-gradient-primary hover:opacity-90">

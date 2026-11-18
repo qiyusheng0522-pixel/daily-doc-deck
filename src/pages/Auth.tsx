@@ -39,7 +39,7 @@ const Auth = () => {
         id: userId,
         full_name: "王主任",
         role: "doctor",
-        department: "神经内科",
+        department: "记忆门诊",
         phone: "13800138001",
       });
     }
@@ -88,7 +88,7 @@ const Auth = () => {
             <Stethoscope className="h-7 w-7" />
           </div>
           <h1 className="text-2xl font-semibold">医生工作站</h1>
-          <p className="text-center text-sm text-muted-foreground">南京市鼓楼医院 · 神经内科演示账号</p>
+          <p className="text-center text-sm text-muted-foreground">南京市鼓楼医院 · 记忆门诊演示账号</p>
         </div>
 
         <div className="space-y-4">

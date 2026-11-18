@@ -137,8 +137,8 @@ const NursePatients = () => {
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground">
                   <span className="rounded bg-muted/70 px-1.5 py-0.5">血压 {p.bp}</span>
-                  <span className="rounded bg-muted/70 px-1.5 py-0.5">NIHSS {p.nihss}</span>
-                  <span className="rounded bg-muted/70 px-1.5 py-0.5">mRS {p.mrs}</span>
+                  <span className="rounded bg-muted/70 px-1.5 py-0.5">MMSE {p.nihss}</span>
+                  <span className="rounded bg-muted/70 px-1.5 py-0.5">MoCA {p.mrs}</span>
                 </div>
                 <div className="mt-1.5 flex items-center gap-1.5">
                   <span

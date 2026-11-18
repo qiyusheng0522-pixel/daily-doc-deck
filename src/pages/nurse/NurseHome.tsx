@@ -29,7 +29,7 @@ const NurseHome = () => {
 
   const todoItems = [
     {
-      key: "patients", icon: Users, label: "患者", sub: "在管 · 神经内科",
+      key: "patients", icon: Users, label: "患者", sub: "在管 · 记忆门诊",
       count: inpatients.length, unit: "在期", color: "text-primary", bg: "bg-primary/10",
       to: "/nurse/patients",
     },
@@ -39,12 +39,12 @@ const NurseHome = () => {
       to: "/nurse/chat",
     },
     {
-      key: "education", icon: BookOpen, label: "待宣教内容", sub: "卒中饮食 / 抗凝用药",
+      key: "education", icon: BookOpen, label: "待宣教内容", sub: "护脑饮食 / 抗凝用药",
       count: eduPending, unit: "条待推送", color: "text-warning", bg: "bg-warning/10",
       to: "/nurse/education",
     },
     {
-      key: "handover", icon: LogOutIcon, label: "出院转交", sub: "下转兰园社区",
+      key: "handover", icon: LogOutIcon, label: "出院转交", sub: "下转小市社区",
       count: handoverPending, unit: "位待交接", color: "text-primary", bg: "bg-primary/10",
       to: "/nurse/handover",
     },
@@ -68,7 +68,7 @@ const NurseHome = () => {
       <Card className="bg-gradient-nurse p-4 text-primary-foreground shadow-soft">
         <h2 className="text-base font-semibold">{profile?.full_name ?? "护士"}，早上好 👋</h2>
         <p className="mt-0.5 text-[11px] opacity-90">
-          {profile?.department ?? "神经内科"} · 今日 {pendingTotal} 项待处理
+          {profile?.department ?? "记忆门诊"} · 今日 {pendingTotal} 项待处理
         </p>
       </Card>
 

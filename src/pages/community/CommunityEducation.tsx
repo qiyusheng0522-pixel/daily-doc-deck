@@ -9,23 +9,23 @@ import ActionSheet from "@/components/nurse/ActionSheet";
 
 const todos = [
   { stage: "新建档", color: "bg-accent/10 text-accent border-accent/30", todos: [
-    { title: "家庭血压监测 · 单人推送", patient: "张伟 · 兰园社区", content: "《家庭血压监测要点》", due: "今日 16:00" },
+    { title: "家庭血压监测 · 单人推送", patient: "张伟 · 小市社区", content: "《家庭血压监测要点》", due: "今日 16:00" },
   ] },
   { stage: "随访中", color: "bg-warning/10 text-warning border-warning/30", todos: [
-    { title: "卒中低盐低脂饮食指南 · 多人推送", patient: "卒中康复小组 · 12 人", content: "《低盐低脂饮食建议》", due: "明日 10:00" },
+    { title: "护脑饮食(MIND)指南 · 多人推送", patient: "认知训练小组 · 12 人", content: "《低盐低脂饮食建议》", due: "明日 10:00" },
   ] },
   { stage: "复诊期", color: "bg-success/10 text-success border-success/30", todos: [
-    { title: "抗凝药物依从性 · 单人推送", patient: "刘秀英 · 兰园社区", content: "《华法林与阿司匹林用药须知》", due: "明日 09:00" },
+    { title: "抗凝药物依从性 · 单人推送", patient: "刘秀英 · 小市社区", content: "《华法林与阿司匹林用药须知》", due: "明日 09:00" },
   ] },
 ];
 
 const library = [
-  { id: 1, title: "家庭血压监测要点", category: "脑卒中", duration: "5 min" },
-  { id: 2, title: "低盐低脂饮食建议", category: "脑卒中", duration: "6 min" },
-  { id: 3, title: "口服抗凝药居家用药规范", category: "脑卒中", duration: "4 min" },
+  { id: 1, title: "家庭血压监测要点", category: "认知障碍", duration: "5 min" },
+  { id: 2, title: "低盐低脂饮食建议", category: "认知障碍", duration: "6 min" },
+  { id: 3, title: "口服抗凝药居家用药规范", category: "认知障碍", duration: "4 min" },
   { id: 4, title: "抗凝药物依从性", category: "脑血管", duration: "3 min" },
-  { id: 5, title: "卒中低盐饮食指引", category: "脑血管", duration: "4 min" },
-  { id: 6, title: "低血压识别与处理", category: "脑卒中", duration: "4 min" },
+  { id: 5, title: "护脑饮食(MIND)指引", category: "脑血管", duration: "4 min" },
+  { id: 6, title: "低血压识别与处理", category: "认知障碍", duration: "4 min" },
 ];
 
 const CommunityEducation = () => {
@@ -136,8 +136,8 @@ const CommunityEducation = () => {
       >
         <div className="space-y-2 py-2 text-xs">
           {[
-            { name: "卒中随访组", count: 24 },
-            { name: "卒中康复组", count: 18 },
+            { name: "认知随访组", count: 24 },
+            { name: "认知训练组", count: 18 },
             { name: "新建档患者", count: 3 },
           ].map((g) => (
             <div key={g.name} className="flex items-center justify-between rounded-lg border p-3">

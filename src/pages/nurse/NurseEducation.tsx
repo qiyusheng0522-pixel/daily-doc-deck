@@ -9,16 +9,16 @@ import { toast } from "@/hooks/use-toast";
 import ActionSheet from "@/components/nurse/ActionSheet";
 
 const aiRecommended = [
-  { id: 1, title: "卒中低盐低脂饮食指南", category: "脑卒中", match: "98%", views: 218, duration: "6 min", desc: "三餐搭配示例、升糖指数说明、外出就餐技巧及加餐建议。" },
-  { id: 2, title: "抗凝药物注射规范", category: "脑卒中", match: "95%", views: 174, duration: "3 min", desc: "标准注射部位轮换、剂量核对与低血压应急处理。" },
-  { id: 3, title: "卒中低盐饮食指引", category: "脑血管", match: "92%", views: 96, duration: "4 min", desc: "脑供血不足患者忌碘食物清单、就餐注意与外出技巧。" },
+  { id: 1, title: "护脑饮食(MIND)指南", category: "认知障碍", match: "98%", views: 218, duration: "6 min", desc: "三餐搭配示例、升糖指数说明、外出就餐技巧及加餐建议。" },
+  { id: 2, title: "抗凝药物注射规范", category: "认知障碍", match: "95%", views: 174, duration: "3 min", desc: "标准注射部位轮换、剂量核对与低血压应急处理。" },
+  { id: 3, title: "护脑饮食(MIND)指引", category: "脑血管", match: "92%", views: 96, duration: "4 min", desc: "脑供血不足患者忌碘食物清单、就餐注意与外出技巧。" },
 ];
 
 const library = [
-  { id: 1, title: "低血压识别与处理", category: "脑卒中", duration: "4 min", desc: "低血压典型征兆、15-15 处理法则与家属配合要点。" },
-  { id: 2, title: "家庭血压监测要点", category: "脑卒中", duration: "5 min", desc: "指尖血压采集流程、记录方式与异常上报。" },
-  { id: 3, title: "抗凝药物依从性", category: "脑血管", duration: "4 min", desc: "左脑血管素空腹服用、复查节奏与剂量调整。" },
-  { id: 4, title: "出院后神经内科随访", category: "通用", duration: "8 min", desc: "复诊节奏、化验单解读与社区随访衔接。" },
+  { id: 1, title: "低血压识别与处理", category: "认知障碍", duration: "4 min", desc: "低血压典型征兆、15-15 处理法则与家属配合要点。" },
+  { id: 2, title: "家庭血压监测要点", category: "认知障碍", duration: "5 min", desc: "指尖血压采集流程、记录方式与异常上报。" },
+  { id: 3, title: "抗凝药物依从性", category: "脑血管", duration: "4 min", desc: "多奈哌齐睡前服用、复查节奏与剂量调整。" },
+  { id: 4, title: "出院后记忆门诊随访", category: "通用", duration: "8 min", desc: "复诊节奏、化验单解读与社区随访衔接。" },
 ];
 
 const learners = [
@@ -86,7 +86,7 @@ const NurseEducation = () => {
               { title: "入院须知 · 单人推送", patient: "陈敏 · 床 0617", content: "《住院环境与作息介绍》", due: "今日 16:00", mode: "单人" as const },
             ] },
             { stage: "治疗期", color: "bg-warning/10 text-warning border-warning/30", count: 1, todos: [
-              { title: "抗凝药物注射宣教 · 多人推送", patient: "神经内科 · 12 人", content: "《抗凝药物注射规范与低血压应急》", due: "明日 10:00", mode: "多人" as const },
+              { title: "抗凝药物注射宣教 · 多人推送", patient: "记忆门诊 · 12 人", content: "《抗凝药物注射规范与低血压应急》", due: "明日 10:00", mode: "多人" as const },
             ] },
             { stage: "出院期", color: "bg-success/10 text-success border-success/30", count: 1, todos: [
               { title: "居家血压监测指导 · 单人推送", patient: "王芳 · 床 0408", content: "《出院后血压监测与复诊安排》", due: "明日 09:00", mode: "单人" as const },
@@ -162,9 +162,9 @@ const NurseEducation = () => {
             </div>
             <div className="divide-y">
               {[
-                { title: "卒中低盐低脂饮食指南", target: "神经内科 · 28 人", time: "10 分钟前", read: 18 },
-                { title: "抗凝药物注射规范", target: "神经内科 · 15 人", time: "1 小时前", read: 12 },
-                { title: "卒中低盐饮食指引", target: "神经内科 · 8 人", time: "今日 09:30", read: 7 },
+                { title: "护脑饮食(MIND)指南", target: "记忆门诊 · 28 人", time: "10 分钟前", read: 18 },
+                { title: "抗凝药物注射规范", target: "记忆门诊 · 15 人", time: "1 小时前", read: 12 },
+                { title: "护脑饮食(MIND)指引", target: "记忆门诊 · 8 人", time: "今日 09:30", read: 7 },
               ].map((r, i) => (
                 <button
                   key={i}

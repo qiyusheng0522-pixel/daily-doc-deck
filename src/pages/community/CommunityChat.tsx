@@ -19,18 +19,18 @@ const CommunityChat = () => {
   const referral = (location.state as { referral?: { dept: string; doctor: string; url: string } } | null)?.referral;
 
   const peer: ChatPeer = useMemo(() => {
-    if (isDoctor) return { name: "王主任", sub: "鼓楼医院 · 神经内科", phone: "13800138001", isDoctor: true };
+    if (isDoctor) return { name: "王主任", sub: "鼓楼医院 · 记忆门诊", phone: "13800138001", isDoctor: true };
     return {
       name: "李大爷",
       sub: "档案 C0078 · 68岁 · 男",
       phone: "13800138999",
       isDoctor: false,
       abnormal: true,
-      diagnosis: "缺血性脑卒中 · 周围神经病变 · 过敏:无",
+      diagnosis: "轻度认知障碍 · 周围神经病变 · 过敏:无",
       vitals: [
         { label: "收缩压", value: "11.6", abnormal: true },
         { label: "餐后 2h", value: "15.4", abnormal: true },
-        { label: "NIHSS", value: "9.0%" },
+        { label: "MMSE", value: "9.0%" },
       ],
     };
   }, [isDoctor]);

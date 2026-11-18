@@ -21,13 +21,13 @@ const CommunityHome = () => {
   const { data: eduItems = [] } = useEducationItems();
   const { data: profile } = useMyProfile();
 
-  const waitingReferrals = referrals.filter((r) => r.status === "待接收");
+  const waitingReferrals = referrals.filter((r) => r.status === "待接收" && r.direction === "下转");
   const followupPending = followups.filter((f) => f.status !== "已完成").length;
   const abnormal = managed.filter((p) => p.abnormal);
 
   const todoItems = [
     {
-      key: "patients", icon: Users, label: "患者档案", sub: "在管 · 兰园社区",
+      key: "patients", icon: Users, label: "患者档案", sub: "在管 · 小市社区",
       count: managed.length, unit: "在管", color: "text-primary", bg: "bg-primary/10",
       to: "/community/patients",
     },
@@ -37,7 +37,7 @@ const CommunityHome = () => {
       to: "/community/patients?tab=new",
     },
     {
-      key: "education", icon: BookOpen, label: "宣教", sub: "脑卒中 / 脑血管管理",
+      key: "education", icon: BookOpen, label: "宣教", sub: "认知障碍 / 认知训练管理",
       count: eduItems.length, unit: "条可推送", color: "text-warning", bg: "bg-warning/10",
       to: "/community/education",
     },
@@ -94,7 +94,7 @@ const CommunityHome = () => {
     <div className="space-y-3 p-4">
       <Card className="bg-gradient-community p-4 text-primary-foreground shadow-soft">
         <h2 className="text-base font-semibold">{profile?.full_name ?? "医生"}，早上好 👋</h2>
-        <p className="mt-0.5 text-[11px] opacity-90">兰园社区卫生站 · 对接南京市鼓楼医院 · 神经内科</p>
+        <p className="mt-0.5 text-[11px] opacity-90">小市社区认知训练站 · 对接南京市鼓楼医院 · 记忆门诊</p>
       </Card>
 
       <div className="flex items-center justify-between px-1 pt-1">

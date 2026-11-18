@@ -19,7 +19,7 @@ const MODULES: { key: ModuleKey; label: string; icon: any; color: string; bg: st
 ];
 
 const defaultContent = (name: string): Record<ModuleKey, string> => ({
-  overview: `根据 ${name} 的健康数据,评估为卒中二级预防重点人群(血压偏高、LDL 未达标、久坐少动),同时存在多重生活方式风险:每日体力活动以卧床/久坐为主,每周规律运动频率为 0,饮水量不足(1000-1500ml),饮食不规律,奶制品基本不摄入,口味偏咸,排便不规律,睡眠时长仅 5-7 小时,虽睡眠质量正常但入睡延迟(12 点-2 点)。中医体质提示存在轻度阳虚与气滞倾向(怕冷、怕凉、易感寒)。建议立即从以下六个维度进行生活方式干预,持续 3 个月并配合定期复诊,可显著降低卒中复发风险。`,
+  overview: `根据 ${name} 的健康数据,评估为认知障碍干预重点人群(血压偏高、LDL 未达标、久坐少动),同时存在多重生活方式风险:每日体力活动以卧床/久坐为主,每周规律运动频率为 0,饮水量不足(1000-1500ml),饮食不规律,奶制品基本不摄入,口味偏咸,排便不规律,睡眠时长仅 5-7 小时,虽睡眠质量正常但入睡延迟(12 点-2 点)。中医体质提示存在轻度阳虚与气滞倾向(怕冷、怕凉、易感寒)。建议立即从以下六个维度进行生活方式干预,持续 3 个月并配合定期复诊,可延缓认知衰退。`,
   diet: `三餐定时,早餐必吃,以清淡少盐、低脂为原则。每日食盐 <5g、烹调油 <25g;每日蔬菜 ≥500g,新鲜水果 200g;主食以全谷物为主(如燕麦、糙米)搭配豆类;每日增加低脂奶制品(如 250ml 脱脂牛奶);减少辛辣刺激及腌制、油炸食品;戒掉外卖,以自炊为主。`,
   exercise: `以循序渐进为原则,从每日散步 15 分钟开始,逐步增加至 30 分钟,每周 5 天,避免久卧。饭后 1 小时进行轻度活动;每周可安排 2 次下肢为主的轻度抗阻训练;运动过程中心率控制在自我耐受范围内,如出现头晕、胸闷需立即停止。`,
   water: `每日饮水量增加至 2000ml,少量多次饮用;晨起空腹温水一杯(约 200ml);餐前 30 分钟适量饮水;避免一次性大量饮水,避免含糖饮料。`,
@@ -93,8 +93,8 @@ const DoctorPlanDetail = () => {
           <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
             <MiniKV k="血压" v={patient.vitals.bp} />
             <MiniKV k="LDL" v={patient.vitals.ldl} />
-            <MiniKV k="NIHSS" v={patient.vitals.nihss} />
-            <MiniKV k="mRS" v={patient.vitals.mrs} />
+            <MiniKV k="MMSE" v={patient.vitals.nihss} />
+            <MiniKV k="MoCA" v={patient.vitals.mrs} />
           </div>
         </section>
 

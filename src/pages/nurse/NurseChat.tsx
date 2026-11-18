@@ -20,17 +20,17 @@ const NurseChat = () => {
   const isDoctor = type === "doctor";
 
   const peer: ChatPeer = useMemo(() => {
-    if (isDoctor) return { name: "王主任", sub: "神经内科 · 主治医师", phone: "13800138001", isDoctor: true };
+    if (isDoctor) return { name: "王主任", sub: "记忆门诊 · 主治医师", phone: "13800138001", isDoctor: true };
     return {
       name: "张伟",
       sub: "床位 0312 · 58岁 · 男",
       phone: "13800138888",
       isDoctor: false,
       abnormal: true,
-      diagnosis: "缺血性脑卒中 · 后遗症 · 过敏:青霉素",
+      diagnosis: "轻度认知障碍 · 后遗症 · 过敏:青霉素",
       vitals: [
         { label: "随机血压", value: "16.8", abnormal: true },
-        { label: "NIHSS", value: "9.2%" },
+        { label: "MMSE", value: "9.2%" },
         { label: "血压", value: "138/86" },
       ],
     };

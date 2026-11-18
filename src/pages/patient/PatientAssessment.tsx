@@ -24,7 +24,7 @@ type Questionnaire = {
 const questionnaires: Questionnaire[] = [
   {
     id: "essen",
-    name: "Essen 脑卒中风险评分",
+    name: "Essen 认知风险分级",
     desc: "评估复发风险,共 5 题",
     icon: Brain,
     color: "from-sky-500 to-cyan-500",
@@ -33,14 +33,14 @@ const questionnaires: Questionnaire[] = [
     questions: [
       { id: "q1", text: "年龄 ≥ 75 岁?", options: [{ label: "是", score: 2 }, { label: "否", score: 0 }] },
       { id: "q2", text: "有高血压病史?", options: [{ label: "有", score: 1 }, { label: "无", score: 0 }] },
-      { id: "q3", text: "有脑卒中或 TIA 病史?", options: [{ label: "有", score: 1 }, { label: "无", score: 0 }] },
+      { id: "q3", text: "有认知障碍或 主观认知下降 病史?", options: [{ label: "有", score: 1 }, { label: "无", score: 0 }] },
       { id: "q4", text: "有冠心病或心梗史?", options: [{ label: "有", score: 1 }, { label: "无", score: 0 }] },
       { id: "q5", text: "当前吸烟?", options: [{ label: "是", score: 1 }, { label: "否", score: 0 }] },
     ],
   },
   {
     id: "nihss",
-    name: "NIHSS 卒中量表",
+    name: "MMSE 认知量表",
     desc: "评估神经功能缺损",
     icon: Activity,
     color: "from-violet-500 to-fuchsia-500",
@@ -54,8 +54,8 @@ const questionnaires: Questionnaire[] = [
   },
   {
     id: "mrs",
-    name: "mRS 改良 Rankin 量表",
-    desc: "评估卒中后残障程度",
+    name: "MoCA 改良 Rankin 量表",
+    desc: "评估日常生活能力",
     icon: HeartPulse,
     color: "from-rose-500 to-pink-500",
     required: true,
@@ -134,7 +134,7 @@ const questionnaires: Questionnaire[] = [
 ];
 
 const categories = [
-  { key: "risk", label: "卒中专病量表", desc: "复发风险 / 神经功能 / 残障", ids: ["essen", "nihss", "mrs"] },
+  { key: "risk", label: "认知评估量表", desc: "复发风险 / 神经功能 / 残障", ids: ["essen", "nihss", "mrs"] },
   { key: "life", label: "生活方式评估", desc: "饮食 / 运动 / 睡眠", ids: ["diet", "exercise", "sleep"] },
   { key: "psy", label: "心理与依从性", desc: "情绪 / 用药依从", ids: ["mood", "med"] },
 ];

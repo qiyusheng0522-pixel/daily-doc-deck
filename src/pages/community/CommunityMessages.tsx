@@ -5,11 +5,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 const sessions = [
-  { id: 1, kind: "patient" as const, name: "李建国", sub: "兰园社区 · 脑卒中", source: "兰园社区", last: "医生,我收缩压又高了。", time: "09:31", unread: 2, abnormal: true },
-  { id: 5, kind: "patient" as const, name: "周春华", sub: "兰园社区 · 脑卒中", source: "兰园社区", last: "今天测的血压给您发过去。", time: "09:10", unread: 1, abnormal: true },
-  { id: 4, kind: "doctor" as const, name: "王主任", sub: "南京市鼓楼医院 · 神经内科", source: "南京市鼓楼医院", last: "陈敏的复诊安排在周三上午。", time: "09:14", unread: 1, abnormal: false },
-  { id: 2, kind: "patient" as const, name: "张伟", sub: "南京市鼓楼医院下转 · 缺血性脑卒中", source: "南京市鼓楼医院", last: "好的,我按时打抗凝药物。", time: "昨日", unread: 0, abnormal: false },
-  { id: 3, kind: "patient" as const, name: "刘秀英", sub: "兰园社区 · 脑动脉硬化", source: "兰园社区", last: "谢谢张医生。", time: "昨日", unread: 0, abnormal: false },
+  { id: 1, kind: "patient" as const, name: "李建国", sub: "小市社区 · 认知障碍", source: "小市社区", last: "医生,我收缩压又高了。", time: "09:31", unread: 2, abnormal: true },
+  { id: 5, kind: "patient" as const, name: "周春华", sub: "小市社区 · 认知障碍", source: "小市社区", last: "今天测的血压给您发过去。", time: "09:10", unread: 1, abnormal: true },
+  { id: 4, kind: "doctor" as const, name: "王主任", sub: "南京市鼓楼医院 · 记忆门诊", source: "南京市鼓楼医院", last: "陈敏的复诊安排在周三上午。", time: "09:14", unread: 1, abnormal: false },
+  { id: 2, kind: "patient" as const, name: "张伟", sub: "南京市鼓楼医院下转 · 轻度认知障碍", source: "南京市鼓楼医院", last: "好的,我按时打抗凝药物。", time: "昨日", unread: 0, abnormal: false },
+  { id: 3, kind: "patient" as const, name: "刘秀英", sub: "小市社区 · 脑动脉硬化", source: "小市社区", last: "谢谢张医生。", time: "昨日", unread: 0, abnormal: false },
 ];
 
 const CommunityMessages = () => {
@@ -47,7 +47,7 @@ const CommunityMessages = () => {
                   <div className="flex min-w-0 items-center gap-1.5">
                     <span className="truncate text-sm font-semibold">{s.name}</span>
                     <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${s.source === "南京市鼓楼医院" ? "bg-primary/10 text-primary" : "bg-accent/10 text-accent"}`}>
-                      {s.source === "南京市鼓楼医院" ? "鼓楼" : "兰园社区"}
+                      {s.source === "南京市鼓楼医院" ? "鼓楼" : "小市社区"}
                     </span>
                     {s.abnormal && (
                       <span className="shrink-0 rounded bg-destructive/15 px-1.5 py-0.5 text-[10px] font-bold text-destructive">异常</span>

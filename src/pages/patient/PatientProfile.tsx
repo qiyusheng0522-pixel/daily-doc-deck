@@ -88,7 +88,7 @@ const PatientProfile = () => {
       <div className="mx-4 mt-4 rounded-2xl bg-card p-4 shadow-sm">
         <p className="mb-2 font-semibold">健康标签</p>
         <div className="flex flex-wrap gap-2">
-          {["缺血性脑卒中", "高血压 10 年", "高脂血症", "同型半胱氨酸偏高", "戒烟中"].map((t) => (
+          {["轻度认知障碍", "高血压 10 年", "高脂血症", "同型半胱氨酸偏高", "戒烟中"].map((t) => (
             <span key={t} className="rounded-full bg-primary/10 px-2.5 py-1 text-xs text-primary">{t}</span>
           ))}
         </div>

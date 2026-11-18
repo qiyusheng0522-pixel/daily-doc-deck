@@ -147,7 +147,7 @@ function UnfilledGuide({
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold">填写评估问卷</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Essen / NIHSS / mRS / 饮食 / 用药依从</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Essen / MMSE / MoCA / 饮食 / 用药依从</p>
         </div>
         <ArrowRight className="h-4 w-4 text-muted-foreground" />
       </button>

@@ -11,11 +11,11 @@ import { toast } from "@/hooks/use-toast";
 const ONBOARD_KEY = "patient_ai_onboard_done";
 
 const ASSISTANT_NAME = "AI助手";
-const ASSISTANT_TAG = "卒中健康守护助手";
+const ASSISTANT_TAG = "认知健康守护助手";
 
 const suggestions = [
   { icon: Volume2, text: `${ASSISTANT_NAME}能为我做什么?` },
-  { icon: Hash, text: "缺血性卒中后如何科学康复训练?" },
+  { icon: Hash, text: "轻度认知障碍如何科学开展认知训练?" },
   { icon: Hash, text: "阿司匹林饭前吃还是饭后吃?会伤胃吗?" },
 ];
 
@@ -29,13 +29,13 @@ const quickActions: { key: ActionKey; icon: any; label: string; color: string }[
 ];
 
 const recDoctors = [
-  { name: "王建国", title: "主任医师 · 教授", dept: "神经内科 · 南京市鼓楼医院", online: true, assistant: "张医生 · 助理组企微" },
-  { name: "李慧敏", title: "副主任医师", dept: "神经内科 · 南京市鼓楼医院", online: false, assistant: "李医生助理 · 企微" },
+  { name: "王建国", title: "主任医师 · 教授", dept: "记忆门诊 · 南京市鼓楼医院", online: true, assistant: "张医生 · 助理组企微" },
+  { name: "李慧敏", title: "副主任医师", dept: "记忆门诊 · 南京市鼓楼医院", online: false, assistant: "李医生助理 · 企微" },
   { name: "陈明", title: "主治医师", dept: "康复医学科 · 南京市鼓楼医院", online: true, assistant: "陈医生助理 · 企微" },
 ];
 
 const servicePacks = [
-  { name: "卒中二级预防 · 基础包", price: "¥ 0 / 30 天", items: ["每周 1 次 AI 随访", "月度用药提醒", "科普推送"], badge: "免费" },
+  { name: "认知障碍分级干预 · 基础包", price: "¥ 0 / 30 天", items: ["每周 1 次 AI 随访", "月度用药提醒", "科普推送"], badge: "免费" },
   { name: "主诊医生 1v1 · 进阶包", price: "¥ 199 / 月", items: ["主诊医生 1v1 咨询 (5 次)", "健康管理师电话随访", "季度风险评估报告"], badge: "热门" },
   { name: "居家康复 · 尊享包", price: "¥ 599 / 月", items: ["康复治疗师上门 4 次", "24h 应急咨询", "家属陪同教育"], badge: "尊享" },
 ];
@@ -127,7 +127,7 @@ const PatientAI = () => {
                   <Sparkles className="h-5 w-5 fill-violet-500 text-violet-500" />
                 </div>
                 <p className="mt-1 text-xl font-bold leading-tight text-foreground/90">
-                  愿您血压平稳<br />卒中无忧
+                  愿您血压平稳<br />认知无忧
                 </p>
               </div>
               {/* SVG 医生 mascot */}
@@ -174,7 +174,7 @@ const PatientAI = () => {
                 <ul className="mt-3 space-y-2 text-sm">
                   {[
                     { key: "archive" as const, done: onboard.archive, label: "健康档案", desc: "拍照上传化验单 / 用药 / 病历", to: "/patient/archive", cta: "去建档" },
-                    { key: "survey" as const, done: onboard.survey, label: "健康问卷", desc: "完成卒中风险评估问卷", to: "/patient/assessment", cta: "去评估" },
+                    { key: "survey" as const, done: onboard.survey, label: "健康问卷", desc: "完成 AD-8 认知初筛问卷", to: "/patient/assessment", cta: "去评估" },
                     { key: "plan" as const, done: onboard.plan, label: "解锁健康方案", desc: "查看专属二级预防方案模板", to: "/patient/plan", cta: "去查看" },
                   ].map((it) => (
                     <li key={it.key} className="flex items-center justify-between gap-2">
@@ -315,7 +315,7 @@ const PatientAI = () => {
 
             {action === "doctor" && (
               <div className="space-y-2">
-                <p className="mb-1 text-xs text-muted-foreground">基于您的档案(缺血性脑卒中 · 二级预防),{ASSISTANT_NAME} 推荐:</p>
+                <p className="mb-1 text-xs text-muted-foreground">基于您的档案(轻度认知障碍 · 二级预防),{ASSISTANT_NAME} 推荐:</p>
                 {recDoctors.map((d) => (
                   <div key={d.name} className="rounded-2xl bg-muted/40 p-3">
                     <div className="flex items-center gap-2">
@@ -369,7 +369,7 @@ const PatientAI = () => {
                 </div>
                 <div className="rounded-xl bg-muted/40 p-3 text-[11px] text-muted-foreground">
                   <p className="mb-1 font-semibold text-foreground">{ASSISTANT_NAME} 可解读:</p>
-                  · 卒中相关化验(同型半胱氨酸 / 血脂 / 血糖 / 凝血)<br />
+                  · 认知相关检查(同型半胱氨酸 / 血脂 / 血糖 / 凝血)<br />
                   · 头颅 CT / MR / 颈动脉超声报告<br />
                   · 出院小结与二级预防用药建议
                 </div>
@@ -387,7 +387,7 @@ const PatientAI = () => {
                   </button>
                 </div>
                 <div className="rounded-xl bg-muted/40 p-3 text-xs">
-                  <p className="mb-1.5 font-semibold">卒中常见用药 · 快速咨询</p>
+                  <p className="mb-1.5 font-semibold">认知障碍常见用药 · 快速咨询</p>
                   {[
                     "阿司匹林肠溶片 100mg · 抗血小板",
                     "阿托伐他汀钙 20mg · 调脂稳斑",
@@ -404,7 +404,7 @@ const PatientAI = () => {
 
             {action === "manage" && (
               <div className="space-y-2">
-                <p className="mb-1 text-xs text-muted-foreground">按您的卒中风险等级(中高危)推荐:</p>
+                <p className="mb-1 text-xs text-muted-foreground">按您的认知风险等级(中高危)推荐:</p>
                 {servicePacks.map((p) => (
                   <div key={p.name} className="rounded-2xl bg-gradient-to-br from-rose-50 to-white p-3 ring-1 ring-rose-100 dark:from-rose-950/30 dark:to-transparent dark:ring-rose-900/30">
                     <div className="flex items-start justify-between gap-2">

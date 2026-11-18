@@ -53,7 +53,7 @@ const DoctorStats = () => {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-base font-semibold">{doctor.name}</p>
-            <p className="mt-0.5 whitespace-nowrap text-[11px] opacity-90">神经内科 · 主任医师 · 工号 D0821</p>
+            <p className="mt-0.5 whitespace-nowrap text-[11px] opacity-90">记忆门诊 · 主任医师 · 工号 D0821</p>
             <p className="mt-0.5 text-[11px] opacity-80">南京市鼓楼医院</p>
           </div>
         </div>
