@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { doctorPatients } from "@/data/doctorMock";
 import { Search, ChevronRight, MessageSquare, Users } from "lucide-react";
+import { usePatients, sourceLabel, type Patient } from "@/data/patients";
 
 const DoctorPatients = () => {
   const [q, setQ] = useState("");
-  const list = doctorPatients.filter((p) => !q || p.name.includes(q) || p.strokeType.includes(q));
+  const { data: patients = [], isLoading } = usePatients("all");
+
+  const list = patients.filter((p) => !q || p.name.includes(q) || (p.stroke_type ?? "").includes(q) || p.diagnosis.includes(q));
 
   return (
     <div className="px-4 py-3">
@@ -20,46 +22,68 @@ const DoctorPatients = () => {
       </div>
 
       <div className="rounded-2xl bg-card shadow-sm ring-1 ring-border/60">
+        {isLoading && <p className="p-6 text-center text-sm text-muted-foreground">加载中…</p>}
+        {!isLoading && list.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">无匹配患者</p>}
         {list.map((p, i) => (
-          <Link
-            key={p.id}
-            to={`/doctor/patients/${p.id}`}
-            className={`flex items-center gap-3 p-4 ${i > 0 ? "border-t border-border" : ""}`}
-          >
-            <div
-              className={`flex h-12 w-12 items-center justify-center rounded-full text-base font-semibold ${
-                p.status === "过期" ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"
-              }`}
-            >
-              {p.initial}
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-base font-semibold text-foreground">{p.name}</span>
-              </div>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                {p.gender} · {p.age}岁 · {p.strokeType}
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">创建于 {p.createdAt}</p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                <Tag color="primary" icon={<MessageSquare className="h-3 w-3" />}>沟通</Tag>
-                <Tag color="amber" icon={<Users className="h-3 w-3" />}>会诊</Tag>
-              </div>
-            </div>
-            <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-          </Link>
+          <PatientRow key={p.id} p={p} first={i === 0} />
         ))}
       </div>
     </div>
   );
 };
 
-function Tag({ color, icon, children }: { color: "primary" | "amber"; icon?: React.ReactNode; children: React.ReactNode }) {
-  const cls =
-    color === "primary"
-      ? "bg-primary/10 text-primary"
-      : "bg-amber-500/15 text-amber-700 dark:text-amber-400";
+function PatientRow({ p, first }: { p: Patient; first: boolean }) {
+  return (
+    <Link
+      to={`/doctor/patients/${p.id}`}
+      className={`flex items-center gap-3 p-4 ${first ? "" : "border-t border-border"}`}
+    >
+      <div
+        className={`flex h-12 w-12 items-center justify-center rounded-full text-base font-semibold ${
+          p.hospital_stage === "历史" ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"
+        }`}
+      >
+        {p.name[0]}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="text-base font-semibold text-foreground">{p.name}</span>
+          {p.vip && <Tag color="amber">VIP</Tag>}
+          {p.abnormal && <Tag color="rose">异常</Tag>}
+        </div>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          {p.gender} · {p.age}岁 · {p.stroke_type}
+        </p>
+        <p className="mt-0.5 text-xs text-muted-foreground">创建于 {p.created_at.slice(0, 16).replace("T", " ")}</p>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          <Tag color={p.source === "南京市鼓楼医院" ? "primary" : "teal"}>{sourceLabel(p.source)}</Tag>
+          <Tag color="slate">{p.hospital_stage ?? p.community_stage ?? "—"}</Tag>
+          <Tag color="primary" icon={<MessageSquare className="h-3 w-3" />}>沟通</Tag>
+          <Tag color="amber" icon={<Users className="h-3 w-3" />}>会诊</Tag>
+        </div>
+      </div>
+      <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+    </Link>
+  );
+}
+
+function Tag({
+  color,
+  icon,
+  children,
+}: {
+  color: "primary" | "amber" | "teal" | "rose" | "slate";
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  const cls = {
+    primary: "bg-primary/10 text-primary",
+    amber: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+    teal: "bg-teal-500/15 text-teal-700 dark:text-teal-400",
+    rose: "bg-destructive/10 text-destructive",
+    slate: "bg-muted text-muted-foreground",
+  }[color];
   return (
     <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium ${cls}`}>
       {icon}

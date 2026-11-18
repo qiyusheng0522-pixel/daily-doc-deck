@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1794994988460,
+      "tag": "0000_role_infrastructure",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794995010471,
+      "tag": "0001_patients_pathway_columns_and_plans",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794995030428,
+      "tag": "0002_pathway_flow_tables",
+      "breakpoints": true
+    }
+  ]
+}

@@ -9,7 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 const DEMO_EMAIL = "doctor.demo@glhospital.com";
-const DEMO_PASSWORD = "demo123456";
+// 密码需通过强度校验：demo123456 属于已泄露弱密码，注册会被后端拒绝 (weak_password)
+const DEMO_PASSWORD = "GuLou@Neuro2026";
 
 const Auth = () => {
   const navigate = useNavigate();

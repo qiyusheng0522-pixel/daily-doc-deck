@@ -1,53 +1,77 @@
 import { useNavigate } from "react-router-dom";
 import {
   Users, MessageSquare, BookOpen, LogOut as LogOutIcon, Activity,
-  Syringe, Droplet, ClipboardCheck, Clock, AlertTriangle, ChevronRight, Stethoscope,
+  ClipboardCheck, ChevronRight, Stethoscope,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  usePatients,
+  useNurseTasks,
+  useFollowups,
+  useReferrals,
+  useMyProfile,
+  sourceLabel,
+} from "@/data/patients";
 
 const NurseHome = () => {
   const navigate = useNavigate();
+  const { data: inpatients = [] } = usePatients("hospital");
+  const { data: tasks = [] } = useNurseTasks();
+  const { data: followups = [] } = useFollowups();
+  const { data: referrals = [] } = useReferrals();
+  const { data: profile } = useMyProfile();
+
+  const pendingTasks = tasks.filter((t) => t.status === "待执行");
+  const eduPending = tasks.filter((t) => t.kind === "宣教" && t.status === "待执行").length;
+  const handoverPending = inpatients.filter((p) => p.hospital_stage === "待出院").length;
+  const followupPending = followups.filter((f) => f.status !== "已完成").length;
 
   const todoItems = [
     {
       key: "patients", icon: Users, label: "患者", sub: "在管 · 神经内科",
-      count: 28, unit: "在期", color: "text-primary", bg: "bg-primary/10",
+      count: inpatients.length, unit: "在期", color: "text-primary", bg: "bg-primary/10",
       to: "/nurse/patients",
     },
     {
       key: "chat", icon: MessageSquare, label: "待回复", sub: "患者/医生消息",
-      count: 5, unit: "条未读", color: "text-success", bg: "bg-success/10",
+      count: pendingTasks.filter((t) => t.kind === "待办").length, unit: "条待处理", color: "text-success", bg: "bg-success/10",
       to: "/nurse/chat",
     },
     {
-      key: "education", icon: BookOpen, label: "待宣教内容", sub: "抗凝药物注射/低盐低脂饮食",
-      count: 9, unit: "条待推送", color: "text-warning", bg: "bg-warning/10",
+      key: "education", icon: BookOpen, label: "待宣教内容", sub: "卒中饮食 / 抗凝用药",
+      count: eduPending, unit: "条待推送", color: "text-warning", bg: "bg-warning/10",
       to: "/nurse/education",
     },
     {
-      key: "handover", icon: LogOutIcon, label: "出院转交", sub: "下转社区 / 居家护理",
-      count: 3, unit: "条待交接", color: "text-primary", bg: "bg-primary/10",
+      key: "handover", icon: LogOutIcon, label: "出院转交", sub: "下转兰园社区",
+      count: handoverPending, unit: "位待交接", color: "text-primary", bg: "bg-primary/10",
       to: "/nurse/handover",
     },
     {
-      key: "followup", icon: Stethoscope, label: "随访", sub: "术后/慢病随访",
-      count: 4, unit: "位待随访", color: "text-accent", bg: "bg-accent/10",
+      key: "followup", icon: Stethoscope, label: "随访", sub: "出院后随访",
+      count: followupPending, unit: "位待随访", color: "text-accent", bg: "bg-accent/10",
       to: "/nurse/followup",
     },
   ];
 
   const pendingTotal = todoItems.reduce((a, b) => a + b.count, 0);
 
+  const typeStyle: Record<string, string> = {
+    "宣教": "bg-accent/10 text-accent",
+    "待办": "bg-primary/10 text-primary",
+    "出院下转": "bg-success/10 text-success",
+  };
+
   return (
     <div className="space-y-3 p-4">
-      {/* 问候 */}
       <Card className="bg-gradient-nurse p-4 text-primary-foreground shadow-soft">
-        <h2 className="text-base font-semibold">李护士,早上好 👋</h2>
-        <p className="mt-0.5 text-[11px] opacity-90">神经内科 · 今日 {pendingTotal} 项待处理</p>
+        <h2 className="text-base font-semibold">{profile?.full_name ?? "护士"}，早上好 👋</h2>
+        <p className="mt-0.5 text-[11px] opacity-90">
+          {profile?.department ?? "神经内科"} · 今日 {pendingTotal} 项待处理
+        </p>
       </Card>
 
-      {/* 待办卡片网格 */}
       <div className="flex items-center justify-between px-1 pt-1">
         <div className="flex items-center gap-1.5">
           <Activity className="h-4 w-4 text-primary" />
@@ -77,79 +101,71 @@ const NurseHome = () => {
         ))}
       </div>
 
-      {/* 今日待办清单 */}
-      {(() => {
-        const tasks = [
-          { patientId: 4, type: "宣教", priority: "紧急", bed: "0617", name: "陈敏", sub: "出血性脑卒中出院饮食指导 · 09:00" },
-          { patientId: 2, type: "沟通", priority: "紧急", bed: "0508", name: "李娜", sub: "回复抗凝药物剂量咨询 · 10:00" },
-          { patientId: 11, type: "随访", priority: "紧急", bed: "—", name: "韩启航", sub: "出院第 3 天血压随访 · 10:30" },
-          { patientId: 3, type: "宣教", priority: "重要", bed: "0215", name: "王强", sub: "Graves 脑供血不足低碘饮食宣教 · 11:00" },
-          { patientId: 1, type: "沟通", priority: "重要", bed: "0312", name: "张伟", sub: "回访 7 日血压记录 · 13:30" },
-          { patientId: 12, type: "随访", priority: "重要", bed: "—", name: "王晓彤", sub: "脑供血不足复诊 TSH 评估 · 14:30" },
-          { patientId: 4, type: "出院转交", priority: "普通", bed: "0617", name: "陈敏", sub: "下转兰园社区 · 神经内科随访 · 14:00" },
-          { patientId: 6, type: "出院转交", priority: "普通", bed: "0305", name: "周婷", sub: "下转兰园社区 · 妊糖随访 · 16:00" },
-        ];
-        const typeStyle: Record<string, string> = {
-          "宣教": "bg-accent/10 text-accent",
-          "沟通": "bg-primary/10 text-primary",
-          "随访": "bg-warning/15 text-warning",
-          "出院转交": "bg-success/10 text-success",
-        };
-        const priorityStyle: Record<string, string> = {
-          "紧急": "bg-destructive/10 text-destructive",
-          "重要": "bg-warning/15 text-warning",
-          "普通": "bg-muted text-muted-foreground",
-        };
-        return (
-          <>
-            <div className="flex items-center justify-between px-1 pt-2">
-              <div className="flex items-center gap-1.5">
-                <ClipboardCheck className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-semibold">今日待办清单</h3>
-              </div>
-              <span className="text-[10px] text-muted-foreground">共 {tasks.length} 项 · 按优先级</span>
+      <div className="flex items-center justify-between px-1 pt-2">
+        <div className="flex items-center gap-1.5">
+          <ClipboardCheck className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold">今日待办清单</h3>
+        </div>
+        <span className="text-[10px] text-muted-foreground">共 {pendingTasks.length} 项 · 按优先级</span>
+      </div>
+      <Card className="overflow-hidden">
+        <div className="divide-y">
+          {pendingTasks.length === 0 && <p className="px-4 py-8 text-center text-sm text-muted-foreground">暂无待办</p>}
+          {pendingTasks.map((t, i) => {
+            const name = t.patients?.name ?? "患者";
+            const bed = t.patients?.bed_number;
+            return (
+              <button
+                key={t.id}
+                onClick={() => {
+                  const action = t.kind === "宣教" ? "?action=push-edu" : t.kind === "出院下转" ? "?action=handover" : "";
+                  navigate(`/nurse/patients/${t.patient_id}${action}`);
+                }}
+                className="flex w-full items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/40"
+              >
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
+                  {i + 1}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${typeStyle[t.kind] ?? "bg-muted text-muted-foreground"}`}>
+                      {t.kind}
+                    </span>
+                    <span className="text-[13px] font-semibold">
+                      {bed ? `床 ${bed} ` : ""}{name}
+                    </span>
+                  </div>
+                  <p className="mt-1 truncate text-[11px] text-muted-foreground">
+                    {t.title}{t.due_text ? ` · ${t.due_text}` : ""}
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+
+      <Card className="overflow-hidden">
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <h3 className="text-sm font-semibold">下转社区进度</h3>
+          <span className="text-[11px] text-muted-foreground">
+            待接收 {referrals.filter((r) => r.status === "待接收").length} · 已接收 {referrals.filter((r) => r.status === "已接收").length}
+          </span>
+        </div>
+        <div className="divide-y">
+          {referrals.slice(0, 3).map((r) => (
+            <div key={r.id} className="flex items-center gap-3 px-4 py-3">
+              <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${r.status === "待接收" ? "bg-warning/15 text-warning" : "bg-success/10 text-success"}`}>
+                {r.status}
+              </span>
+              <span className="text-[13px] font-medium">{r.patients?.name ?? "患者"}</span>
+              <span className="text-[11px] text-muted-foreground">{r.to_community}</span>
+              {r.patients && <span className="ml-auto text-[10px] text-muted-foreground">{sourceLabel(r.patients.source)}</span>}
             </div>
-            <Card className="overflow-hidden">
-              <div className="divide-y">
-                {tasks.map((t, i) => (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      if (t.type === "随访") {
-                        navigate(`/nurse/chat/patient/${t.patientId}`);
-                        return;
-                      }
-                      const action =
-                        t.type === "宣教" ? "?action=push-edu" :
-                        t.type === "沟通" ? "?action=chat" :
-                        t.type === "出院转交" ? "?action=handover" : "";
-                      navigate(`/nurse/patients/${t.patientId}${action}`);
-                    }}
-                    className="flex w-full items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/40"
-                  >
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
-                      {i + 1}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${typeStyle[t.type] ?? "bg-muted text-muted-foreground"}`}>
-                          {t.type}
-                        </span>
-                        <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${priorityStyle[t.priority]}`}>
-                          {t.priority}
-                        </span>
-                        <span className="text-[13px] font-semibold">{t.bed} {t.name}</span>
-                      </div>
-                      <p className="mt-1 truncate text-[11px] text-muted-foreground">{t.sub}</p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  </button>
-                ))}
-              </div>
-            </Card>
-          </>
-        );
-      })()}
+          ))}
+        </div>
+      </Card>
     </div>
   );
 };

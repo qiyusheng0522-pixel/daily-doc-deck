@@ -1,6 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
-import { doctor, doctorPatients, todos, planReviews, chats, monthlyRevenue } from "@/data/doctorMock";
 import { Users, MessageSquare, ClipboardCheck, Wallet, CalendarClock, Bell } from "lucide-react";
+import {
+  usePatients,
+  usePlanReviews,
+  useMyProfile,
+} from "@/data/patients";
 
 function hourGreeting() {
   const h = new Date().getHours();
@@ -13,34 +17,43 @@ function hourGreeting() {
 
 const DoctorHome = () => {
   const navigate = useNavigate();
-  const totalPatients = doctorPatients.length;
-  const pendingReviews = planReviews.filter((r) => r.status === "审核中").length;
-  const unread = chats.reduce((s, c) => s + c.unread, 0);
-  const todoCount = todos.length;
+  const { data: patients = [] } = usePatients("all");
+  const { data: reviews = [] } = usePlanReviews();
+  const { data: profile } = useMyProfile();
 
-  const handleTodo = (t: typeof todos[number]) => {
-    const p = doctorPatients.find((x) => x.name === t.patient);
-    if (t.type === "审核") navigate("/doctor/plans");
-    else if (t.type === "回复") navigate(p ? `/doctor/chat/${p.id}` : "/doctor/communication");
-    else if (t.type === "会诊") navigate(p ? `/doctor/patients/${p.id}` : "/doctor/patients");
-    else navigate("/doctor/patients");
-  };
+  const pendingReviews = reviews.filter((r) => r.status === "审核中").length;
+  const activePatients = patients.filter((p) => p.hospital_stage !== "历史").length;
+
+  // 待办直接来自方案审核队列：审核中的每一条都是一件真实的待处理事项。
+  const todoList = reviews
+    .filter((r) => r.status === "审核中")
+    .slice(0, 5)
+    .map((r) => ({
+      id: r.id,
+      type: "审核" as const,
+      title: `${r.patients?.name ?? "患者"} · ${r.category}审核`,
+      time: r.submitted_at.slice(5, 16).replace("T", " "),
+      to: `/doctor/plans`,
+    }));
+
+  const todoCount = todoList.length;
+  const greetingName = profile?.full_name ?? "医生";
 
   return (
     <div className="space-y-3 px-4 py-4">
       <section className="rounded-2xl bg-card p-5 shadow-sm ring-1 ring-border/60">
         <h2 className="text-xl font-semibold text-foreground">
-          {doctor.name}，{hourGreeting()}
+          {greetingName}，{hourGreeting()}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           今日有 <span className="font-medium text-foreground">{todoCount}</span> 项待处理事项，
-          <span className="text-primary">神经内科 · 卒中管理</span>
+          <span className="text-primary">{profile?.department ?? "神经内科"} · 卒中管理</span>
         </p>
       </section>
 
       <section className="grid grid-cols-3 divide-x divide-border rounded-2xl bg-card py-5 shadow-sm ring-1 ring-border/60">
-        <KpiCell num={totalPatients} label="患者" color="text-primary" />
-        <KpiCell num={unread} label="未读消息" color="text-destructive" />
+        <KpiCell num={patients.length} label="患者" color="text-primary" />
+        <KpiCell num={activePatients} label="在期" color="text-emerald-600" />
         <KpiCell num={pendingReviews} label="待审核" color="text-amber-600" />
       </section>
 
@@ -49,8 +62,8 @@ const DoctorHome = () => {
           to="/doctor/patients"
           icon={<Users className="h-5 w-5 text-primary" />}
           iconBg="bg-primary/10"
-          num={totalPatients}
-          label={`患者 · 在期 ${doctorPatients.filter((p) => p.status !== "过期").length}`}
+          num={patients.length}
+          label={`患者 · 在期 ${activePatients}`}
           dot
         />
         <TileCard
@@ -58,16 +71,16 @@ const DoctorHome = () => {
           icon={<ClipboardCheck className="h-5 w-5 text-amber-600" />}
           iconBg="bg-amber-500/15"
           num={pendingReviews}
-          label={`方案审核 · 共 ${planReviews.length} 条`}
+          label={`方案审核 · 共 ${reviews.length} 条`}
           dot
         />
         <TileCard
           to="/doctor/communication"
           icon={<MessageSquare className="h-5 w-5 text-emerald-600" />}
           iconBg="bg-emerald-500/15"
-          num={unread}
-          label={`待回复 · ${unread} 条未读`}
-          dot={unread > 0}
+          num={patients.length}
+          label="沟通 · 患者会话"
+          dot={false}
         />
       </section>
 
@@ -77,10 +90,11 @@ const DoctorHome = () => {
             <Bell className="h-4 w-4 text-primary" />
             今日待办
           </h3>
-          <span className="text-xs text-muted-foreground">{todos.length} 项</span>
+          <span className="text-xs text-muted-foreground">{todoList.length} 项</span>
         </div>
         <ul className="divide-y divide-border">
-          {todos.map((t) => (
+          {todoList.length === 0 && <li className="py-6 text-center text-sm text-muted-foreground">暂无待办</li>}
+          {todoList.map((t) => (
             <li key={t.id} className="flex items-center gap-3 py-2.5">
               <TodoBadge type={t.type} />
               <div className="min-w-0 flex-1">
@@ -90,7 +104,10 @@ const DoctorHome = () => {
                   {t.time}
                 </p>
               </div>
-              <button onClick={() => handleTodo(t)} className="whitespace-nowrap rounded-full border border-primary/40 px-3 py-1 text-xs font-medium text-primary">
+              <button
+                onClick={() => navigate(t.to)}
+                className="whitespace-nowrap rounded-full border border-primary/40 px-3 py-1 text-xs font-medium text-primary"
+              >
                 处理
               </button>
             </li>
@@ -102,22 +119,19 @@ const DoctorHome = () => {
         <div className="flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-sm font-semibold">
             <Wallet className="h-4 w-4 text-emerald-600" />
-            {monthlyRevenue.label}
+            本月服务量
           </h3>
           <span className="text-xs text-muted-foreground">
-            已完成 {monthlyRevenue.completed} 单 · 待结算 ¥{monthlyRevenue.pending}
+            已接收下转 {patients.filter((p) => p.community_stage !== null).length} 例 · 待审核 {pendingReviews} 条
           </span>
         </div>
-        <p className="mt-2 text-3xl font-semibold text-emerald-600">
-          ¥{monthlyRevenue.total.toLocaleString()}
-        </p>
+        <p className="mt-2 text-3xl font-semibold text-emerald-600">{patients.length}</p>
         <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-          <MiniStat label="沟通咨询" value="¥0" />
-          <MiniStat label="方案确认" value="¥0" />
-          <MiniStat label="会诊分成" value="¥0" />
+          <MiniStat label="在管患者" value={String(activePatients)} />
+          <MiniStat label="来源渠道" value={`${new Set(patients.map((p) => p.source)).size} 个`} />
+          <MiniStat label="异常提示" value={String(patients.filter((p) => p.abnormal).length)} />
         </div>
       </section>
-
     </div>
   );
 };

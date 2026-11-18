@@ -5,22 +5,42 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-
-const dischargeList = [
-  { id: 1, name: "王芳", bed: "0408", date: "今日 14:00", status: "待交接", doctor: "张医生" },
-  { id: 2, name: "刘洋", bed: "0612", date: "今日 16:30", status: "准备中", doctor: "李医生" },
-  { id: 3, name: "周婷", bed: "0305", date: "明日 09:00", status: "待交接", doctor: "王医生" },
-];
-
-const history = [
-  { id: 1, name: "陈雪", bed: "0507", date: "昨日 10:30", receiver: "社区护士 · 张丽", status: "已完成" },
-  { id: 2, name: "黄伟", bed: "0218", date: "昨日 15:00", receiver: "家属 · 黄先生", status: "已完成" },
-];
+import { usePatients, useCreateReferral, useReferrals, type Patient } from "@/data/patients";
 
 const NurseHandover = () => {
   const [activeTab, setActiveTab] = useState<"pending" | "history">("pending");
-  const [selected, setSelected] = useState<typeof dischargeList[0] | null>(null);
+  const [selected, setSelected] = useState<Patient | null>(null);
   const [note, setNote] = useState("");
+
+  const { data: inpatients = [], isLoading } = usePatients("hospital");
+  const { data: referrals = [] } = useReferrals();
+  const createReferral = useCreateReferral();
+
+  // 出院待交接 = 在院阶段为「待出院」的患者，与患者列表看到的是同一批人。
+  const dischargeList = inpatients.filter((p) => p.hospital_stage === "待出院");
+  const handoverHistory = referrals.filter((r) => r.status === "已接收");
+
+  const sendHandover = () => {
+    if (!selected) return;
+    createReferral.mutate(
+      {
+        patientId: selected.id,
+        reason: note.trim() || `${selected.diagnosis} · 出院下转社区随访`,
+        doctorName: selected.refer_doctor ?? undefined,
+      },
+      {
+        onSuccess: () => {
+          toast({
+            title: "交接已发送",
+            description: `${selected.name} 已下转兰园社区，等待社区接收`,
+          });
+          setSelected(null);
+          setNote("");
+        },
+        onError: (e: Error) => toast({ title: "交接发送失败", description: e.message, variant: "destructive" }),
+      },
+    );
+  };
 
   if (selected) {
     return (
@@ -37,9 +57,11 @@ const NurseHandover = () => {
             </div>
             <div className="flex-1">
               <p className="font-semibold">{selected.name}</p>
-              <p className="text-xs text-muted-foreground">床位 {selected.bed} · 主治 {selected.doctor}</p>
+              <p className="text-xs text-muted-foreground">
+                床位 {selected.bed_number ?? "—"} · 主治 {selected.refer_doctor ?? "—"} · {selected.source}
+              </p>
             </div>
-            <Badge variant="secondary">{selected.date}</Badge>
+            <Badge variant="secondary">{selected.hospital_stage}</Badge>
           </div>
         </Card>
 
@@ -55,13 +77,15 @@ const NurseHandover = () => {
             <div>
               <p className="mb-1.5 text-xs font-medium text-muted-foreground">护理记录汇总</p>
               <div className="rounded-lg bg-muted/40 p-3 text-xs leading-relaxed">
-                住院 5 天,收缩压控制在 6.2 mmHg、餐后 7.4 mmHg,NIHSS 评分 6.8%,无低血压事件。已完成抗凝药物注射宣教及饮食指导。建议社区每周随访血压一次。
+                主要诊断 {selected.diagnosis}。当前血压 {selected.bp}、心率 {selected.hr}、LDL {selected.ldl}、空腹血糖 {selected.glucose}；
+                NIHSS {selected.nihss}、mRS {selected.mrs}、{selected.limb_power}。过敏史：{selected.allergy ?? "无"}。
+                建议社区每周随访血压一次，并按医嘱继续二级预防用药。
               </div>
             </div>
             <div>
-              <p className="mb-1.5 text-xs font-medium text-muted-foreground">交接内容(自动生成)</p>
+              <p className="mb-1.5 text-xs font-medium text-muted-foreground">交接内容（自动生成）</p>
               <div className="space-y-1.5">
-                {["用药清单 · 5 项", "复查计划 · 2 周后", "饮食运动建议", "应急联系方式"].map((it) => (
+                {["用药清单与剂量", "复查计划 · 2 周后", "饮食与康复训练建议", "应急联系方式"].map((it) => (
                   <div key={it} className="flex items-center gap-2 text-xs">
                     <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                     <span>{it}</span>
@@ -94,25 +118,19 @@ const NurseHandover = () => {
               <p className="mb-1.5 text-xs font-medium text-muted-foreground">转交去向</p>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: "转入社区", desc: "南京市鼓楼医院 · 神经内科" },
+                  { label: "转入社区", desc: "兰园社区卫生站 · 神经内科随访" },
                   { label: "居家护理", desc: "由家属/居家护理协助" },
                 ].map((r) => (
-                  <button key={r.label} className="rounded-lg border bg-card p-3 text-left transition-colors hover:border-accent hover:bg-accent/5">
+                  <div key={r.label} className="rounded-lg border bg-card p-3 text-left">
                     <p className="text-xs font-semibold">{r.label}</p>
                     <p className="mt-0.5 text-[10px] text-muted-foreground">{r.desc}</p>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
-            <Button
-              className="w-full bg-gradient-nurse"
-              size="lg"
-              onClick={() => {
-                toast({ title: "交接发送成功", description: `${selected.name} 的交接信息已发送` });
-                setSelected(null);
-              }}
-            >
-              <Send className="mr-2 h-4 w-4" />发送交接
+            <Button className="w-full bg-gradient-nurse" size="lg" onClick={sendHandover} disabled={createReferral.isPending}>
+              <Send className="mr-2 h-4 w-4" />
+              {createReferral.isPending ? "发送中…" : "发送交接"}
             </Button>
           </div>
         </Card>
@@ -122,7 +140,6 @@ const NurseHandover = () => {
 
   return (
     <div className="space-y-4 p-4">
-      {/* Tab 切换 */}
       <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
         <button
           onClick={() => setActiveTab("pending")}
@@ -142,23 +159,21 @@ const NurseHandover = () => {
         </button>
       </div>
 
-      {/* 统计 */}
       <div className="grid grid-cols-3 gap-2">
         <Card className="p-3 text-center">
-          <p className="text-xl font-semibold text-primary">3</p>
-          <p className="text-[11px] text-muted-foreground">今日出院</p>
+          <p className="text-xl font-semibold text-primary">{dischargeList.length}</p>
+          <p className="text-[11px] text-muted-foreground">待出院</p>
         </Card>
         <Card className="p-3 text-center">
-          <p className="text-xl font-semibold text-warning">2</p>
-          <p className="text-[11px] text-muted-foreground">待交接</p>
+          <p className="text-xl font-semibold text-warning">{referrals.filter((r) => r.status === "待接收").length}</p>
+          <p className="text-[11px] text-muted-foreground">待社区接收</p>
         </Card>
         <Card className="p-3 text-center">
-          <p className="text-xl font-semibold text-success">12</p>
-          <p className="text-[11px] text-muted-foreground">本周完成</p>
+          <p className="text-xl font-semibold text-success">{handoverHistory.length}</p>
+          <p className="text-[11px] text-muted-foreground">社区已接收</p>
         </Card>
       </div>
 
-      {/* 列表 */}
       {activeTab === "pending" ? (
         <Card className="overflow-hidden">
           <div className="flex items-center justify-between border-b px-4 py-3">
@@ -168,6 +183,10 @@ const NurseHandover = () => {
             </div>
           </div>
           <div className="divide-y">
+            {isLoading && <p className="px-4 py-8 text-center text-sm text-muted-foreground">加载中…</p>}
+            {!isLoading && dischargeList.length === 0 && (
+              <p className="px-4 py-8 text-center text-sm text-muted-foreground">暂无待出院患者</p>
+            )}
             {dischargeList.map((p) => (
               <button
                 key={p.id}
@@ -175,14 +194,18 @@ const NurseHandover = () => {
                 className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50"
               >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-semibold text-primary">
-                  {p.bed}
+                  {p.bed_number ?? "—"}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm font-medium">{p.name}</span>
-                    <Badge variant={p.status === "待交接" ? "destructive" : "secondary"} className="h-4 px-1 text-[9px]">{p.status}</Badge>
+                    <Badge variant={p.abnormal ? "destructive" : "secondary"} className="h-4 px-1 text-[9px]">
+                      {p.abnormal ? "异常" : "平稳"}
+                    </Badge>
                   </div>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">出院 · {p.date}</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    {p.diagnosis} · {p.source}
+                  </p>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </button>
@@ -198,19 +221,24 @@ const NurseHandover = () => {
             </div>
           </div>
           <div className="divide-y">
-            {history.map((h) => (
+            {handoverHistory.length === 0 && <p className="px-4 py-8 text-center text-sm text-muted-foreground">暂无交接记录</p>}
+            {handoverHistory.map((h) => (
               <div key={h.id} className="px-4 py-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">{h.name} · 床 {h.bed}</p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">接收人:{h.receiver}</p>
+                    <p className="text-sm font-medium">
+                      {h.patients?.name ?? "患者"} · {h.to_community}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">下转医生：{h.doctor_name ?? "—"}</p>
                   </div>
                   <Badge variant="outline" className="h-5 border-success text-[10px] text-success">
-                    <CheckCircle2 className="mr-0.5 h-2.5 w-2.5" />{h.status}
+                    <CheckCircle2 className="mr-0.5 h-2.5 w-2.5" />
+                    {h.status}
                   </Badge>
                 </div>
                 <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <Clock className="h-3 w-3" />{h.date}
+                  <Clock className="h-3 w-3" />
+                  {h.received_at?.slice(0, 16).replace("T", " ") ?? h.created_at.slice(0, 16).replace("T", " ")}
                 </p>
               </div>
             ))}

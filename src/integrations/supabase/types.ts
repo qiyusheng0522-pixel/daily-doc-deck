@@ -58,6 +58,162 @@ export type Database = {
           },
         ]
       }
+      care_plans: {
+        Row: {
+          created_at: string
+          department: string
+          disease: string
+          doctor_name: string | null
+          id: string
+          note: string | null
+          open_ended: boolean
+          patient_id: string
+          period_end: string | null
+          period_start: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department?: string
+          disease: string
+          doctor_name?: string | null
+          id?: string
+          note?: string | null
+          open_ended?: boolean
+          patient_id: string
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department?: string
+          disease?: string
+          doctor_name?: string | null
+          id?: string
+          note?: string | null
+          open_ended?: boolean
+          patient_id?: string
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "care_plans_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          patient_id: string
+          sender_name: string
+          sender_role: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          patient_id: string
+          sender_name: string
+          sender_role: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          patient_id?: string
+          sender_name?: string
+          sender_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      education_items: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          duration: string
+          id: string
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          duration?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          duration?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      followups: {
+        Row: {
+          created_at: string
+          id: string
+          item: string
+          note: string | null
+          patient_id: string
+          post_discharge_day: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item: string
+          note?: string | null
+          patient_id: string
+          post_discharge_day?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item?: string
+          note?: string | null
+          patient_id?: string
+          post_discharge_day?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followups_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medical_records: {
         Row: {
           chief_complaint: string | null
@@ -102,56 +258,297 @@ export type Database = {
           },
         ]
       }
+      nurse_tasks: {
+        Row: {
+          created_at: string
+          due_text: string | null
+          id: string
+          kind: string
+          patient_id: string
+          source_plan_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          due_text?: string | null
+          id?: string
+          kind?: string
+          patient_id: string
+          source_plan_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          due_text?: string | null
+          id?: string
+          kind?: string
+          patient_id?: string
+          source_plan_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nurse_tasks_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nurse_tasks_source_plan_id_fkey"
+            columns: ["source_plan_id"]
+            isOneToOne: false
+            referencedRelation: "care_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_checkins: {
+        Row: {
+          bp_morning: string | null
+          created_at: string
+          diet_kcal: number | null
+          exercise_min: number | null
+          id: string
+          med_adherence: number | null
+          patient_id: string
+          recorded_on: string
+          sleep_hours: number | null
+        }
+        Insert: {
+          bp_morning?: string | null
+          created_at?: string
+          diet_kcal?: number | null
+          exercise_min?: number | null
+          id?: string
+          med_adherence?: number | null
+          patient_id: string
+          recorded_on?: string
+          sleep_hours?: number | null
+        }
+        Update: {
+          bp_morning?: string | null
+          created_at?: string
+          diet_kcal?: number | null
+          exercise_min?: number | null
+          id?: string
+          med_adherence?: number | null
+          patient_id?: string
+          recorded_on?: string
+          sleep_hours?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_checkins_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_education: {
+        Row: {
+          education_item_id: string
+          id: string
+          patient_id: string
+          pushed_at: string
+          read_at: string | null
+          status: string
+        }
+        Insert: {
+          education_item_id: string
+          id?: string
+          patient_id: string
+          pushed_at?: string
+          read_at?: string | null
+          status?: string
+        }
+        Update: {
+          education_item_id?: string
+          id?: string
+          patient_id?: string
+          pushed_at?: string
+          read_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_education_education_item_id_fkey"
+            columns: ["education_item_id"]
+            isOneToOne: false
+            referencedRelation: "education_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_education_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
+          abnormal: boolean
           age: number
           allergy: string | null
           appointment_time: string | null
           bed_number: string | null
+          bp: string | null
+          community_stage: string | null
+          condition_category: string | null
           created_at: string
           diagnosis: string
           doctor_id: string | null
           gender: string
+          glucose: string | null
+          hospital_stage: string | null
+          hr: string | null
           id: string
+          id_no: string | null
+          last_visit: string | null
+          ldl: string | null
+          lifestyle_warnings: string[]
+          limb_power: string | null
+          mrs: string | null
           name: string
+          nihss: string | null
           phone: string | null
+          refer_dept: string | null
+          refer_doctor: string | null
+          risk_tags: string[]
           source: Database["public"]["Enums"]["patient_source"]
           status: Database["public"]["Enums"]["patient_status"]
+          stroke_type: string | null
           updated_at: string
+          vip: boolean
+          vitals_flags: Json
         }
         Insert: {
+          abnormal?: boolean
           age: number
           allergy?: string | null
           appointment_time?: string | null
           bed_number?: string | null
+          bp?: string | null
+          community_stage?: string | null
+          condition_category?: string | null
           created_at?: string
           diagnosis: string
           doctor_id?: string | null
           gender: string
+          glucose?: string | null
+          hospital_stage?: string | null
+          hr?: string | null
           id?: string
+          id_no?: string | null
+          last_visit?: string | null
+          ldl?: string | null
+          lifestyle_warnings?: string[]
+          limb_power?: string | null
+          mrs?: string | null
           name: string
+          nihss?: string | null
           phone?: string | null
+          refer_dept?: string | null
+          refer_doctor?: string | null
+          risk_tags?: string[]
           source?: Database["public"]["Enums"]["patient_source"]
           status?: Database["public"]["Enums"]["patient_status"]
+          stroke_type?: string | null
           updated_at?: string
+          vip?: boolean
+          vitals_flags?: Json
         }
         Update: {
+          abnormal?: boolean
           age?: number
           allergy?: string | null
           appointment_time?: string | null
           bed_number?: string | null
+          bp?: string | null
+          community_stage?: string | null
+          condition_category?: string | null
           created_at?: string
           diagnosis?: string
           doctor_id?: string | null
           gender?: string
+          glucose?: string | null
+          hospital_stage?: string | null
+          hr?: string | null
           id?: string
+          id_no?: string | null
+          last_visit?: string | null
+          ldl?: string | null
+          lifestyle_warnings?: string[]
+          limb_power?: string | null
+          mrs?: string | null
           name?: string
+          nihss?: string | null
           phone?: string | null
+          refer_dept?: string | null
+          refer_doctor?: string | null
+          risk_tags?: string[]
           source?: Database["public"]["Enums"]["patient_source"]
           status?: Database["public"]["Enums"]["patient_status"]
+          stroke_type?: string | null
           updated_at?: string
+          vip?: boolean
+          vitals_flags?: Json
         }
         Relationships: []
+      }
+      plan_reviews: {
+        Row: {
+          category: string
+          created_at: string
+          department: string
+          disease: string
+          id: string
+          patient_id: string
+          status: string
+          submitted_at: string
+          summary: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          department?: string
+          disease: string
+          id?: string
+          patient_id: string
+          status?: string
+          submitted_at?: string
+          summary: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          department?: string
+          disease?: string
+          id?: string
+          patient_id?: string
+          status?: string
+          submitted_at?: string
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_reviews_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       prescriptions: {
         Row: {
@@ -224,14 +621,119 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          created_at: string
+          doctor_name: string | null
+          from_hospital: string
+          id: string
+          patient_id: string
+          reason: string | null
+          received_at: string | null
+          status: string
+          to_community: string
+        }
+        Insert: {
+          created_at?: string
+          doctor_name?: string | null
+          from_hospital?: string
+          id?: string
+          patient_id: string
+          reason?: string | null
+          received_at?: string | null
+          status?: string
+          to_community?: string
+        }
+        Update: {
+          created_at?: string
+          doctor_name?: string | null
+          from_hospital?: string
+          id?: string
+          patient_id?: string
+          reason?: string | null
+          received_at?: string | null
+          status?: string
+          to_community?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      uploads: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          patient_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          patient_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          patient_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uploads_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_program_member: { Args: never; Returns: boolean }
     }
     Enums: {
+      app_role: "doctor" | "nurse" | "community" | "patient"
       patient_source: "南京市鼓楼医院" | "兰园社区"
       patient_status: "候诊中" | "接诊中" | "待处方" | "已完成"
     }
@@ -361,6 +863,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["doctor", "nurse", "community", "patient"],
       patient_source: ["南京市鼓楼医院", "兰园社区"],
       patient_status: ["候诊中", "接诊中", "待处方", "已完成"],
     },
