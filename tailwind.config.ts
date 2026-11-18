@@ -14,6 +14,17 @@ export default {
     },
     extend: {
       colors: {
+        scr: {
+          bg: "hsl(var(--scr-bg))",
+          panel: "hsl(var(--scr-panel))",
+          line: "hsl(var(--scr-line))",
+          cyan: "hsl(var(--scr-cyan))",
+          text: "hsl(var(--scr-text))",
+          dim: "hsl(var(--scr-dim))",
+          green: "hsl(var(--scr-green))",
+          gold: "hsl(var(--scr-gold))",
+          red: "hsl(var(--scr-red))",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

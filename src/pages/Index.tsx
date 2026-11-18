@@ -25,6 +25,12 @@ const Index = () => {
           </p>
         </div>
 
+        <div className="mt-6 text-center">
+          <Link to="/screen" className="inline-flex items-center gap-1 rounded-full border px-5 py-2 text-sm font-medium text-primary hover:bg-accent">
+            进入省级监管大屏 <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
         <div className="mx-auto mt-12 grid max-w-6xl gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Link
             to="/doctor"

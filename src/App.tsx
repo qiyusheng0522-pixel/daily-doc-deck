@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Auth from "./pages/Auth.tsx";
+import ProvinceScreen from "./pages/screen/ProvinceScreen.tsx";
 
 import DoctorLayout from "./pages/doctor/DoctorLayout.tsx";
 import DoctorHome from "./pages/doctor/DoctorHome.tsx";
@@ -89,6 +90,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/screen" element={<ProvinceScreen />} />
 
           <Route path="/doctor" element={<DoctorLayout />}>
             <Route index element={<DoctorHome />} />
