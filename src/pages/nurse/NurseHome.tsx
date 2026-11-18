@@ -66,7 +66,7 @@ const NurseHome = () => {
   return (
     <div className="space-y-3 p-4">
       <Card className="bg-gradient-nurse p-4 text-primary-foreground shadow-soft">
-        <h2 className="text-base font-semibold">{profile?.full_name ?? "护士"}，早上好 👋</h2>
+        <h2 className="text-base font-semibold">{profile?.full_name ?? "评估师"}，早上好 👋</h2>
         <p className="mt-0.5 text-[11px] opacity-90">
           {profile?.department ?? "记忆门诊"} · 今日 {pendingTotal} 项待处理
         </p>

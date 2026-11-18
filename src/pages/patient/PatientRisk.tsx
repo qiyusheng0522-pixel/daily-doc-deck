@@ -45,7 +45,7 @@ const PatientRisk = () => {
               </div>
               <p className="text-sm leading-relaxed opacity-95">{riskSummaryText}</p>
               <div className="mt-3 flex flex-wrap gap-3 text-[12px] opacity-95">
-                <span>Essen 评分 <b>{riskOverview.essenScore} 分</b></span>
+                <span>MMSE（评估师测评） <b>24 分</b></span>
                 <span>1 年内复发风险 <b>{riskOverview.recurrenceRisk}</b></span>
                 <span>优先干预：<b>{riskOverview.priority.join(" / ")}</b></span>
               </div>
@@ -147,7 +147,7 @@ function UnfilledGuide({
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold">填写评估问卷</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Essen / MMSE / MoCA / 饮食 / 用药依从</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">训练站测评 MMSE / MoCA · 自评 睡眠 / 营养 / 跌倒 / 心理</p>
         </div>
         <ArrowRight className="h-4 w-4 text-muted-foreground" />
       </button>

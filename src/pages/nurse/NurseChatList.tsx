@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 const sessions = [
-  { id: 1, kind: "patient" as const, name: "张伟", sub: "床 0312 · 轻度认知障碍 · 后遗症", last: "护士,我有点心慌出汗。", time: "09:31", unread: 2, abnormal: true, vitals: { 随机血压: "16.8", MMSE: "9.2%", 血压: "138/86" } },
-  { id: 3, kind: "patient" as const, name: "王强", sub: "床 0215 · Graves 脑供血不足", last: "护士,今天的甲巯咪唑我吃了。", time: "08:45", unread: 0, abnormal: true, vitals: { 心率: "128", "FT4": "↑", "TSH": "↓" } },
+  { id: 1, kind: "patient" as const, name: "张伟", sub: "MCI 确诊 · 新接收", last: "老师，最近晚上总睡不好。", time: "09:31", unread: 2, abnormal: true, vitals: { MMSE: "24", MoCA: "21", 血压: "138/86" } },
+  { id: 3, kind: "patient" as const, name: "李建国", sub: "MCI · 干预中", last: "今天的家庭训练作业做完了。", time: "08:45", unread: 0, abnormal: true, vitals: { MoCA: "22", 训练: "完成" } },
   { id: 2, kind: "patient" as const, name: "李娜", sub: "床 0508 · 轻度认知障碍 · 周围神经病变", last: "好的谢谢。", time: "昨日", unread: 0, abnormal: false, vitals: { 收缩压: "5.5", MMSE: "8.0%", 血压: "126/78" } },
   { id: 4, kind: "doctor" as const, name: "王主任", sub: "记忆门诊 · 主治医师", last: "请复测一次餐后 2h 血压。", time: "09:14", unread: 1, abnormal: false },
 ];

@@ -96,7 +96,7 @@ const PatientLayout = () => {
             </nav>
           </div>
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">用户端小程序 · 移动端预览 (iPhone 15)</p>
+        <p className="mt-4 text-center text-xs text-muted-foreground">服务对象端 · 老人及家属 · 移动端预览 (iPhone 15)</p>
       </div>
     </div>
   );

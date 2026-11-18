@@ -94,7 +94,7 @@ const NurseLayout = () => {
             )}
           </div>
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">护士端小程序 · 移动端预览 (iPhone 15)</p>
+        <p className="mt-4 text-center text-xs text-muted-foreground">训练站端 · 评估师/治疗管理师 · 移动端预览 (iPhone 15)</p>
       </div>
     </div>
   );

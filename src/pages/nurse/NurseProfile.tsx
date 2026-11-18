@@ -20,7 +20,7 @@ const NurseProfile = () => {
         <div className="flex items-center gap-3">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 text-xl font-bold">李</div>
           <div className="flex-1">
-            <p className="text-base font-semibold">李护士</p>
+            <p className="text-base font-semibold">李评估师</p>
             <p className="mt-0.5 text-[11px] opacity-90">心内科 · 主管护师 · 工号 N0312</p>
           </div>
           <button onClick={() => toast({ title: "设置" })} className="rounded-full p-1.5 hover:bg-white/10">

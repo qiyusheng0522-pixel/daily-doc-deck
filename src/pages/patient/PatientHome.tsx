@@ -326,12 +326,12 @@ const PatientHome = () => {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 whitespace-nowrap">
-              <p className="truncate text-base font-semibold">Essen 认知风险评估</p>
+              <p className="truncate text-base font-semibold">老年综合评估自评</p>
               <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
                 已填写
               </span>
             </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">AD-8 自评量表</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">睡眠 · 营养 · 跌倒风险 · 精神心理</p>
           </div>
           <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
         </Link>

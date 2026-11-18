@@ -97,7 +97,7 @@ const PatientPlan = () => {
                 </button>
               </div>
               <p className="text-[12px] leading-relaxed text-foreground/85">
-                综合 <b>{diseaseTags.length} 项病症</b> 与 <b>{lifestyleTags.length} 项生活问题</b>,Essen 评分 <b className="text-rose-600">{riskOverview.essenScore} 分</b>,
+                综合 <b>{diseaseTags.length} 项病症</b> 与 <b>{lifestyleTags.length} 项生活问题</b>,MMSE <b className="text-rose-600">24 分</b>,
                 提示 1 年内认知衰退风险约 <b className="text-rose-600">{riskOverview.recurrenceRisk}</b>。建议优先干预
                 {riskOverview.priority.map((p, i) => (
                   <span key={p}>{i === 0 ? "" : "、"}<b className="text-primary">{p}</b></span>
@@ -585,7 +585,7 @@ function UnfilledPlanGuide({
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold">填写评估问卷</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Essen / MMSE / MoCA / 饮食 / 用药依从</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">训练站测评 MMSE / MoCA · 自评 睡眠 / 营养 / 跌倒 / 心理</p>
         </div>
         <ArrowRight className="h-4 w-4 text-muted-foreground" />
       </button>

@@ -9,6 +9,7 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { JS_CITIES, JS_VIEWBOX } from "@/data/jiangsuMap";
+import { GL_AREAS, GL_STATIONS, GL_VIEWBOX, NJ_AREAS, NJ_VIEWBOX } from "@/data/nanjingMap";
 
 const C = {
   cyan: "hsl(var(--scr-cyan))", green: "hsl(var(--scr-green))", gold: "hsl(var(--scr-gold))",
@@ -32,7 +33,57 @@ const CITY: Record<string, CityStat> = {
   无锡: { stations: 12, elders: 2.31, screen: 93.8, guide: 92.4, referral: 75.0, improve: 48.1 },
   苏州: { stations: 4, elders: 2.80, screen: 94.1, guide: 92.6, referral: 75.6, improve: 48.4 },
 };
-const PROV = { screen: 92.4, guide: 91.1, improve: 46.8 };
+const NJ: Record<string, CityStat> = {
+  玄武区: { stations: 2, elders: 0.24, screen: 94.0, guide: 92.5, referral: 75.2, improve: 47.8 },
+  秦淮区: { stations: 2, elders: 0.28, screen: 93.2, guide: 92.0, referral: 74.1, improve: 47.0 },
+  建邺区: { stations: 1, elders: 0.16, screen: 94.5, guide: 93.0, referral: 76.0, improve: 48.2 },
+  鼓楼区: { stations: 3, elders: 0.38, screen: 95.1, guide: 93.6, referral: 77.4, improve: 49.0 },
+  浦口区: { stations: 2, elders: 0.29, screen: 92.6, guide: 91.4, referral: 73.0, improve: 46.4 },
+  栖霞区: { stations: 2, elders: 0.27, screen: 93.0, guide: 91.8, referral: 73.8, improve: 46.9 },
+  雨花台区: { stations: 1, elders: 0.17, screen: 93.8, guide: 92.2, referral: 74.6, improve: 47.3 },
+  江宁区: { stations: 3, elders: 0.48, screen: 93.4, guide: 92.0, referral: 74.4, improve: 47.6 },
+  六合区: { stations: 2, elders: 0.36, screen: 92.1, guide: 90.8, referral: 72.5, improve: 46.0 },
+  溧水区: { stations: 2, elders: 0.30, screen: 92.4, guide: 91.2, referral: 73.2, improve: 46.5 },
+  高淳区: { stations: 2, elders: 0.28, screen: 92.8, guide: 91.6, referral: 73.5, improve: 46.8 },
+};
+// 县(区)级：鼓楼区各训练站，elders 单位为"人"，stations 字段表示在管人数
+const GL: Record<string, CityStat> = Object.fromEntries(GL_STATIONS.map((st, i) => [st.name, {
+  stations: [186, 142, 128, 96, 154, 88, 110, 132, 74, 102, 120, 92, 98][i],
+  elders: [312, 268, 240, 198, 286, 176, 220, 254, 160, 206, 232, 184, 196][i],
+  screen: +(93 + (i * 7 % 5) * 0.6).toFixed(1), guide: +(91.5 + (i * 3 % 5) * 0.5).toFixed(1),
+  referral: +(73 + (i * 5 % 6) * 0.8).toFixed(1), improve: +(46 + (i * 4 % 6) * 0.6).toFixed(1),
+}]));
+
+type Level = "province" | "city" | "county";
+const LEVELS: Record<Level, {
+  tab: string; org: string; title: string; scope: string; areaTab: string; suffix: string; hint: string;
+  areas: Record<string, CityStat>; def: string; countLabel: string; countUnit: string; eldersUnit: string;
+  base: { screen: number; guide: number; improve: number }; total: number; totalLabel: string;
+  overall: { k: string; v: string; u: string }[]; flowScale: number;
+}> = {
+  province: {
+    tab: "省级视角", org: "江苏省卫生健康委员会", title: "江苏省老年认知训练站建设与服务监管大屏", scope: "江苏省",
+    areaTab: "设区市", suffix: "市", hint: "点击城市查看详情 · 数字为训练站数量", areas: CITY, def: "南京",
+    countLabel: "训练站数", countUnit: "个", eldersUnit: "万", base: { screen: 92.4, guide: 91.1, improve: 46.8 },
+    total: 27.6, totalLabel: "27.6 万", flowScale: 1,
+    overall: [{ k: "覆盖设区市", v: "13", u: "个" }, { k: "县域覆盖率", v: "100%", u: "" }, { k: "服务老年人", v: "27.6", u: "万" }],
+  },
+  city: {
+    tab: "市级视角", org: "南京市卫生健康委员会", title: "南京市老年认知训练站服务监管驾驶舱", scope: "南京市",
+    areaTab: "区县", suffix: "", hint: "点击区县查看详情 · 数字为训练站数量", areas: NJ, def: "鼓楼区",
+    countLabel: "训练站数", countUnit: "个", eldersUnit: "万", base: { screen: 93.6, guide: 92.1, improve: 47.5 },
+    total: 3.21, totalLabel: "3.21 万", flowScale: 0.1163,
+    overall: [{ k: "覆盖区县", v: "11", u: "个" }, { k: "街镇覆盖率", v: "86%", u: "" }, { k: "服务老年人", v: "3.21", u: "万" }],
+  },
+  county: {
+    tab: "县(区)级视角", org: "鼓楼区卫生健康委员会", title: "鼓楼区老年认知训练站运营驾驶舱", scope: "鼓楼区",
+    areaTab: "训练站", suffix: "社区训练站", hint: "点击训练站查看详情 · 数字为在管人数", areas: GL, def: "小市",
+    countLabel: "在管人数", countUnit: "人", eldersUnit: "人", base: { screen: 95.1, guide: 93.6, improve: 49.0 },
+    total: 0.38, totalLabel: "3,800 人", flowScale: 0.0138,
+    overall: [{ k: "训练站", v: "13", u: "个" }, { k: "评估师/治疗管理师", v: "26", u: "人" }, { k: "服务老年人", v: "3,800", u: "人" }],
+  },
+};
+
 
 const NAV = [
   { label: "总体概览", icon: Home }, { label: "站点建设", icon: Building2 }, { label: "筛查评估", icon: Search },
@@ -137,8 +188,8 @@ function TrendChart({ data, labels, xKey = "m" }: { data: object[]; labels: stri
   );
 }
 
-function RiskDonut({ total, label, pct }: { total: number; label: string; pct?: number[] }) {
-  const data = riskData(total, pct);
+function RiskDonut({ total, label, pct, unit = "万" }: { total: number; label: string; pct?: number[]; unit?: string }) {
+  const data = riskData(total, pct).map((d) => unit === "人" ? { ...d, value: Math.round(d.value) } : d);
   return (
     <div className="flex h-full items-center gap-3">
       <div className="relative h-full min-h-[110px] w-[44%]">
@@ -158,7 +209,7 @@ function RiskDonut({ total, label, pct }: { total: number; label: string; pct?: 
           <li key={d.name} className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-sm" style={{ background: RISK_COLORS[i] }} />
             <span className="w-16">{d.name}</span>
-            <span className="ml-auto tabular-nums">{d.pct}%（{d.value}万）</span>
+            <span className="ml-auto tabular-nums">{d.pct}%（{d.value}{unit}）</span>
           </li>
         ))}
       </ul>
@@ -166,7 +217,34 @@ function RiskDonut({ total, label, pct }: { total: number; label: string; pct?: 
   );
 }
 
-function JiangsuMap({ city, onPick }: { city: string; onPick: (c: string) => void }) {
+function AreaMap({ level, city, onPick }: { level: Level; city: string; onPick: (c: string) => void }) {
+  const cfg = LEVELS[level];
+  if (level === "county") {
+    return (
+      <svg viewBox={GL_VIEWBOX} className="h-full w-full" style={{ filter: "drop-shadow(0 0 18px hsl(var(--scr-cyan) / 0.45))" }}>
+        <defs><linearGradient id="glFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="hsl(205 95% 45%)" /><stop offset="100%" stopColor="hsl(220 90% 28%)" /></linearGradient></defs>
+        {GL_AREAS.map((a) => <path key={a.name} d={a.d} fill="url(#glFill)" stroke="hsl(190 100% 75%)" strokeWidth={1.5} />)}
+        {GL_STATIONS.map((st) => {
+          const sel = st.name === city;
+          return (
+            <g key={st.name} className="cursor-pointer" onClick={() => onPick(st.name)} textAnchor="middle">
+              <circle cx={st.x} cy={st.y} r={sel ? 14 : 9} fill={sel ? "hsl(var(--scr-gold))" : "hsl(var(--scr-cyan))"} stroke="hsl(var(--scr-text))" strokeWidth={2} />
+              <text x={st.x} y={st.y - 20} fontSize={18} fontWeight={700} fill="hsl(var(--scr-text))">{st.name}</text>
+              <text x={st.x} y={st.y + 34} fontSize={18} fontWeight={800} fill="hsl(var(--scr-gold))">{cfg.areas[st.name]?.stations}</text>
+            </g>
+          );
+        })}
+      </svg>
+    );
+  }
+  const areas = level === "city" ? NJ_AREAS : JS_CITIES;
+  const vb = level === "city" ? NJ_VIEWBOX : JS_VIEWBOX;
+  const fs = level === "city" ? 24 : 15;
+  return <PolyMap areas={areas} vb={vb} fs={fs} city={city} onPick={onPick} values={cfg.areas} />;
+}
+
+function PolyMap({ areas, vb, fs, city, onPick, values }: { areas: { name: string; d: string; cx: number; cy: number }[]; vb: string; fs: number; city: string; onPick: (c: string) => void; values: Record<string, CityStat> }) {
+  const JS_CITIES = areas, JS_VIEWBOX = vb, CITY = values;
   return (
     <svg viewBox={JS_VIEWBOX} className="h-full w-full" style={{ filter: "drop-shadow(0 0 18px hsl(var(--scr-cyan) / 0.45))" }}>
       <defs>
@@ -184,8 +262,8 @@ function JiangsuMap({ city, onPick }: { city: string; onPick: (c: string) => voi
       ))}
       {JS_CITIES.map((c) => (
         <g key={c.name + "l"} className="pointer-events-none" textAnchor="middle">
-          <text x={c.cx} y={c.cy - 4} fontSize={15} fontWeight={700} fill="hsl(var(--scr-text))">{c.name}</text>
-          <text x={c.cx} y={c.cy + 16} fontSize={18} fontWeight={800} fill="hsl(var(--scr-gold))">{CITY[c.name]?.stations ?? "-"}</text>
+          <text x={c.cx} y={c.cy - 4} fontSize={fs} fontWeight={700} fill="hsl(var(--scr-text))">{c.name}</text>
+          <text x={c.cx} y={c.cy + fs * 1.1} fontSize={fs * 1.2} fontWeight={800} fill="hsl(var(--scr-gold))">{CITY[c.name]?.stations ?? "-"}</text>
         </g>
       ))}
     </svg>
@@ -201,19 +279,35 @@ function useClock() {
 
 export default function ProvinceScreen() {
   const [nav, setNav] = useState("总体概览");
-  const [city, setCity] = useState("南京");
+  const [level, setLevelRaw] = useState<Level>("province");
+  const cfg = LEVELS[level];
+  const [city, setCity] = useState(cfg.def);
+  const setLevel = (l: Level) => { setLevelRaw(l); setCity(LEVELS[l].def); };
   const clock = useClock();
-  const cs = CITY[city];
+  const cs = cfg.areas[city] ?? cfg.areas[cfg.def];
+  const PROV = cfg.base;
+  const kpis = level === "province" ? KPIS : KPIS.map((k, i) => i === 0
+    ? { ...k, value: String(Object.keys(cfg.areas).length > 13 ? 0 : level === "city" ? 22 : 13), sub: level === "city" ? "目标 30 | 进度 73%" : "目标 15 | 进度 87%" }
+    : i === 1 ? { ...k, value: level === "city" ? "3.21" : "3,800", unit: level === "city" ? "万人" : "人" }
+    : i === 2 ? { ...k, value: `${cfg.base.screen}%` } : i === 3 ? { ...k, value: `${cfg.base.guide}%` }
+    : i === 5 ? { ...k, value: `${cfg.base.improve}%` } : k);
   const diff = (a: number, b: number) => `${a >= b ? "▲" : "▼"} ${Math.abs(a - b).toFixed(1)}pct`;
+  const fmtElders = (v: number) => cfg.eldersUnit === "人" ? `${v} 人` : `${v} 万`;
+  const scaleFlow = (v: string) => {
+    if (level === "province") return v;
+    const n = v.endsWith("万") ? parseFloat(v) * 10000 : parseFloat(v.replace(",", ""));
+    const r = Math.round(n * cfg.flowScale);
+    return r >= 10000 ? `${(r / 10000).toFixed(2)}万` : r.toLocaleString();
+  };
 
   return (
     <div className="min-h-screen bg-scr-bg text-scr-text" style={{ backgroundImage: "radial-gradient(ellipse at 50% 40%, hsl(215 90% 18%) 0%, transparent 65%)" }}>
       {/* Header */}
       <header className="relative flex h-16 items-center justify-between px-6">
         <Link to="/" className="flex items-center gap-2 text-lg font-bold">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-scr-red text-scr-gold">★</span>江苏省卫生健康委员会
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-scr-red text-scr-gold">★</span>{cfg.org}
         </Link>
-        <h1 className="scr-glow absolute left-1/2 -translate-x-1/2 text-[28px] font-black tracking-[0.12em]">江苏省老年认知训练站建设与服务监管大屏</h1>
+        <h1 className="scr-glow absolute left-1/2 -translate-x-1/2 text-[28px] font-black tracking-[0.12em]">{cfg.title}</h1>
         <div className="flex items-center gap-6 text-sm text-scr-dim">
           <span className="tabular-nums">{clock}</span>
           <span className="flex items-center gap-1"><Sun className="h-4 w-4" />南京 18-24℃</span>
@@ -230,10 +324,20 @@ export default function ProvinceScreen() {
         ))}
       </nav>
 
+      <div className="flex justify-center gap-2 pb-3">
+        <span className="self-center text-xs text-scr-dim">驾驶舱视角：</span>
+        {(Object.keys(LEVELS) as Level[]).map((l) => (
+          <button key={l} onClick={() => setLevel(l)}
+            className={`rounded-full border px-5 py-1 text-sm transition ${level === l ? "border-scr-gold bg-scr-gold/20 font-bold text-scr-gold" : "border-scr-line/50 text-scr-dim hover:text-scr-text"}`}>
+            {LEVELS[l].tab}
+          </button>
+        ))}
+      </div>
+
       <main className="space-y-3 px-4 pb-4">
         {/* KPI strip */}
         <section className="scr-panel grid grid-cols-6 divide-x divide-scr-line/30 py-3">
-          {KPIS.map(({ label, value, unit, sub, delta, icon: I }) => (
+          {kpis.map(({ label, value, unit, sub, delta, icon: I }) => (
             <div key={label} className="flex items-center justify-center gap-4">
               <span className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-scr-cyan/60 bg-scr-line/30"><I className="h-7 w-7 text-scr-cyan" /></span>
               <div>
@@ -250,7 +354,7 @@ export default function ProvinceScreen() {
           <div className="flex flex-col gap-3">
             <Panel title="服务全流程概览" sub="(年度服务量)">
               <div className="flex items-start justify-between">
-                {FLOW.map(({ k, v, icon: I }, i) => (
+                {FLOW.map(({ k, v: raw, icon: I }, i) => { const v = scaleFlow(raw); return (
                   <div key={k} className="flex items-start">
                     <div className="flex flex-col items-center gap-1">
                       <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-scr-cyan/50 bg-scr-line/25"><I className="h-5 w-5 text-scr-cyan" /></span>
@@ -259,11 +363,11 @@ export default function ProvinceScreen() {
                     </div>
                     {i < FLOW.length - 1 && <span className="mt-2.5 px-0.5 text-scr-cyan">→</span>}
                   </div>
-                ))}
+                ); })}
               </div>
             </Panel>
-            <Panel title="人群风险分布" sub="(N=27.6 万)" className="h-44"><RiskDonut total={27.6} label="27.6 万" /></Panel>
-            <Panel title="认知健康管理人群趋势" sub="(万人)" className="h-52"><TrendChart data={trend(1)} labels={["建档人数", "干预人数", "随访人数"]} /></Panel>
+            <Panel title="人群风险分布" sub={`(N=${cfg.totalLabel})`} className="h-44"><RiskDonut unit={cfg.eldersUnit} total={cfg.eldersUnit === "人" ? cfg.total * 10000 : cfg.total} label={cfg.totalLabel} /></Panel>
+            <Panel title="认知健康管理人群趋势" sub="(万人)" className="h-52"><TrendChart data={trend(cfg.total / 27.6)} labels={["建档人数", "干预人数", "随访人数"]} /></Panel>
             <Panel title="近期重点预警" extra={<span className="text-xs text-scr-dim">更多 ›</span>}>
               <ul className="divide-y divide-scr-line/25 text-sm">
                 {ALERTS.map(({ k, n, t, icon: I, c }) => (
@@ -279,16 +383,16 @@ export default function ProvinceScreen() {
           {/* Center map */}
           <section className="scr-panel relative flex flex-col p-3">
             <div className="flex gap-2">
-              <span className="rounded border border-scr-cyan bg-scr-line/50 px-4 py-1 text-sm font-bold">江苏省</span>
-              <span className="rounded border border-scr-line/50 px-4 py-1 text-sm text-scr-dim">设区市</span>
-              <span className="ml-3 self-center text-xs text-scr-dim">点击城市查看详情 · 数字为训练站数量</span>
+              <span className="rounded border border-scr-cyan bg-scr-line/50 px-4 py-1 text-sm font-bold">{cfg.scope}</span>
+              <span className="rounded border border-scr-line/50 px-4 py-1 text-sm text-scr-dim">{cfg.areaTab}</span>
+              <span className="ml-3 self-center text-xs text-scr-dim">{cfg.hint}</span>
             </div>
             <div className="relative min-h-[520px] flex-1">
               <div className="absolute inset-x-[10%] bottom-2 h-16 rounded-[50%] border-2 border-scr-cyan/40" style={{ boxShadow: "0 0 40px hsl(var(--scr-cyan) / 0.4)" }} />
-              <div className="absolute inset-0 right-[26%] p-2"><JiangsuMap city={city} onPick={setCity} /></div>
+              <div className="absolute inset-0 right-[26%] p-2"><AreaMap level={level} city={city} onPick={setCity} /></div>
               <div className="scr-panel absolute right-2 top-4 w-48 space-y-4 p-3">
-                <h4 className="text-lg font-bold">江苏省整体</h4>
-                {[{ k: "覆盖设区市", v: "13", u: "个", I: Building2 }, { k: "县域覆盖率", v: "100%", u: "", I: MapPin }, { k: "服务老年人", v: "27.6", u: "万", I: Users }].map(({ k, v, u, I }) => (
+                <h4 className="text-lg font-bold">{cfg.scope}整体</h4>
+                {cfg.overall.map((o, i) => ({ ...o, I: [Building2, MapPin, Users][i] })).map(({ k, v, u, I }) => (
                   <div key={k} className="flex items-center gap-3">
                     <I className="h-7 w-7 text-scr-cyan" />
                     <div><div className="text-xs text-scr-dim">{k}</div><div className="text-xl font-black text-scr-gold">{v}<span className="ml-1 text-xs text-scr-text">{u}</span></div></div>
@@ -348,9 +452,9 @@ export default function ProvinceScreen() {
         {/* City detail */}
         <section className="scr-panel p-3">
           <div className="mb-2 flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-lg font-bold"><MapPin className="h-5 w-5 text-scr-cyan" />{city}市<span className="text-sm font-normal text-scr-dim">服务管理详情</span></h3>
+            <h3 className="flex items-center gap-2 text-lg font-bold"><MapPin className="h-5 w-5 text-scr-cyan" />{city}{cfg.suffix}<span className="text-sm font-normal text-scr-dim">服务管理详情</span></h3>
             <div className="flex gap-6 text-sm text-scr-dim">
-              <span>较全省均值：</span>
+              <span>{level === "province" ? "较全省均值" : level === "city" ? "较全市均值" : "较全区均值"}：</span>
               <span>筛查覆盖率 <b className="text-scr-green">{diff(cs.screen, PROV.screen)}</b></span>
               <span>干预指导率 <b className="text-scr-green">{diff(cs.guide, PROV.guide)}</b></span>
               <span>认知改善率 <b className="text-scr-green">{diff(cs.improve, PROV.improve)}</b></span>
@@ -359,7 +463,7 @@ export default function ProvinceScreen() {
           <div className="grid h-52 grid-cols-[1fr_1.6fr_1.2fr] gap-4">
             <ul className="space-y-1.5 text-sm">
               {[
-                { k: "训练站数", v: `${cs.stations} 个`, I: Building2 }, { k: "服务老年人", v: `${cs.elders} 万`, I: Users },
+                { k: cfg.countLabel, v: `${cs.stations} ${cfg.countUnit}`, I: Building2 }, { k: "服务老年人", v: fmtElders(cs.elders), I: Users },
                 { k: "筛查覆盖率", v: `${cs.screen}%`, I: ClipboardCheck }, { k: "干预指导率", v: `${cs.guide}%`, I: Activity },
                 { k: "转诊完成率", v: `${cs.referral}%`, I: ArrowLeftRight }, { k: "认知改善率", v: `${cs.improve}%`, I: TrendingUp },
               ].map(({ k, v, I }) => (
@@ -368,11 +472,11 @@ export default function ProvinceScreen() {
                 </li>
               ))}
             </ul>
-            <div className="flex flex-col"><h4 className="text-sm font-bold">{city}市服务趋势 <span className="font-normal text-scr-dim">(万人)</span></h4>
-              <div className="min-h-0 flex-1"><TrendChart data={trend(cs.elders / 27.6)} labels={["筛查人数", "干预人数", "随访人数"]} /></div>
+            <div className="flex flex-col"><h4 className="text-sm font-bold">{city}{cfg.suffix}服务趋势 <span className="font-normal text-scr-dim">(万人)</span></h4>
+              <div className="min-h-0 flex-1"><TrendChart data={trend(cfg.eldersUnit === "人" ? cs.elders / 276000 : cs.elders / 27.6)} labels={["筛查人数", "干预人数", "随访人数"]} /></div>
             </div>
-            <div className="flex flex-col"><h4 className="text-sm font-bold">{city}市人群风险分布 <span className="font-normal text-scr-dim">(N={cs.elders} 万)</span></h4>
-              <div className="min-h-0 flex-1"><RiskDonut total={cs.elders} label={`${cs.elders} 万`} pct={[71.3, 18.6, 6.8, 3.3]} /></div>
+            <div className="flex flex-col"><h4 className="text-sm font-bold">{city}{cfg.suffix}人群风险分布 <span className="font-normal text-scr-dim">(N={fmtElders(cs.elders)})</span></h4>
+              <div className="min-h-0 flex-1"><RiskDonut unit={cfg.eldersUnit} total={cs.elders} label={fmtElders(cs.elders)} pct={[71.3, 18.6, 6.8, 3.3]} /></div>
             </div>
           </div>
         </section>
