@@ -46,10 +46,26 @@ export default function ScreeningCenter() {
   const save = useMutation({
     mutationFn: async (patch: Partial<Row> & { id: string }) => {
       const { id, ...rest } = patch;
+      if (rest.status === "已预约") {
+        const row = rows.find((r) => r.id === id)!;
+        const visit = `体检预约 ${new Date(rest.appointment_at!).toLocaleDateString("zh-CN")}`;
+        if (row.patient_id) {
+          const { error: e1 } = await supabase.from("patients").update({ community_stage: "干预中", last_visit: visit }).eq("id", row.patient_id);
+          if (e1) throw e1;
+        } else {
+          const { data: p, error: e1 } = await supabase.from("patients").insert({
+            name: row.name, gender: row.gender, age: row.age, phone: row.phone, ad8: row.ad8,
+            diagnosis: "体检初筛 AD-8 异常，待训练站评估", source: "小市社区", status: "候诊中",
+            community_stage: "干预中", last_visit: visit, cognitive_risk: "中",
+          }).select("id").single();
+          if (e1) throw e1;
+          rest.patient_id = p.id;
+        }
+      }
       const { error } = await supabase.from("screenings").update(rest).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["screenings"] }); setAct(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["screenings"] }); qc.invalidateQueries({ queryKey: ["patients"] }); setAct(null); },
     onError: (e) => toast({ title: "保存失败", description: String(e) }),
   });
 
