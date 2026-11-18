@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CalendarClock, CheckCircle2, ClipboardList, RefreshCw, Send, Stethoscope } from "lucide-react";
+import { ArrowLeft, CalendarClock, CheckCircle2, ClipboardList, RefreshCw, Send, Stethoscope, Signal, Wifi, BatteryFull } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import RoleSwitcher from "@/components/RoleSwitcher";
 import { toast } from "@/hooks/use-toast";
 import { ad8Positive } from "@/data/cognitive";
 import type { Tables } from "@/integrations/supabase/types";
@@ -81,93 +81,72 @@ export default function ScreeningCenter() {
   const positive = rows.filter((r) => ad8Positive(r.ad8)).length;
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header className="border-b bg-card">
-        <div className="container mx-auto flex items-center justify-between py-4">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="text-muted-foreground hover:text-foreground"><ArrowLeft className="h-5 w-5" /></Link>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground"><Stethoscope className="h-5 w-5" /></div>
-            <div><h1 className="text-lg font-semibold">体检中心筛查端</h1><p className="text-xs text-muted-foreground">核对初筛结果 · 登记转介 · 预约</p></div>
-          </div>
-          <Button variant="outline" size="sm" disabled title="体检系统接口尚未接入"><RefreshCw className="mr-1 h-4 w-4" />从体检系统同步（未接入）</Button>
-        </div>
-      </header>
-
-      <main className="container mx-auto space-y-4 py-6">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-          {[["初筛总数", rows.length], ["AD-8 阳性(≥2)", positive], ["待核对", count("待核对")], ["已转介", count("已转介")], ["已预约", count("已预约")]].map(([k, v]) => (
-            <Card key={k as string} className="p-4"><p className="text-xs text-muted-foreground">{k}</p><p className="mt-1 text-2xl font-bold">{v}</p></Card>
-          ))}
-        </div>
-
-        <Card className="p-4">
-          <div className="mb-3 flex flex-wrap gap-2">
-            {STATUSES.map((s) => (
-              <button key={s} onClick={() => setFilter(s)}
-                className={`rounded-full border px-3 py-1 text-sm ${filter === s ? "border-primary bg-primary/10 font-medium text-primary" : "text-muted-foreground"}`}>
-                {s}{s !== "全部" && ` ${count(s)}`}
-              </button>
-            ))}
-          </div>
-          {error ? <p className="py-8 text-center text-sm text-muted-foreground">请先 <Link to="/auth" className="text-primary underline">登录</Link> 后查看初筛名单</p>
-            : isLoading ? <p className="py-8 text-center text-sm text-muted-foreground">加载中…</p>
-            : list.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">暂无记录{rows.length === 0 && "（请确认已登录）"}</p> : (
-            <table className="w-full text-sm">
-              <thead className="text-left text-xs text-muted-foreground"><tr className="border-b">
-                {["体检日期", "姓名", "性别/年龄", "电话", "AD-8", "状态", "转介去向", "预约时间", "操作"].map((h) => <th key={h} className="py-2 font-normal">{h}</th>)}
-              </tr></thead>
-              <tbody>
-                {list.map((r) => {
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100 px-4 py-6 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900">
+      <RoleSwitcher />
+      <div className="mx-auto" style={{ width: 408 }}>
+        <div className="phone-shell">
+          <span className="phone-side-left" />
+          <div className="phone-screen relative flex flex-col" style={{ height: 820 }}>
+            <div className="phone-notch" />
+            <div className="phone-statusbar"><span>9:41</span><span className="flex items-center gap-1.5 text-foreground/80"><Signal className="h-3.5 w-3.5" /><Wifi className="h-3.5 w-3.5" /><BatteryFull className="h-3.5 w-3.5" /></span></div>
+            <header className="flex items-center gap-2 border-b bg-card px-4 py-3">
+              <Link to="/" aria-label="返回首页" className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></Link>
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground"><Stethoscope className="h-4 w-4" /></div>
+              <div className="min-w-0 flex-1"><h1 className="text-base font-semibold">体检中心筛查端</h1><p className="text-[11px] text-muted-foreground">核对初筛 · 登记转介 · 预约</p></div>
+              <Button variant="ghost" size="icon" disabled title="体检系统接口尚未接入" aria-label="从体检系统同步（未接入）"><RefreshCw className="h-4 w-4" /></Button>
+            </header>
+            <main className="flex-1 space-y-3 overflow-y-auto bg-muted/30 p-3">
+              <div className="grid grid-cols-3 gap-2">
+                {[["初筛总数", rows.length], ["AD-8阳性", positive], ["待核对", count("待核对")]].map(([k, v]) => (
+                  <Card key={k as string} className="p-2.5 text-center"><p className="text-[11px] text-muted-foreground">{k}</p><p className="text-xl font-bold">{v}</p></Card>
+                ))}
+              </div>
+              <div className="flex gap-1.5 overflow-x-auto pb-1">
+                {STATUSES.map((s) => (
+                  <button key={s} onClick={() => setFilter(s)} className={`shrink-0 rounded-full border px-3 py-1 text-xs ${filter === s ? "border-primary bg-primary/10 font-medium text-primary" : "bg-card text-muted-foreground"}`}>{s}{s !== "全部" && ` ${count(s)}`}</button>
+                ))}
+              </div>
+              {error ? <p className="py-8 text-center text-sm text-muted-foreground">请先 <Link to="/auth" className="text-primary underline">登录</Link> 后查看初筛名单</p>
+                : isLoading ? <p className="py-8 text-center text-sm text-muted-foreground">加载中…</p>
+                : list.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">暂无记录</p>
+                : list.map((r) => {
                   const pos = ad8Positive(r.ad8);
                   return (
-                    <tr key={r.id} className="border-b last:border-0">
-                      <td className="py-2.5">{r.exam_date}</td>
-                      <td className="font-medium">{r.name}</td>
-                      <td>{r.gender} · {r.age}岁</td>
-                      <td className="text-muted-foreground">{r.phone}</td>
-                      <td><span className={pos ? "font-bold text-destructive" : ""}>{r.ad8}</span> <span className="text-xs text-muted-foreground">{pos ? "阳性" : "阴性"}</span></td>
-                      <td><span className={`rounded-full px-2 py-0.5 text-xs ${tone[r.status] ?? ""}`}>{r.status}</span></td>
-                      <td className="text-xs">{r.refer_to ?? "—"}</td>
-                      <td className="text-xs">{r.appointment_at ? new Date(r.appointment_at).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}</td>
-                      <td className="space-x-1 whitespace-nowrap">
+                    <Card key={r.id} className="space-y-2 p-3">
+                      <div className="flex items-center gap-2"><b>{r.name}</b><span className="text-xs text-muted-foreground">{r.gender} · {r.age}岁</span><span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] ${tone[r.status] ?? ""}`}>{r.status}</span></div>
+                      <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
+                        <span>体检：{r.exam_date}</span><span>电话：{r.phone}</span>
+                        <span>AD-8：<b className={pos ? "text-destructive" : "text-foreground"}>{r.ad8}</b> {pos ? "阳性" : "阴性"}</span>
+                        <span className="truncate">去向：{r.refer_to ?? "—"}</span>
+                        {r.appointment_at && <span className="col-span-2">预约：{new Date(r.appointment_at).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>}
+                      </div>
+                      <div className="flex justify-end">
                         {r.status === "待核对" && <Button size="sm" variant="outline" onClick={() => open("verify", r)}><CheckCircle2 className="mr-1 h-3.5 w-3.5" />核对</Button>}
                         {r.status === "已核对" && pos && <Button size="sm" onClick={() => open("refer", r)}><Send className="mr-1 h-3.5 w-3.5" />登记转介</Button>}
                         {r.status === "已核对" && !pos && <span className="text-xs text-muted-foreground">宣教 + 年度复查</span>}
                         {r.status === "已转介" && <Button size="sm" onClick={() => open("book", r)}><CalendarClock className="mr-1 h-3.5 w-3.5" />预约</Button>}
                         {r.status === "已预约" && <span className="text-xs text-success">已完成</span>}
-                      </td>
-                    </tr>
+                      </div>
+                    </Card>
                   );
                 })}
-              </tbody>
-            </table>
-          )}
-        </Card>
-        <p className="flex items-center gap-1 text-xs text-muted-foreground"><ClipboardList className="h-3.5 w-3.5" />规则：AD-8 ≥2 分为阳性，转介至训练站做 MMSE/MoCA 评估或至记忆门诊；&lt;2 分纳入健康宣教与年度复查。</p>
-      </main>
-
-      <Dialog open={!!act} onOpenChange={(o) => !o && setAct(null)}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>{act?.kind === "verify" ? "核对初筛结果" : act?.kind === "refer" ? "登记转介" : "登记预约"} · {act?.row.name}</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            {act?.kind === "verify" && (
-              <div><p className="mb-1 text-sm">AD-8 得分（0-8）</p><Input type="number" min={0} max={8} value={ad8} onChange={(e) => setAd8(e.target.value)} /></div>
-            )}
-            {act?.kind === "refer" && (
-              <div className="grid grid-cols-2 gap-2">
-                {TARGETS.map((t) => (
-                  <button key={t} onClick={() => setTarget(t)} className={`rounded-lg border p-3 text-sm ${target === t ? "border-primary bg-primary/10 text-primary" : ""}`}>{t}</button>
-                ))}
+              <p className="flex gap-1 text-[11px] leading-4 text-muted-foreground"><ClipboardList className="h-3.5 w-3.5 shrink-0" />AD-8 ≥2 分为阳性，转介至训练站做 MMSE/MoCA 评估或至记忆门诊；&lt;2 分纳入宣教与年度复查。</p>
+            </main>
+            {act && (
+              <div className="absolute inset-0 z-30 flex items-end bg-foreground/40" onClick={() => setAct(null)}>
+                <div role="dialog" aria-label="操作" className="w-full space-y-3 rounded-t-2xl bg-card p-4" onClick={(e) => e.stopPropagation()}>
+                  <h2 className="font-semibold">{act.kind === "verify" ? "核对初筛结果" : act.kind === "refer" ? "登记转介" : "登记预约"} · {act.row.name}</h2>
+                  {act.kind === "verify" && <div><p className="mb-1 text-sm">AD-8 得分（0-8）</p><Input type="number" min={0} max={8} value={ad8} onChange={(e) => setAd8(e.target.value)} /></div>}
+                  {act.kind === "refer" && <div className="grid grid-cols-2 gap-2">{TARGETS.map((t) => <button key={t} onClick={() => setTarget(t)} className={`rounded-lg border p-3 text-sm ${target === t ? "border-primary bg-primary/10 text-primary" : ""}`}>{t}</button>)}</div>}
+                  {act.kind === "book" && <div><p className="mb-1 text-sm">预约时间（{act.row.refer_to}）</p><Input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} /></div>}
+                  <div><p className="mb-1 text-sm">备注</p><Textarea rows={2} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} /></div>
+                  <div className="grid grid-cols-2 gap-2"><Button variant="outline" onClick={() => setAct(null)}>取消</Button><Button disabled={save.isPending} onClick={submit}>确认</Button></div>
+                </div>
               </div>
             )}
-            {act?.kind === "book" && (
-              <div><p className="mb-1 text-sm">预约时间（{act.row.refer_to}）</p><Input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} /></div>
-            )}
-            <div><p className="mb-1 text-sm">备注</p><Textarea rows={2} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} /></div>
           </div>
-          <DialogFooter><Button variant="outline" onClick={() => setAct(null)}>取消</Button><Button disabled={save.isPending} onClick={submit}>确认</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
     </div>
   );
 }
