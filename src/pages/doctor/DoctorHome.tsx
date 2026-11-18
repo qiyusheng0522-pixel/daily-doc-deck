@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Users, MessageSquare, ClipboardCheck, Wallet, CalendarClock, Bell } from "lucide-react";
+import { Users, ClipboardCheck, Wallet, CalendarClock, Bell } from "lucide-react";
 import {
   usePatients,
   usePlanReviews,
@@ -85,14 +85,6 @@ const DoctorHome = () => {
           num={pendingReviews}
           label={`方案审核 · 共 ${reviews.length} 条`}
           dot
-        />
-        <TileCard
-          to="/doctor/communication"
-          icon={<MessageSquare className="h-5 w-5 text-emerald-600" />}
-          iconBg="bg-emerald-500/15"
-          num={patients.length}
-          label="沟通 · 患者会话"
-          dot={false}
         />
       </section>
 

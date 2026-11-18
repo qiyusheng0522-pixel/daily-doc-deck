@@ -15,8 +15,6 @@ import DoctorLayout from "./pages/doctor/DoctorLayout.tsx";
 import DoctorHome from "./pages/doctor/DoctorHome.tsx";
 import DoctorPatients from "./pages/doctor/DoctorPatients.tsx";
 import DoctorPatientDetail from "./pages/doctor/DoctorPatientDetail.tsx";
-import DoctorCommunication from "./pages/doctor/DoctorCommunication.tsx";
-import DoctorChat from "./pages/doctor/DoctorChat.tsx";
 import DoctorPlans from "./pages/doctor/DoctorPlans.tsx";
 import DoctorPlanDetail from "./pages/doctor/DoctorPlanDetail.tsx";
 import DoctorStats from "./pages/doctor/DoctorStats.tsx";
@@ -98,8 +96,6 @@ const App = () => (
             <Route index element={<DoctorHome />} />
             <Route path="patients" element={<DoctorPatients />} />
             <Route path="patients/:id" element={<DoctorPatientDetail />} />
-            <Route path="communication" element={<DoctorCommunication />} />
-            <Route path="chat/:id" element={<DoctorChat />} />
             <Route path="plans" element={<DoctorPlans />} />
             <Route path="plans/:id" element={<DoctorPlanDetail />} />
             <Route path="stats" element={<DoctorStats />} />

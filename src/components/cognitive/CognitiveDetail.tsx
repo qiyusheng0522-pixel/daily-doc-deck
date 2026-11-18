@@ -106,9 +106,11 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             {p.cognitive_risk && <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${riskTone(p.cognitive_risk)}`}>{p.cognitive_risk}</span>}
           </div>
           <div className="mt-3 flex gap-2">
-            <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate(role === "doctor" ? `/doctor/chat/${p.id}` : `/${role}/chat/patient/${p.id}`)}>
-              <MessageSquare className="mr-1 h-4 w-4" />沟通
-            </Button>
+            {role !== "doctor" && (
+              <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate(`/${role}/chat/patient/${p.id}`)}>
+                <MessageSquare className="mr-1 h-4 w-4" />沟通
+              </Button>
+            )}
             {role !== "doctor" && (
               <Button size="sm" className="flex-1" onClick={() => setSheet("up")}><Send className="mr-1 h-4 w-4" />开上转单</Button>
             )}

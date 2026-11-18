@@ -1,5 +1,5 @@
-import { doctor, doctorPatients, planReviews, chats, monthlyRevenue } from "@/data/doctorMock";
-import { Users, ClipboardCheck, MessageSquare, Wallet, TrendingUp, TrendingDown, Settings, Bell, Shield, HelpCircle, LogOut, ChevronRight, BadgeCheck } from "lucide-react";
+import { doctor, doctorPatients, planReviews, monthlyRevenue } from "@/data/doctorMock";
+import { Users, ClipboardCheck, Wallet, TrendingUp, TrendingDown, Settings, Bell, Shield, HelpCircle, LogOut, ChevronRight, BadgeCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,20 +10,18 @@ const DoctorStats = () => {
   const workload = [
     { label: "在管患者", value: doctorPatients.length, icon: Users, color: "text-primary", bg: "bg-primary/10" },
     { label: "本月方案", value: planReviews.length, icon: ClipboardCheck, color: "text-amber-600", bg: "bg-amber-500/15" },
-    { label: "沟通对话", value: chats.length, icon: MessageSquare, color: "text-emerald-600", bg: "bg-emerald-500/15" },
   ];
 
   const outcomes = [
-    { label: "血压达标率", value: 72, delta: "+8%", up: true },
-    { label: "LDL 达标率", value: 65, delta: "+5%", up: true },
-    { label: "服药依从性", value: 84, delta: "+3%", up: true },
-    { label: "3 月内复发率", value: 4, delta: "-1.2%", up: false, invert: true },
+    { label: "MMSE 改善率", value: 72, delta: "+8%", up: true },
+    { label: "训练任务完成率", value: 65, delta: "+5%", up: true },
+    { label: "随访完成率", value: 84, delta: "+3%", up: true },
+    { label: "3 月内进展率", value: 4, delta: "-1.2%", up: false, invert: true },
   ];
 
   const revenueBreakdown = [
-    { label: "沟通咨询", value: 3280, pct: 60, cls: "bg-primary" },
-    { label: "方案确认", value: 1360, pct: 25, cls: "bg-amber-500" },
-    { label: "会诊分成", value: 820, pct: 15, cls: "bg-violet-500" },
+    { label: "方案确认", value: 1360, pct: 62, cls: "bg-amber-500" },
+    { label: "会诊分成", value: 820, pct: 38, cls: "bg-violet-500" },
   ];
   const revenueTotal = revenueBreakdown.reduce((s, r) => s + r.value, 0);
 
@@ -74,7 +72,7 @@ const DoctorStats = () => {
       </section>
 
       {/* 工作量 */}
-      <section className="grid grid-cols-3 gap-3">
+      <section className="grid grid-cols-2 gap-3">
         {workload.map((s) => (
           <div key={s.label} className="rounded-2xl bg-card p-4 shadow-sm ring-1 ring-border/60">
             <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${s.bg}`}>

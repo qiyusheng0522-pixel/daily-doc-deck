@@ -1,21 +1,19 @@
 import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutGrid, Users, MessageSquare, ClipboardList, User as UserIcon, ArrowLeft, Bell, Wifi, Signal, BatteryFull } from "lucide-react";
+import { LayoutGrid, Users, ClipboardList, User as UserIcon, ArrowLeft, Bell, Wifi, Signal, BatteryFull } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { doctor } from "@/data/doctorMock";
 import RoleSwitcher from "@/components/RoleSwitcher";
 
-const tabs = [
+export const tabs = [
   { to: "/doctor", icon: LayoutGrid, label: "工作台", end: true },
   { to: "/doctor/patients", icon: Users, label: "患者" },
   { to: "/doctor/plans", icon: ClipboardList, label: "方案" },
-  { to: "/doctor/communication", icon: MessageSquare, label: "沟通" },
   { to: "/doctor/stats", icon: UserIcon, label: "我的" },
 ];
 
 const titleMap: Record<string, string> = {
   "/doctor": "工作台",
   "/doctor/patients": "患者列表",
-  "/doctor/communication": "沟通",
   "/doctor/plans": "方案审核",
   "/doctor/stats": "我的",
 };
@@ -23,7 +21,6 @@ const titleMap: Record<string, string> = {
 const DoctorLayout = () => {
   const location = useLocation();
   const isFullscreenChild =
-    location.pathname.startsWith("/doctor/chat/") ||
     /^\/doctor\/patients\/[^/]+/.test(location.pathname) ||
     /^\/doctor\/plans\/[^/]+/.test(location.pathname);
   const title = titleMap[location.pathname] ?? "工作台";
@@ -72,7 +69,7 @@ const DoctorLayout = () => {
 
             {!isFullscreenChild && (
               <nav className="absolute bottom-0 left-0 right-0 z-40 border-t bg-card/95 backdrop-blur-md">
-                <div className="grid grid-cols-5">
+                <div className="grid grid-cols-4">
                   {tabs.map((t) => (
                     <NavLink
                       key={t.to}
