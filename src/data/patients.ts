@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 // 四端共用的数据层：所有患者与流程记录都来自同一个数据库。
@@ -617,4 +618,20 @@ export function useSendMessage() {
 /** 来源渠道标签：所有患者列表都必须能看出人是从哪来的。 */
 export function sourceLabel(source: Source) {
   return source === "南京市鼓楼医院" ? "鼓楼" : "小市社区";
+}
+
+/** Live-refresh patient queries when any patient row changes (e.g. doctor confirms a plan). */
+export function usePatientsRealtime() {
+  const qc = useQueryClient();
+  useEffect(() => {
+    const channel = supabase
+      .channel(`patients-${Math.random().toString(36).slice(2)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "patients" }, () => {
+        qc.invalidateQueries({ queryKey: ["patients"] });
+        qc.invalidateQueries({ queryKey: ["patient"] });
+        qc.invalidateQueries({ queryKey: ["patient-by-name"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [qc]);
 }

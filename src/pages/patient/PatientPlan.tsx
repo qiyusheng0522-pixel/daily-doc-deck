@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import medicalAvatar from "@/assets/medical-avatar.png";
 import mallBanner from "@/assets/mall-banner.jpg";
-import { useCurrentPatient } from "@/data/patients";
+import { useCurrentPatient, usePatientsRealtime } from "@/data/patients";
 import { planConfirmed } from "@/data/cognitive";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 import PatientActionSheet from "@/components/patient/PatientActionSheet";
@@ -28,6 +28,7 @@ const days = ["07/15", "07/16", "07/17", "07/18", "07/19"];
 const PatientPlan = () => {
   const navigate = useNavigate();
   const { data: me } = useCurrentPatient();
+  usePatientsRealtime();
   const ai = (planConfirmed(me) ? me?.ai_plan : null) as Advice | null | undefined;
   const [tab, setTab] = useState<"nutrition" | "tcm">("nutrition");
   const [activeDay, setActiveDay] = useState("07/15");
