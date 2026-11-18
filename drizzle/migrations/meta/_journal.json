@@ -50,6 +50,13 @@
       "when": 1795006093726,
       "tag": "0006_demo_public_read",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795007636990,
+      "tag": "0007_patient_ai_plan",
+      "breakpoints": true
     }
   ]
 }

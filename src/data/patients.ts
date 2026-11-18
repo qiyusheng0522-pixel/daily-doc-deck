@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 // 四端共用的数据层：所有患者与流程记录都来自同一个数据库。
 // 端与端之间看到的必须是同一个人，所以这里只做读取与写入，不再放任何硬编码名单。
 
-export type Source = "南京市鼓楼医院" | "小市社区" | "兰园社区";
+export type Source = "南京市鼓楼医院" | "小市社区";
 export type CognitiveRisk = "低风险" | "中风险" | "高风险";
 /** 护士端(评估师/治疗管理师)阶段 */
 export type HospitalStage = "待评估" | "评估中" | "待转诊" | "历史";
@@ -31,6 +31,8 @@ export type Patient = {
   condition_category: string | null;
   hospital_stage: HospitalStage | null;
   community_stage: CommunityStage | null;
+  ai_plan: unknown;
+  ai_plan_at: string | null;
   abnormal: boolean;
   last_visit: string | null;
   refer_dept: string | null;
@@ -172,7 +174,7 @@ export type Med = {
 export const DEMO_PATIENT_NAME = "王建国";
 
 const PATIENT_FIELDS =
-  "id, name, gender, age, phone, diagnosis, allergy, source, bed_number, id_no, vip, stroke_type, condition_category, hospital_stage, community_stage, abnormal, last_visit, refer_dept, refer_doctor, nihss, mrs, limb_power, bp, hr, ldl, glucose, vitals_flags, risk_tags, lifestyle_warnings, ad8, mmse, moca, scd_q9, adl, cognitive_risk, cognitive_diagnosis, next_reassess, caregiver, created_at";
+  "id, name, gender, age, phone, diagnosis, allergy, source, bed_number, id_no, vip, stroke_type, condition_category, hospital_stage, community_stage, abnormal, last_visit, refer_dept, refer_doctor, nihss, mrs, limb_power, bp, hr, ldl, glucose, vitals_flags, risk_tags, lifestyle_warnings, ad8, mmse, moca, scd_q9, adl, cognitive_risk, cognitive_diagnosis, next_reassess, caregiver, ai_plan, ai_plan_at, created_at";
 
 async function pick<T>(query: { then: (r: (v: { data: T | null; error: unknown }) => void) => unknown }, label: string): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -553,5 +555,5 @@ export function useSendMessage() {
 
 /** 来源渠道标签：所有患者列表都必须能看出人是从哪来的。 */
 export function sourceLabel(source: Source) {
-  return source === "南京市鼓楼医院" ? "鼓楼" : "兰园社区";
+  return source === "南京市鼓楼医院" ? "鼓楼" : "小市社区";
 }

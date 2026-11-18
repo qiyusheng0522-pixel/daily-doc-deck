@@ -102,6 +102,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
               <p className="font-bold">{p.name} <span className="text-xs font-normal text-muted-foreground">{p.gender} · {p.age}岁</span></p>
               <p className="text-xs text-muted-foreground">{p.cognitive_diagnosis ?? "待评估"}</p>
               <p className="mt-0.5 text-[11px] text-muted-foreground">来源：{p.source} · 照护者：{p.caregiver ?? "未登记"}</p>
+              <p className="mt-1 flex flex-wrap gap-1 text-[10px]"><span className="rounded bg-success/10 px-1.5 py-0.5 text-success">已关联电子健康档案</span><span className="rounded bg-primary/10 px-1.5 py-0.5 text-primary">卫生健康云</span></p>
             </div>
             {p.cognitive_risk && <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${riskTone(p.cognitive_risk)}`}>{p.cognitive_risk}</span>}
           </div>
@@ -126,7 +127,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           </div>
         </Card>
 
-        {role !== "nurse" && <AiAdvicePanel patientId={p.id} name={p.name} />}
+        {role !== "nurse" && <AiAdvicePanel key={p.id} patientId={p.id} name={p.name} saved={p.ai_plan} savedAt={p.ai_plan_at} />}
 
         <Card className="p-4 shadow-soft">
           <p className="mb-2 flex items-center gap-1 text-sm font-semibold"><Brain className="h-4 w-4 text-accent" />认知评估</p>

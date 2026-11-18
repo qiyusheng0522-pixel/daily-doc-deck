@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import medicalAvatar from "@/assets/medical-avatar.png";
 import mallBanner from "@/assets/mall-banner.jpg";
+import { useCurrentPatient } from "@/data/patients";
+import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 import PatientActionSheet from "@/components/patient/PatientActionSheet";
 import {
   isProfileComplete, subscribeProfile, setProfileComplete,
@@ -24,6 +26,8 @@ const days = ["07/15", "07/16", "07/17", "07/18", "07/19"];
 
 const PatientPlan = () => {
   const navigate = useNavigate();
+  const { data: me } = useCurrentPatient();
+  const ai = me?.ai_plan as Advice | null | undefined;
   const [tab, setTab] = useState<"nutrition" | "tcm">("nutrition");
   const [activeDay, setActiveDay] = useState("07/15");
   const [expandBreakfast, setExpandBreakfast] = useState(true);
@@ -118,6 +122,24 @@ const PatientPlan = () => {
       </div>
 
 
+
+      {/* 模型生成康复训练方案 */}
+      <section className="mx-3 rounded-2xl bg-card p-4 shadow-sm ring-1 ring-border/60">
+        <h3 className="text-base font-semibold">我的康复训练方案</h3>
+        <p className="text-[11px] text-muted-foreground">由智能体根据评估结果生成，社区训练站审核{me?.ai_plan_at ? ` · ${new Date(me.ai_plan_at).toLocaleDateString("zh-CN")}` : ""}</p>
+        {ai ? (
+          <div className="mt-2 space-y-2 text-sm">
+            <p className="rounded-lg bg-primary/5 p-2.5 text-[13px] leading-relaxed">{ai.summary}</p>
+            {ai.training.map((t, i) => (
+              <div key={i} className="rounded-lg border p-2.5 text-[13px]">
+                <p className="font-medium">{t.domain} · {t.activity}</p>
+                <p className="text-[11px] text-muted-foreground">{t.setting} · {t.frequency} · {t.duration}</p>
+              </div>
+            ))}
+            {ai.caregiver_tips.length > 0 && <ul className="list-disc pl-4 text-[12px] text-muted-foreground">{ai.caregiver_tips.map((c) => <li key={c}>{c}</li>)}</ul>}
+          </div>
+        ) : <p className="mt-2 text-[12px] text-muted-foreground">训练站还没有为您生成方案，评估后会出现在这里。</p>}
+      </section>
 
       {ready ? (<>
       {/* 我的健康解读与目标 */}

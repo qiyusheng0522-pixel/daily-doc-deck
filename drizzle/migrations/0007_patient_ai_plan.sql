@@ -1,0 +1,1 @@
+ALTER TABLE public.patients ADD COLUMN IF NOT EXISTS ai_plan jsonb, ADD COLUMN IF NOT EXISTS ai_plan_at timestamptz;

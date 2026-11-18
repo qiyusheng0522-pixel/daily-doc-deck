@@ -401,6 +401,8 @@ export type Database = {
           ad8: number | null
           adl: number | null
           age: number
+          ai_plan: Json | null
+          ai_plan_at: string | null
           allergy: string | null
           appointment_time: string | null
           bed_number: string | null
@@ -446,6 +448,8 @@ export type Database = {
           ad8?: number | null
           adl?: number | null
           age: number
+          ai_plan?: Json | null
+          ai_plan_at?: string | null
           allergy?: string | null
           appointment_time?: string | null
           bed_number?: string | null
@@ -491,6 +495,8 @@ export type Database = {
           ad8?: number | null
           adl?: number | null
           age?: number
+          ai_plan?: Json | null
+          ai_plan_at?: string | null
           allergy?: string | null
           appointment_time?: string | null
           bed_number?: string | null

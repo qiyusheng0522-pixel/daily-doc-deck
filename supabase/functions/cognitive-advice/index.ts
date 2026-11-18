@@ -76,7 +76,9 @@ Deno.serve(async (req) => {
     const out = (res as { output_text?: string }).output_text
       ?? (res as any).output?.flatMap((o: any) => o.content ?? []).find((c: any) => c.type === "output_text")?.text;
     if (!out) return json({ error: "模型未返回内容，请稍后重试" }, 502);
-    return json({ advice: JSON.parse(out) });
+    const advice = JSON.parse(out);
+    await sb.from("patients").update({ ai_plan: advice, ai_plan_at: new Date().toISOString() }).eq("id", patientId);
+    return json({ advice });
   } catch (e) {
     if (e instanceof GatewayError) {
       console.error("gateway", e.code, e.httpStatus, e.ids);
