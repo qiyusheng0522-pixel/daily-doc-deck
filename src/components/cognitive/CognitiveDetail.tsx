@@ -50,6 +50,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const { data: docs = [] } = usePatientDocuments(id);
   const [station, setStation] = useState<string>(COMMUNITY_STATIONS[0]);
   const [uploading, setUploading] = useState(false);
+  const [task, setTask] = useState<null | { domain: string; activity: string; setting: string; date: string; duration: string }>(null);
+  const [fu, setFu] = useState<null | { item: string; note: string }>(null);
   const [edit, setEdit] = useState<null | { kind: "profile" | "assess"; v: Record<string, string> }>(null);
 
   if (isLoading) return <p className="p-6 text-sm text-muted-foreground">加载中…</p>;
@@ -104,6 +106,30 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     setUploading(false);
     qc.invalidateQueries({ queryKey: ["patient-docs", p.id] });
     toast({ title: "建档材料已上传" });
+  };
+  const refresh = () => { qc.invalidateQueries({ queryKey: ["training-records", p.id] }); qc.invalidateQueries({ queryKey: ["followups"] }); };
+  const saveTask = async () => {
+    if (!task || !task.activity.trim()) return toast({ title: "请填写训练内容" });
+    setSaving(true);
+    const { error } = await supabase.from("training_records").insert({ patient_id: p.id, trained_on: task.date, domain: task.domain,
+      activity: task.activity.trim().slice(0, 200), setting: task.setting, duration_min: Number(task.duration) || 30, completion: "待执行", operator: "社区护理康复" });
+    setSaving(false);
+    if (error) return toast({ title: "安排失败", description: error.message });
+    refresh(); setTask(null);
+    toast({ title: task.setting === "家庭任务" ? "家庭任务已发放" : "小组训练已安排", description: "完成后在训练记录里登记执行情况" });
+  };
+  const markExec = async (rid: string, completion: string) => {
+    const { error } = await supabase.from("training_records").update({ completion }).eq("id", rid);
+    if (error) return toast({ title: "记录失败", description: error.message });
+    refresh(); toast({ title: `已记录：${completion}` });
+  };
+  const saveFu = async () => {
+    if (!fu || !fu.item.trim()) return toast({ title: "请填写随访内容" });
+    setSaving(true);
+    const { error } = await supabase.from("followups").insert({ patient_id: p.id, status: "已完成", item: fu.item.trim().slice(0, 100), note: fu.note.trim().slice(0, 500) || null });
+    setSaving(false);
+    if (error) return toast({ title: "保存失败", description: error.message });
+    refresh(); setFu(null); toast({ title: "随访已记录" });
   };
   const plan = p.cognitive_risk ? RISK_PLAN[p.cognitive_risk] : null;
   const myRefs = referrals.filter((r) => r.patient_id === p.id);
@@ -177,6 +203,17 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         {role === "community" && (planConfirmed(p)
           ? <AiAdvicePanel key={p.id} patientId={p.id} name={p.name} saved={p.ai_plan} savedAt={p.ai_plan_at} />
           : <div className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">干预方案待评估医生确认，确认后在此显示并下发执行。</div>)}
+        {role === "community" && (
+          <Card className="p-3 shadow-soft">
+            <p className="mb-2 text-sm font-semibold">训练站工作</p>
+            <div className="grid grid-cols-3 gap-2">
+              <Button size="sm" variant="outline" onClick={() => setTask({ domain: TRAINING_DOMAINS[0], activity: "", setting: "站内小组", date: new Date().toISOString().slice(0, 10), duration: "30" })}>安排小组训练</Button>
+              <Button size="sm" variant="outline" onClick={() => setTask({ domain: TRAINING_DOMAINS[0], activity: "", setting: "家庭任务", date: new Date().toISOString().slice(0, 10), duration: "20" })}>发放家庭任务</Button>
+              <Button size="sm" onClick={() => setFu({ item: "月度电话随访", note: "" })}>记录随访</Button>
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">训练完成后，在下方"认知训练记录"中点选执行情况。</p>
+          </Card>
+        )}
         {role === "community" && !needsReferral(p.cognitive_risk) && p.cognitive_risk && <p className="px-1 text-[11px] text-muted-foreground">低风险无需转诊：与家庭医生联合制定随访评估计划并开展健康宣教。</p>}
 
         <Card className="p-4 shadow-soft">
@@ -252,11 +289,14 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </Card>
 
         <Card className="p-4 shadow-soft">
-          <p className="mb-2 text-sm font-semibold">历史认知训练记录 <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>
+          <p className="mb-2 text-sm font-semibold">认知训练记录 <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>
           {trainings.length === 0 ? <p className="text-xs text-muted-foreground">暂无训练记录</p> : trainings.map((t) => (
             <div key={t.id} className="flex items-start justify-between border-b py-1.5 text-xs last:border-0">
               <div><p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on} · {t.setting} · {t.duration_min} 分钟</p></div>
-              <span className={t.completion === "完成" ? "text-success" : "text-warning"}>{t.completion}</span>
+              {t.completion === "待执行" && role === "community" ? (
+                <span className="flex shrink-0 gap-1">{["完成", "部分完成", "未完成"].map((c) => (
+                  <button key={c} onClick={() => markExec(t.id, c)} className="rounded border px-1.5 py-0.5 text-[11px] text-primary">{c}</button>))}</span>
+              ) : <span className={t.completion === "完成" ? "text-success" : t.completion === "待执行" ? "text-primary" : "text-warning"}>{t.completion}</span>}
             </div>
           ))}
         </Card>
@@ -296,6 +336,33 @@ export default function CognitiveDetail({ role }: { role: Role }) {
                 {docs.length > 0 && <div className="grid grid-cols-4 gap-1">{docs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer"><img src={d.url} alt={d.kind} className="h-16 w-full rounded object-cover" /></a>)}</div>}
               </div>
             )}
+          </div>
+        )}
+      </ActionSheet>
+
+      <ActionSheet open={!!task} onOpenChange={(o) => !o && setTask(null)} title={task?.setting === "家庭任务" ? "发放家庭任务" : "安排小组训练"}
+        description={task?.setting === "家庭任务" ? "每周 1-2 次，每次 20-30 分钟" : "每周 1-3 次，每次 20-30 分钟，6-12 人小组"}
+        footer={<Button className="w-full" disabled={saving} onClick={saveTask}>确认</Button>}>
+        {task && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-4 gap-1">{TRAINING_DOMAINS.map((d) => (
+              <button key={d} onClick={() => setTask({ ...task, domain: d })} className={`rounded border py-1 text-[11px] ${task.domain === d ? "border-primary bg-primary/10 text-primary" : ""}`}>{d}</button>))}</div>
+            <Textarea rows={2} maxLength={200} value={task.activity} onChange={(e) => setTask({ ...task, activity: e.target.value })} placeholder="训练内容，如：数字划消、日历定向练习" />
+            <div className="grid grid-cols-2 gap-2">
+              <label className="text-xs">{task.setting === "家庭任务" ? "完成日期" : "训练日期"}<Input className="mt-1" type="date" value={task.date} onChange={(e) => setTask({ ...task, date: e.target.value })} /></label>
+              <label className="text-xs">时长(分钟)<Input className="mt-1" type="number" value={task.duration} onChange={(e) => setTask({ ...task, duration: e.target.value })} /></label>
+            </div>
+          </div>
+        )}
+      </ActionSheet>
+
+      <ActionSheet open={!!fu} onOpenChange={(o) => !o && setFu(null)} title="记录随访" description="每月随访，记录老人状态与家庭训练执行情况"
+        footer={<Button className="w-full" disabled={saving} onClick={saveFu}>保存</Button>}>
+        {fu && (
+          <div className="space-y-2">
+            <div className="grid grid-cols-3 gap-1">{["月度电话随访", "上门随访", "站内面访"].map((x) => (
+              <button key={x} onClick={() => setFu({ ...fu, item: x })} className={`rounded border py-1.5 text-xs ${fu.item === x ? "border-primary bg-primary/10 text-primary" : ""}`}>{x}</button>))}</div>
+            <Textarea rows={4} maxLength={500} value={fu.note} onChange={(e) => setFu({ ...fu, note: e.target.value })} placeholder="随访情况：精神睡眠、家庭任务完成度、是否有异常需上转…" />
           </div>
         )}
       </ActionSheet>

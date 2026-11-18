@@ -25,6 +25,13 @@ const CommunityHome = () => {
   const followupPending = followups.filter((f) => f.status !== "已完成").length;
   const abnormal = managed.filter((p) => p.abnormal);
 
+  const flow = [
+    { label: "承接建档", n: waitingReferrals.length, unit: "待接收", to: "/community/patients?tab=new" },
+    { label: "训练与家庭任务", n: managed.filter((p) => p.community_stage === "干预中").length, unit: "干预中", to: "/community/patients" },
+    { label: "记录执行", n: managed.length, unit: "在管", to: "/community/patients" },
+    { label: "随访", n: followupPending, unit: "待随访", to: "/community/followup" },
+  ];
+
   const todoItems = [
     {
       key: "patients", icon: Users, label: "患者档案", sub: "在管 · 小市社区",
@@ -95,6 +102,21 @@ const CommunityHome = () => {
       <Card className="bg-gradient-community p-4 text-primary-foreground shadow-soft">
         <h2 className="text-base font-semibold">{profile?.full_name ?? "医生"}，早上好 👋</h2>
         <p className="mt-0.5 text-[11px] opacity-90">小市社区认知训练站 · 对接南京市鼓楼医院 · 记忆门诊</p>
+      </Card>
+
+      <Card className="p-3 shadow-soft">
+        <p className="mb-2 text-sm font-semibold">核心工作</p>
+        <div className="grid grid-cols-4 gap-1.5">
+          {flow.map((f, i) => (
+            <button key={f.label} onClick={() => navigate(f.to)} className="rounded-lg bg-primary/5 px-1 py-2 text-center">
+              <p className="text-[10px] text-muted-foreground">{i + 1}</p>
+              <p className="text-lg font-bold text-primary">{f.n}</p>
+              <p className="text-[10px] text-muted-foreground">{f.unit}</p>
+              <p className="mt-0.5 text-[11px] font-medium leading-tight">{f.label}</p>
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-[11px] text-muted-foreground">进入老人档案可安排小组训练、发放家庭任务、登记执行和随访</p>
       </Card>
 
       <div className="flex items-center justify-between px-1 pt-1">
