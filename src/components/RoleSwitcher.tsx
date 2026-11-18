@@ -10,14 +10,14 @@ const roles = [
   { to: "/patient", label: "家庭", icon: Smartphone, color: "bg-violet-500" },
 ];
 
-const RoleSwitcher = () => {
+const RoleSwitcher = ({ position = "right-4 top-4" }: { position?: string }) => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const active = roles.find((r) => location.pathname.startsWith(r.to)) ?? roles[3];
   const ActiveIcon = active.icon;
 
   return (
-    <div className="fixed right-4 top-4 z-[100]">
+    <div className={`fixed ${position} z-[100]`}>
       {!open ? (
         <button
           onClick={() => setOpen(true)}

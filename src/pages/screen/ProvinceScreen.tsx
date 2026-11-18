@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import ProvinceDashboard from "./ProvinceDashboard";
+import RoleSwitcher from "@/components/RoleSwitcher";
 import { Building2, CalendarCheck, MapPin, Users } from "lucide-react";
 import { JS_CITIES, JS_VIEWBOX } from "@/data/jiangsuMap";
 import { CityView, CountyView } from "./LevelViews";
@@ -173,6 +174,7 @@ export default function ProvinceScreen() {
   );
   return (
     <div className="province-screen min-h-screen bg-scr-bg text-scr-text">
+      <RoleSwitcher position="bottom-4 right-4" />
       {/* Header */}
       <header className="province-header grid items-center gap-2 px-4 py-3 xl:grid-cols-[1fr_2.6fr_1fr]">
         <Link to="/" className="flex items-center gap-2 text-sm font-bold"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-scr-red text-scr-gold">★</span>{cfg.org}</Link>
