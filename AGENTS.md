@@ -10,4 +10,5 @@
 - Training sessions live in `training_records` (one row per session) so all ends share history; doctor confirmation of model plans is stored on patients (ai_plan_confirmed_at/by).
 - Plan history lives in `treatment_plans` (one row per generation); PlanView/PlanReview are the single plan renderers so patient detail and doctor review stay identical. Exam photos go to private bucket `patient-docs` + `patient_documents`.
 - Scale items/maxima live in src/data/scales.ts; each completed scale is a `scale_assessments` row and also updates the patient column. Model risk analysis is the `mode: "risk"` branch of cognitive-advice, saved to patients.ai_risk; doctor adoption sets cognitive_risk.
+- DemoSession (mounted in App) auto-signs in the demo account when signed out, so stakeholder demos never hit RLS write failures; all ends share that multi-role account.
 <!-- AGENT-MEMORY:END -->
