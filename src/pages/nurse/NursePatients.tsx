@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { usePatients, sourceLabel, type HospitalStage } from "@/data/patients";
 
-const stageTabs: ("全部" | HospitalStage)[] = ["全部", "待入院", "院中", "待出院", "历史"];
+const stageTabs: ("全部" | HospitalStage)[] = ["全部", "待评估", "评估中", "待转诊", "历史"];
 
 const NursePatients = () => {
   const navigate = useNavigate();

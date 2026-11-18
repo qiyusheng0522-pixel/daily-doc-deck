@@ -17,7 +17,7 @@ const NurseHandover = () => {
   const createReferral = useCreateReferral();
 
   // 出院待交接 = 在院阶段为「待出院」的患者，与患者列表看到的是同一批人。
-  const dischargeList = inpatients.filter((p) => p.hospital_stage === "待出院");
+  const dischargeList = inpatients.filter((p) => p.hospital_stage === "待转诊");
   const handoverHistory = referrals.filter((r) => r.status === "已接收");
 
   const sendHandover = () => {

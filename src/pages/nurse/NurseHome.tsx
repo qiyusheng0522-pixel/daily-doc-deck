@@ -24,7 +24,7 @@ const NurseHome = () => {
 
   const pendingTasks = tasks.filter((t) => t.status === "待执行");
   const eduPending = tasks.filter((t) => t.kind === "宣教" && t.status === "待执行").length;
-  const handoverPending = inpatients.filter((p) => p.hospital_stage === "待出院").length;
+  const handoverPending = inpatients.filter((p) => p.hospital_stage === "待转诊").length;
   const followupPending = followups.filter((f) => f.status !== "已完成").length;
 
   const todoItems = [
@@ -118,7 +118,7 @@ const NurseHome = () => {
               <button
                 key={t.id}
                 onClick={() => {
-                  const action = t.kind === "宣教" ? "?action=push-edu" : t.kind === "出院下转" ? "?action=handover" : "";
+                  const action = t.kind === "宣教" ? "?action=push-edu" : t.kind === "转诊" ? "?action=handover" : "";
                   navigate(`/nurse/patients/${t.patient_id}${action}`);
                 }}
                 className="flex w-full items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/40"

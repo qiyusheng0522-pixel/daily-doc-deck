@@ -17,7 +17,7 @@ import {
   type Patient,
 } from "@/data/patients";
 
-const stageTabs: ("全部" | CommunityStage)[] = ["全部", "新接收", "随访中", "复诊待约", "历史"];
+const stageTabs: ("全部" | CommunityStage)[] = ["全部", "新接收", "干预中", "待复评", "历史"];
 
 const CommunityPatients = () => {
   const navigate = useNavigate();
