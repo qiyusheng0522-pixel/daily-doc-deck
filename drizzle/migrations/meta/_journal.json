@@ -57,6 +57,13 @@
       "when": 1795007636990,
       "tag": "0007_patient_ai_plan",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795008054298,
+      "tag": "0008_training_records_plan_confirm",
+      "breakpoints": true
     }
   ]
 }

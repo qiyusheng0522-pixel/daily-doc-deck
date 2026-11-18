@@ -403,6 +403,8 @@ export type Database = {
           age: number
           ai_plan: Json | null
           ai_plan_at: string | null
+          ai_plan_confirmed_at: string | null
+          ai_plan_confirmed_by: string | null
           allergy: string | null
           appointment_time: string | null
           bed_number: string | null
@@ -450,6 +452,8 @@ export type Database = {
           age: number
           ai_plan?: Json | null
           ai_plan_at?: string | null
+          ai_plan_confirmed_at?: string | null
+          ai_plan_confirmed_by?: string | null
           allergy?: string | null
           appointment_time?: string | null
           bed_number?: string | null
@@ -497,6 +501,8 @@ export type Database = {
           age?: number
           ai_plan?: Json | null
           ai_plan_at?: string | null
+          ai_plan_confirmed_at?: string | null
+          ai_plan_confirmed_by?: string | null
           allergy?: string | null
           appointment_time?: string | null
           bed_number?: string | null
@@ -756,6 +762,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "screenings_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_records: {
+        Row: {
+          activity: string
+          completion: string
+          created_at: string
+          domain: string
+          duration_min: number
+          id: string
+          operator: string | null
+          patient_id: string
+          setting: string
+          trained_on: string
+        }
+        Insert: {
+          activity: string
+          completion?: string
+          created_at?: string
+          domain: string
+          duration_min?: number
+          id?: string
+          operator?: string | null
+          patient_id: string
+          setting?: string
+          trained_on?: string
+        }
+        Update: {
+          activity?: string
+          completion?: string
+          created_at?: string
+          domain?: string
+          duration_min?: number
+          id?: string
+          operator?: string | null
+          patient_id?: string
+          setting?: string
+          trained_on?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_records_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"

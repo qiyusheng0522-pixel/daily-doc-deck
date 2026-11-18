@@ -4,11 +4,12 @@ import { ArrowLeft, Brain, MessageSquare, Send, AlertTriangle } from "lucide-rea
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import ActionSheet from "@/components/nurse/ActionSheet";
 import AiAdvicePanel from "@/components/cognitive/AiAdvicePanel";
 import {
-  usePatient, useReferrals, usePatientEducation, useCreateReferral, useCreateUpload, type Patient,
+  usePatient, useReferrals, usePatientEducation, useTrainingRecords, useCreateReferral, useCreateUpload, type Patient,
 } from "@/data/patients";
 import { RISK_PLAN, TRAINING_DOMAINS, scaleLevel, suggestRisk } from "@/data/cognitive";
 import { useQueryClient } from "@tanstack/react-query";
@@ -42,6 +43,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const qc = useQueryClient();
   const [grade, setGrade] = useState<null | { risk: "低风险" | "中风险" | "高风险"; refer: boolean; plan: string }>(null);
   const [saving, setSaving] = useState(false);
+  const { data: trainings = [] } = useTrainingRecords(id);
+  const [edit, setEdit] = useState<null | { kind: "profile" | "assess"; v: Record<string, string> }>(null);
 
   if (isLoading) return <p className="p-6 text-sm text-muted-foreground">加载中…</p>;
   if (!p) return <p className="p-6 text-sm text-muted-foreground">未找到该患者档案</p>;
@@ -62,6 +65,31 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     qc.invalidateQueries({ queryKey: ["patient", p.id] }); qc.invalidateQueries({ queryKey: ["patients"] });
     toast({ title: `已确认为${grade.risk}`, description: grade.refer ? "已转社区护理康复承接" : `复评周期：${RISK_PLAN[grade.risk].reassess}` });
     setGrade(null);
+  };
+  const PROFILE_F = [["name", "姓名"], ["gender", "性别"], ["age", "年龄"], ["phone", "电话"], ["caregiver", "照护者"], ["id_no", "身份证号"]] as const;
+  const ASSESS_F = [["ad8", "AD-8 (0-8)"], ["mmse", "MMSE (0-30)"], ["moca", "MoCA (0-30)"], ["scd_q9", "SCD-Q9 (0-9)"], ["adl", "ADL (0-100)"], ["cognitive_diagnosis", "认知诊断"]] as const;
+  const NUM = ["age", "ad8", "mmse", "moca", "scd_q9", "adl"];
+  const openEdit = (kind: "profile" | "assess") => {
+    const f: readonly (readonly [string, string])[] = kind === "profile" ? PROFILE_F : ASSESS_F;
+    setEdit({ kind, v: Object.fromEntries(f.map(([k]) => [k, String((p as Record<string, unknown>)[k] ?? "")])) });
+  };
+  const saveEdit = async () => {
+    if (!edit) return;
+    const patch: Record<string, string | number | null> = {};
+    for (const [k, v] of Object.entries(edit.v)) patch[k] = NUM.includes(k) ? (v === "" ? null : Number(v)) : (v.trim() || null);
+    if (patch.name === null) return toast({ title: "姓名不能为空" });
+    setSaving(true);
+    const { error } = await supabase.from("patients").update(patch as never).eq("id", p.id);
+    setSaving(false);
+    if (error) return toast({ title: "保存失败", description: error.message });
+    qc.invalidateQueries({ queryKey: ["patient", p.id] }); qc.invalidateQueries({ queryKey: ["patients"] });
+    setEdit(null); toast({ title: edit.kind === "profile" ? "档案已保存" : "评估结果已更新" });
+  };
+  const confirmPlan = async () => {
+    const { error } = await supabase.from("patients").update({ ai_plan_confirmed_at: new Date().toISOString(), ai_plan_confirmed_by: "评估医生" }).eq("id", p.id);
+    if (error) return toast({ title: "确认失败", description: error.message });
+    qc.invalidateQueries({ queryKey: ["patient", p.id] });
+    toast({ title: "干预方案已确认", description: "社区护理康复端和家庭端将按此方案执行" });
   };
   const plan = p.cognitive_risk ? RISK_PLAN[p.cognitive_risk] : null;
   const myRefs = referrals.filter((r) => r.patient_id === p.id);
@@ -116,7 +144,10 @@ export default function CognitiveDetail({ role }: { role: Role }) {
               <Button size="sm" className="flex-1" onClick={() => setSheet("up")}><Send className="mr-1 h-4 w-4" />开上转单</Button>
             )}
             {role === "doctor" && (
-              <Button size="sm" className="flex-1" onClick={() => setSheet("down")}><Send className="mr-1 h-4 w-4" />确诊并下转</Button>
+              <Button size="sm" variant="outline" className="flex-1" onClick={() => openEdit("profile")}>录入档案</Button>
+            )}
+            {role === "doctor" && (
+              <Button size="sm" className="flex-1" onClick={() => setSheet("down")}><Send className="mr-1 h-4 w-4" />转诊</Button>
             )}
             {role === "community" && (
               <Button size="sm" variant="secondary" className="flex-1" disabled={upload.isPending}
@@ -128,9 +159,17 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </Card>
 
         {role !== "nurse" && <AiAdvicePanel key={p.id} patientId={p.id} name={p.name} saved={p.ai_plan} savedAt={p.ai_plan_at} />}
+        {role === "doctor" && p.ai_plan && (
+          <Card className="flex items-center justify-between p-3 shadow-soft">
+            <p className="text-xs">{p.ai_plan_confirmed_at
+              ? <span className="text-success">✓ 医生已确认 · {new Date(p.ai_plan_confirmed_at).toLocaleDateString("zh-CN")}</span>
+              : <span className="text-warning">模型方案待医生确认，确认后下发执行</span>}</p>
+            {(!p.ai_plan_confirmed_at || (p.ai_plan_at && p.ai_plan_at > p.ai_plan_confirmed_at)) && <Button size="sm" onClick={confirmPlan}>确认方案</Button>}
+          </Card>
+        )}
 
         <Card className="p-4 shadow-soft">
-          <p className="mb-2 flex items-center gap-1 text-sm font-semibold"><Brain className="h-4 w-4 text-accent" />认知评估</p>
+          <div className="mb-2 flex items-center justify-between"><p className="flex items-center gap-1 text-sm font-semibold"><Brain className="h-4 w-4 text-accent" />认知风险评估</p>{role === "doctor" && <Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => openEdit("assess")}>编辑</Button>}</div>
           <div className="grid grid-cols-3 gap-2">
             <Scale label="AD-8 初筛" value={p.ad8} max={8} hint={p.ad8 != null ? (p.ad8 >= 2 ? "阳性 ≥2" : "阴性") : undefined} />
             <Scale label="MMSE" value={p.mmse} max={30} hint={scaleLevel("mmse", p.mmse)} />
@@ -187,7 +226,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         )}
 
         <Card className="p-4 shadow-soft">
-          <p className="mb-2 text-sm font-semibold">双向转诊记录</p>
+          <p className="mb-2 text-sm font-semibold">平台转诊记录</p>
           {myRefs.length === 0 ? <p className="text-xs text-muted-foreground">暂无转诊</p> : myRefs.map((r) => (
             <div key={r.id} className="mb-2 rounded-lg border p-2 text-xs">
               <p className="font-medium">{r.direction} · {r.from_hospital} → {r.to_community} <span className="text-muted-foreground">({r.status})</span></p>
@@ -197,18 +236,42 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </Card>
 
         <Card className="p-4 shadow-soft">
+          <p className="mb-2 text-sm font-semibold">历史认知训练记录 <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>
+          {trainings.length === 0 ? <p className="text-xs text-muted-foreground">暂无训练记录</p> : trainings.map((t) => (
+            <div key={t.id} className="flex items-start justify-between border-b py-1.5 text-xs last:border-0">
+              <div><p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on} · {t.setting} · {t.duration_min} 分钟</p></div>
+              <span className={t.completion === "完成" ? "text-success" : "text-warning"}>{t.completion}</span>
+            </div>
+          ))}
+        </Card>
+
+        {role !== "doctor" && <Card className="p-4 shadow-soft">
           <p className="mb-2 text-sm font-semibold">已推送宣教</p>
           {edu.length === 0 ? <p className="text-xs text-muted-foreground">暂无</p> : edu.map((e) => (
             <div key={e.id} className="flex justify-between border-b py-1.5 text-xs last:border-0">
               <span>{e.education_items?.title}</span><span className="text-muted-foreground">{e.status}</span>
             </div>
           ))}
-        </Card>
+        </Card>}
 
         <p className="flex items-center gap-1 px-1 text-[11px] text-muted-foreground">
           <AlertTriangle className="h-3 w-3" />出现急性意识障碍或卒中样症状，立即启动急救。
         </p>
       </div>
+
+      <ActionSheet open={!!edit} onOpenChange={(o) => !o && setEdit(null)} title={edit?.kind === "profile" ? "录入患者档案" : "编辑认知风险评估"}
+        footer={<Button className="w-full" disabled={saving} onClick={saveEdit}>保存</Button>}>
+        {edit && (
+          <div className="grid grid-cols-2 gap-2">
+            {(edit.kind === "profile" ? PROFILE_F as readonly (readonly [string, string])[] : ASSESS_F).map(([k, label]) => (
+              <label key={k} className={`text-xs ${k === "cognitive_diagnosis" || k === "id_no" ? "col-span-2" : ""}`}>{label}
+                <Input className="mt-1" type={NUM.includes(k) ? "number" : "text"} value={edit.v[k]} maxLength={60}
+                  onChange={(e) => setEdit({ ...edit, v: { ...edit.v, [k]: e.target.value } })} />
+              </label>
+            ))}
+          </div>
+        )}
+      </ActionSheet>
 
       <ActionSheet open={!!grade} onOpenChange={(o) => !o && setGrade(null)} title="确认风险分级与转诊"
         description={`智能体建议：${aiRisk ?? "—"}，请医生确认`}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, ChevronRight, Users } from "lucide-react";
+import { Search, ChevronRight } from "lucide-react";
 import { usePatients, sourceLabel, type Patient } from "@/data/patients";
 
 const DoctorPatients = () => {
@@ -49,7 +49,6 @@ function PatientRow({ p, first }: { p: Patient; first: boolean }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="text-base font-semibold text-foreground">{p.name}</span>
-          {p.vip && <Tag color="amber">VIP</Tag>}
           {p.abnormal && <Tag color="rose">异常</Tag>}
         </div>
         <p className="mt-0.5 text-sm text-muted-foreground">
@@ -59,7 +58,6 @@ function PatientRow({ p, first }: { p: Patient; first: boolean }) {
         <div className="mt-2 flex flex-wrap gap-1.5">
           <Tag color={p.source === "南京市鼓楼医院" ? "primary" : "teal"}>{sourceLabel(p.source)}</Tag>
           <Tag color="slate">{p.hospital_stage ?? p.community_stage ?? "—"}</Tag>
-          <Tag color="amber" icon={<Users className="h-3 w-3" />}>会诊</Tag>
         </div>
       </div>
       <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
