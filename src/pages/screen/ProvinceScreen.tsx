@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import ProvinceDashboard from "./ProvinceDashboard";
-import { ArrowLeftRight, AlertTriangle, Bot, Brain, Building2, CalendarCheck, ClipboardCheck, Dumbbell, FileText, Gauge, Home, MapPin, Search, Users } from "lucide-react";
+import { Building2, CalendarCheck, MapPin, Users } from "lucide-react";
 import { JS_CITIES, JS_VIEWBOX } from "@/data/jiangsuMap";
 import { CityView, CountyView } from "./LevelViews";
 import { GL_AREAS, GL_STATIONS, GL_VIEWBOX, NJ_AREAS, NJ_VIEWBOX } from "@/data/nanjingMap";
@@ -76,21 +75,6 @@ const LEVELS: Record<Level, {
 };
 
 
-const NAV = [
-  { label: "总体概览", icon: Home }, { label: "站点建设", icon: Building2 }, { label: "筛查评估", icon: Search },
-  { label: "干预训练", icon: Dumbbell }, { label: "随访管理", icon: CalendarCheck }, { label: "双向转诊", icon: ArrowLeftRight },
-  { label: "智能体应用", icon: Bot }, { label: "效果评估", icon: Gauge },
-];
-
-const NAV_CITY = [
-  { label: "总体概览", icon: Home }, { label: "巡回指导", icon: MapPin }, { label: "上转确诊", icon: ArrowLeftRight },
-  { label: "区县质控", icon: Gauge }, { label: "培训考核", icon: ClipboardCheck }, { label: "疑难会诊", icon: Brain },
-];
-const NAV_COUNTY = [
-  { label: "运营总览", icon: Home }, { label: "站点运营", icon: Building2 }, { label: "双向转诊", icon: ArrowLeftRight },
-  { label: "小组训练", icon: Dumbbell }, { label: "随访预警", icon: AlertTriangle }, { label: "档案质量", icon: FileText },
-];
-
 function AreaMap({ level, city, onPick }: { level: Level; city: string; onPick: (c: string) => void }) {
   const cfg = LEVELS[level];
   if (level === "county") {
@@ -152,7 +136,7 @@ function useClock() {
 }
 
 export default function ProvinceScreen() {
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
   const [nav, setNav] = useState("总体概览");
   const [level, setLevelRaw] = useState<Level>("province");
   const cfg = LEVELS[level];
@@ -196,27 +180,7 @@ export default function ProvinceScreen() {
         <div className="flex items-center justify-end gap-2 text-xs text-scr-dim"><CalendarCheck className="h-4 w-4" /><span className="tabular-nums">{clock}</span></div>
       </header>
 
-      {/* Nav */}
-      <nav className="flex flex-wrap justify-center gap-2 px-4 py-2">
-        {(level === "province" ? NAV : level === "city" ? NAV_CITY : NAV_COUNTY).map(({ label, icon: I }) => (
-          <Button variant="screen" key={label} onClick={() => setNav(label)}
-            className={`flex h-8 items-center gap-2 border px-3 py-1.5 text-xs transition ${nav === label ? "border-scr-cyan bg-scr-line/60 font-bold text-scr-text" : "border-scr-line/50 bg-scr-panel/60 text-scr-dim hover:text-scr-text"}`}>
-            <I className="h-4 w-4" />{label}
-          </Button>
-        ))}
-      </nav>
-
-      <div className="flex flex-wrap justify-center gap-2 px-3 pb-3">
-        <span className="self-center text-xs text-scr-dim">驾驶舱视角：</span>
-        {(Object.keys(LEVELS) as Level[]).map((l) => (
-          <Button variant="screen" key={l} onClick={() => { setLevel(l); setParams({ level: l }); }}
-            className={`h-7 rounded-full border px-3 py-1 text-xs transition ${level === l ? "border-scr-gold bg-scr-gold/20 font-bold text-scr-gold" : "border-scr-line/50 text-scr-dim hover:text-scr-text"}`}>
-            {LEVELS[l].tab}
-          </Button>
-        ))}
-      </div>
-
-      <main className="space-y-3 px-4 pb-4">
+      <main className="space-y-3 px-4 pb-4 pt-3">
         {level === "province" ? <ProvinceDashboard nav={nav} onOverview={() => setNav("总体概览")} /> : level === "city" ? <CityView map={mapSection} area={city} /> : <CountyView map={mapSection} area={city} />}
       </main>
     </div>

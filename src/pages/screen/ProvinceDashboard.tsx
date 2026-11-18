@@ -21,8 +21,8 @@ function Trend({ region, population = false, onDrill }: { region?: Region; popul
     <div className="min-h-0 flex-1"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data} margin={{ top: 12, right: 12, left: -18, bottom: 0 }} onClick={s => { if (s?.activeLabel) onDrill({ key: population ? "elders" : "screening", region: region?.name, period: String(s.activeLabel) }); }}>
       <defs><linearGradient id={`provinceTrend-${region?.name ?? "all"}-${population}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.cyan} stopOpacity={.4} /><stop offset="100%" stopColor={C.cyan} stopOpacity={.02} /></linearGradient></defs>
       <CartesianGrid stroke={C.grid} vertical={false} /><XAxis dataKey="month" {...axis} tickFormatter={v => String(v).slice(5) + "月"} minTickGap={8} /><YAxis {...axis} /><ChartTooltip {...tip} formatter={(v: number, name: string) => [`${v}万人`, name]} />
-      <Area isAnimationActive={false} name={population ? "服务人群" : "筛查人数"} dataKey={population ? "elders" : "screening"} stroke={C.cyan} fill={`url(#provinceTrend-${region?.name ?? "all"}-${population})`} strokeWidth={2.5} dot={{ r: 3, fill: C.cyan }} activeDot={{ r: 6 }} />
-      <Area isAnimationActive={false} name={population ? "实际筛查" : "干预人数"} dataKey={population ? "screening" : "intervention"} stroke={C.green} fillOpacity={.08} fill={C.green} strokeWidth={2.5} dot={{ r: 3, fill: C.green }} activeDot={{ r: 6 }} />
+      <Area type="monotone" isAnimationActive={false} name={population ? "服务人群" : "筛查人数"} dataKey={population ? "elders" : "screening"} stroke={C.cyan} fill={`url(#provinceTrend-${region?.name ?? "all"}-${population})`} strokeWidth={2.5} dot={{ r: 3, fill: C.cyan }} activeDot={{ r: 6 }} />
+      <Area type="monotone" isAnimationActive={false} name={population ? "实际筛查" : "干预人数"} dataKey={population ? "screening" : "intervention"} stroke={C.green} fillOpacity={.08} fill={C.green} strokeWidth={2.5} dot={{ r: 3, fill: C.green }} activeDot={{ r: 6 }} />
     </AreaChart></ResponsiveContainer></div>
   </div>;
 }
