@@ -77,6 +77,7 @@ const PatientAssessment = () => {
   const navigate = useNavigate();
   const [active, setActive] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [filler, setFiller] = useState<"本人" | "家属协助">("本人");
   const [completed, setCompleted] = useState<Record<string, number>>({ sleep: 4 });
 
   const current = questionnaires.find((q) => q.id === active);
@@ -104,6 +105,14 @@ const PatientAssessment = () => {
           <div className="mt-2 h-1.5 rounded-full bg-white/30">
             <div className="h-full rounded-full bg-white transition-all" style={{ width: `${(answered / totalQ) * 100}%` }} />
           </div>
+        </div>
+
+        <div className="flex items-center gap-2 rounded-xl border bg-card p-3 text-sm">
+          <span className="text-muted-foreground">填写人</span>
+          {(["本人", "家属协助"] as const).map((f) => (
+            <button key={f} onClick={() => setFiller(f)}
+              className={`rounded-full border px-3 py-1 ${filler === f ? "border-primary bg-primary/10 font-medium text-primary" : ""}`}>{f}</button>
+          ))}
         </div>
 
         <div className="space-y-3">
@@ -139,7 +148,7 @@ const PatientAssessment = () => {
             onClick={() => {
               const score = current.questions.reduce((s, q) => s + (answers[q.id] ?? 0), 0);
               setCompleted({ ...completed, [current.id]: score });
-              toast({ title: "评估完成", description: `本次得分 ${score} 分` });
+              toast({ title: "评估完成", description: `本次得分 ${score} 分 · 填写人：${filler}（已记录）` });
               setActive(null);
               setAnswers({});
             }}

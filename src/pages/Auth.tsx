@@ -67,7 +67,7 @@ const Auth = () => {
       await ensureDemoProfile(signInData.user.id);
     }
 
-    toast({ title: "登录成功", description: "欢迎进入指导中心端" });
+    toast({ title: "登录成功", description: "欢迎进入评估医生端" });
     setLoading(false);
     navigate("/doctor", { replace: true });
   };
@@ -87,7 +87,7 @@ const Auth = () => {
           <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-doctor text-primary-foreground">
             <Stethoscope className="h-7 w-7" />
           </div>
-          <h1 className="text-2xl font-semibold">指导中心端</h1>
+          <h1 className="text-2xl font-semibold">评估医生端</h1>
           <p className="text-center text-sm text-muted-foreground">南京市鼓楼医院 · 记忆门诊演示账号</p>
         </div>
 

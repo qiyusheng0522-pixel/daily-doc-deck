@@ -102,7 +102,7 @@ const KPIS = [
   { label: "服务老年人", value: "27.6", unit: "万人", delta: "+18.7%", icon: Users },
   { label: "筛查覆盖率", value: "92.4%", delta: "+3.8pct", icon: ClipboardCheck },
   { label: "干预指导率", value: "91.1%", delta: "+5.2pct", icon: Target },
-  { label: "转诊完成率", value: "72.6%", delta: "+6.9pct", icon: ArrowLeftRight },
+  { label: "到院转化率", value: "72.6%", delta: "+6.9pct", icon: ArrowLeftRight },
   { label: "认知改善率", value: "46.8%", delta: "+12.1pct", icon: Brain },
 ];
 

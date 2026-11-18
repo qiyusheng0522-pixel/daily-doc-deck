@@ -41,3 +41,11 @@ export function scaleLevel(kind: "mmse" | "moca" | "adl", v: number | null): str
 export function ad8Positive(score: number) {
   return score >= 2;
 }
+
+/** 智能体初步风险等级（供评估医生确认）：MMSE<10 或 ADL<40 → 高；MMSE<27 或 MoCA<26 → 中；否则低。无量表时返回 null。 */
+export function suggestRisk(s: { mmse: number | null; moca: number | null; adl: number | null }): "低风险" | "中风险" | "高风险" | null {
+  if (s.mmse == null && s.moca == null) return null;
+  if ((s.mmse != null && s.mmse < 10) || (s.adl != null && s.adl < 40)) return "高风险";
+  if ((s.mmse != null && s.mmse < 27) || (s.moca != null && s.moca < 26)) return "中风险";
+  return "低风险";
+}

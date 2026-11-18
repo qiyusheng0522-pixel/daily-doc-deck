@@ -10,7 +10,9 @@ import AiAdvicePanel from "@/components/cognitive/AiAdvicePanel";
 import {
   usePatient, useReferrals, usePatientEducation, useCreateReferral, useCreateUpload, type Patient,
 } from "@/data/patients";
-import { RISK_PLAN, TRAINING_DOMAINS, scaleLevel } from "@/data/cognitive";
+import { RISK_PLAN, TRAINING_DOMAINS, scaleLevel, suggestRisk } from "@/data/cognitive";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 type Role = "doctor" | "nurse" | "community";
 
@@ -37,10 +39,30 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const upload = useCreateUpload();
   const [sheet, setSheet] = useState<null | "up" | "down">(null);
   const [note, setNote] = useState("");
+  const qc = useQueryClient();
+  const [grade, setGrade] = useState<null | { risk: "低风险" | "中风险" | "高风险"; refer: boolean; plan: string }>(null);
+  const [saving, setSaving] = useState(false);
 
   if (isLoading) return <p className="p-6 text-sm text-muted-foreground">加载中…</p>;
   if (!p) return <p className="p-6 text-sm text-muted-foreground">未找到该患者档案</p>;
 
+  const aiRisk = suggestRisk(p);
+  const confirmGrade = async () => {
+    if (!grade) return;
+    setSaving(true);
+    const { error } = await supabase.from("patients").update({
+      cognitive_risk: grade.risk, next_reassess: RISK_PLAN[grade.risk].reassess,
+    }).eq("id", p.id);
+    if (!error && grade.refer) {
+      await createReferral.mutateAsync({ patientId: p.id, direction: "下转", doctorName: "评估医生",
+        reason: `确认${grade.risk}，转社区护理康复承接。方案：${grade.plan || RISK_PLAN[grade.risk].actions.join("；")}` });
+    }
+    setSaving(false);
+    if (error) return toast({ title: "保存失败", description: error.message });
+    qc.invalidateQueries({ queryKey: ["patient", p.id] }); qc.invalidateQueries({ queryKey: ["patients"] });
+    toast({ title: `已确认为${grade.risk}`, description: grade.refer ? "已转社区护理康复承接" : `复评周期：${RISK_PLAN[grade.risk].reassess}` });
+    setGrade(null);
+  };
   const plan = p.cognitive_risk ? RISK_PLAN[p.cognitive_risk] : null;
   const myRefs = referrals.filter((r) => r.patient_id === p.id);
 
@@ -102,7 +124,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           </div>
         </Card>
 
-        {role === "nurse" && <AiAdvicePanel patientId={p.id} name={p.name} />}
+        {role !== "nurse" && <AiAdvicePanel patientId={p.id} name={p.name} />}
 
         <Card className="p-4 shadow-soft">
           <p className="mb-2 flex items-center gap-1 text-sm font-semibold"><Brain className="h-4 w-4 text-accent" />认知评估</p>
@@ -116,6 +138,15 @@ export default function CognitiveDetail({ role }: { role: Role }) {
               <p className="text-[11px] text-muted-foreground">下次复评</p>
               <p className="mt-1 text-sm font-semibold">{p.next_reassess ?? "—"}</p>
             </div>
+          </div>
+          <div className="mt-3 flex items-center justify-between rounded-lg bg-primary/5 p-2.5">
+            <div className="text-xs">
+              <p className="text-muted-foreground">智能体初步风险等级</p>
+              <p className="font-semibold">{aiRisk ?? "量表不足，暂无"}{p.cognitive_risk && <span className="ml-2 font-normal text-muted-foreground">已确认：{p.cognitive_risk}</span>}</p>
+            </div>
+            {role === "doctor" && aiRisk && (
+              <Button size="sm" onClick={() => setGrade({ risk: p.cognitive_risk ?? aiRisk, refer: false, plan: "" })}>确认分级</Button>
+            )}
           </div>
           {(p.risk_tags.length > 0 || p.lifestyle_warnings.length > 0) && (
             <div className="mt-3">
@@ -168,6 +199,29 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           <AlertTriangle className="h-3 w-3" />出现急性意识障碍或卒中样症状，立即启动急救。
         </p>
       </div>
+
+      <ActionSheet open={!!grade} onOpenChange={(o) => !o && setGrade(null)} title="确认风险分级与转诊"
+        description={`智能体建议：${aiRisk ?? "—"}，请医生确认`}
+        footer={<Button className="w-full" disabled={saving} onClick={confirmGrade}>确认</Button>}>
+        {grade && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2">
+              {(["低风险", "中风险", "高风险"] as const).map((r) => (
+                <button key={r} onClick={() => setGrade({ ...grade, risk: r })}
+                  className={`rounded-lg border py-2 text-sm ${grade.risk === r ? "border-primary bg-primary/10 font-medium text-primary" : ""}`}>{r}</button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">复评周期：{RISK_PLAN[grade.risk].reassess} · {RISK_PLAN[grade.risk].group}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[false, true].map((v) => (
+                <button key={String(v)} onClick={() => setGrade({ ...grade, refer: v })}
+                  className={`rounded-lg border py-2 text-sm ${grade.refer === v ? "border-primary bg-primary/10 font-medium text-primary" : ""}`}>{v ? "转社区护理康复承接" : "暂不转诊"}</button>
+              ))}
+            </div>
+            <Textarea rows={3} value={grade.plan} onChange={(e) => setGrade({ ...grade, plan: e.target.value })} placeholder="后续方案与调整（留空按分级默认方案）" />
+          </div>
+        )}
+      </ActionSheet>
 
       <ActionSheet open={!!sheet} onOpenChange={(o) => !o && setSheet(null)}
         title={sheet === "up" ? "开具上转单 · 鼓楼医院记忆门诊" : "确诊下转 · 小市社区训练站"}

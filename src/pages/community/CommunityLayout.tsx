@@ -93,7 +93,7 @@ const CommunityLayout = () => {
             )}
           </div>
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">训练站端 · 小市社区认知训练站 · 移动端预览 (iPhone 15)</p>
+        <p className="mt-4 text-center text-xs text-muted-foreground">社区护理康复端 · 小市社区 · 移动端预览 (iPhone 15)</p>
       </div>
     </div>
   );

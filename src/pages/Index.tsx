@@ -4,28 +4,28 @@ import { Button } from "@/components/ui/button";
 
 const ENDS = [
   {
-    to: "/doctor", icon: Stethoscope, grad: "bg-gradient-doctor", dot: "bg-primary",
-    title: "指导中心端", sub: "医疗端 · 鼓楼医院记忆门诊",
-    desc: "接收上转确诊、制定治疗方案、下转并给出诊疗建议",
-    items: ["上转患者确诊与疑难会诊", "MMSE / MoCA 复核与诊断", "下转回站并推送诊疗建议"],
+    to: "/screening", icon: ClipboardCheck, grad: "bg-gradient-nurse", dot: "bg-accent",
+    title: "体检中心筛查端", sub: "体检中心筛查人员",
+    desc: "核对初筛结果，登记转介和预约",
+    items: ["核对 AD-8 初筛结果", "阳性登记转介（训练站 / 记忆门诊）", "登记预约时间"],
   },
   {
-    to: "/nurse", icon: ClipboardCheck, grad: "bg-gradient-nurse", dot: "bg-accent",
-    title: "训练站端 · 评估师", sub: "评估师 / 治疗管理师",
-    desc: "专业量表评估、老年综合评估、个体化训练方案与转诊",
-    items: ["MMSE / MoCA / SCD-Q9 / ADL 评估", "睡眠·营养·跌倒·心理综合评估", "训练方案、家庭作业单、上转单"],
+    to: "/doctor", icon: Stethoscope, grad: "bg-gradient-doctor", dot: "bg-primary",
+    title: "评估医生端", sub: "鼓楼医院记忆门诊 / 评估医生",
+    desc: "查看量表与智能体初步风险等级，确认分级、转诊与方案",
+    items: ["查看 MMSE / MoCA 等量表结果", "确认风险分级、是否转诊", "制定并调整后续方案"],
   },
   {
     to: "/community", icon: Building2, grad: "bg-gradient-community", dot: "bg-success",
-    title: "训练站端 · 站点", sub: "小市社区认知训练站",
-    desc: "AD-8 初筛、建档、分级干预、小组训练与随访上报",
-    items: ["AD-8 初筛（≥2 分转评估）", "接收下转 5 个工作日内建档", "小组认知训练与月度随访"],
+    title: "社区护理康复端", sub: "社区护士 / 康复治疗人员",
+    desc: "承接患者、安排训练、发放家庭任务、记录执行和随访",
+    items: ["承接转介患者并建档", "安排小组训练与家庭任务", "记录执行情况与随访"],
   },
   {
     to: "/patient", icon: Smartphone, grad: "bg-gradient-primary", dot: "bg-primary",
-    title: "服务对象端", sub: "老人及家属 / 照护者",
-    desc: "查看评估结果、自评老年综合评估、训练打卡与宣教",
-    items: ["睡眠·营养·跌倒·心理自评", "家庭训练作业与打卡", "复评提醒与联系训练站"],
+    title: "家庭端", sub: "老人或获授权的家属",
+    desc: "查看安排、完成自评、执行家庭任务并提交反馈",
+    items: ["查看训练与复评安排", "完成自评（记录本人或家属协助）", "执行家庭任务并反馈"],
   },
 ];
 
@@ -45,7 +45,7 @@ const Index = () => (
       <div className="mx-auto max-w-3xl text-center">
         <h1 className="text-4xl font-bold tracking-tight md:text-5xl">选择您的端</h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          管理端、指导中心端、训练站端、服务对象端协同，实现筛查—评估—干预—转诊—随访全周期闭环
+          体检筛查、评估医生、社区护理康复、家庭与区域管理协同，实现筛查—评估—干预—转诊—随访闭环
         </p>
       </div>
 
@@ -55,8 +55,8 @@ const Index = () => (
           <MonitorDot className="h-8 w-8" />
         </div>
         <div className="flex-1">
-          <h2 className="text-2xl font-semibold">管理端 · 监管驾驶舱</h2>
-          <p className="mt-2 text-muted-foreground">各级卫生健康部门监管大屏：站点建设、筛查覆盖、干预指导、转诊与效果评估</p>
+          <h2 className="text-2xl font-semibold">区域管理端 · 驾驶舱</h2>
+          <p className="mt-2 text-muted-foreground">区域管理人员查看辖区筛查、到院转化、风险分布和随访进展</p>
           <div className="mt-3 flex flex-wrap gap-2 text-sm">
             {["省级视角", "市级视角", "县(区)级视角"].map((v) => (
               <span key={v} className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">{v}</span>

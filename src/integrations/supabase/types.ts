@@ -695,6 +695,68 @@ export type Database = {
           },
         ]
       }
+      screenings: {
+        Row: {
+          ad8: number
+          age: number
+          appointment_at: string | null
+          created_at: string
+          exam_date: string
+          gender: string
+          id: string
+          name: string
+          note: string | null
+          patient_id: string | null
+          phone: string | null
+          refer_to: string | null
+          status: string
+          updated_at: string
+          verified_by: string | null
+        }
+        Insert: {
+          ad8: number
+          age: number
+          appointment_at?: string | null
+          created_at?: string
+          exam_date?: string
+          gender?: string
+          id?: string
+          name: string
+          note?: string | null
+          patient_id?: string | null
+          phone?: string | null
+          refer_to?: string | null
+          status?: string
+          updated_at?: string
+          verified_by?: string | null
+        }
+        Update: {
+          ad8?: number
+          age?: number
+          appointment_at?: string | null
+          created_at?: string
+          exam_date?: string
+          gender?: string
+          id?: string
+          name?: string
+          note?: string | null
+          patient_id?: string | null
+          phone?: string | null
+          refer_to?: string | null
+          status?: string
+          updated_at?: string
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screenings_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       uploads: {
         Row: {
           created_at: string

@@ -3,17 +3,17 @@ import { Link, useLocation } from "react-router-dom";
 import { MonitorDot, Stethoscope, HeartPulse, Building2, Smartphone, ChevronDown, X } from "lucide-react";
 
 const roles = [
-  { to: "/screen", label: "管理", icon: MonitorDot, color: "bg-sky-600" },
-  { to: "/doctor", label: "指导中心", icon: Stethoscope, color: "bg-blue-500" },
-  { to: "/nurse", label: "评估师", icon: HeartPulse, color: "bg-pink-500" },
-  { to: "/community", label: "训练站", icon: Building2, color: "bg-emerald-500" },
-  { to: "/patient", label: "服务对象", icon: Smartphone, color: "bg-violet-500" },
+  { to: "/doctor", label: "评估医生", icon: Stethoscope, color: "bg-blue-500" },
+  { to: "/screening", label: "体检筛查", icon: HeartPulse, color: "bg-pink-500" },
+  { to: "/community", label: "社区护理康复", icon: Building2, color: "bg-emerald-500" },
+  { to: "/screen", label: "区域管理", icon: MonitorDot, color: "bg-sky-600" },
+  { to: "/patient", label: "家庭", icon: Smartphone, color: "bg-violet-500" },
 ];
 
 const RoleSwitcher = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
-  const active = roles.find((r) => location.pathname.startsWith(r.to)) ?? roles[4];
+  const active = roles.find((r) => location.pathname.startsWith(r.to)) ?? roles[3];
   const ActiveIcon = active.icon;
 
   return (

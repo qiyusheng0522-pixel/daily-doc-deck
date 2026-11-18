@@ -96,7 +96,7 @@ const DoctorLayout = () => {
             )}
           </div>
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">指导中心端(医疗端) · 移动端预览 (iPhone 15)</p>
+        <p className="mt-4 text-center text-xs text-muted-foreground">评估医生端 · 移动端预览 (iPhone 15)</p>
       </div>
     </div>
   );
