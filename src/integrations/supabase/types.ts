@@ -398,11 +398,16 @@ export type Database = {
       patients: {
         Row: {
           abnormal: boolean
+          ad8: number | null
+          adl: number | null
           age: number
           allergy: string | null
           appointment_time: string | null
           bed_number: string | null
           bp: string | null
+          caregiver: string | null
+          cognitive_diagnosis: string | null
+          cognitive_risk: string | null
           community_stage: string | null
           condition_category: string | null
           created_at: string
@@ -418,13 +423,17 @@ export type Database = {
           ldl: string | null
           lifestyle_warnings: string[]
           limb_power: string | null
+          mmse: number | null
+          moca: number | null
           mrs: string | null
           name: string
+          next_reassess: string | null
           nihss: string | null
           phone: string | null
           refer_dept: string | null
           refer_doctor: string | null
           risk_tags: string[]
+          scd_q9: number | null
           source: Database["public"]["Enums"]["patient_source"]
           status: Database["public"]["Enums"]["patient_status"]
           stroke_type: string | null
@@ -434,11 +443,16 @@ export type Database = {
         }
         Insert: {
           abnormal?: boolean
+          ad8?: number | null
+          adl?: number | null
           age: number
           allergy?: string | null
           appointment_time?: string | null
           bed_number?: string | null
           bp?: string | null
+          caregiver?: string | null
+          cognitive_diagnosis?: string | null
+          cognitive_risk?: string | null
           community_stage?: string | null
           condition_category?: string | null
           created_at?: string
@@ -454,13 +468,17 @@ export type Database = {
           ldl?: string | null
           lifestyle_warnings?: string[]
           limb_power?: string | null
+          mmse?: number | null
+          moca?: number | null
           mrs?: string | null
           name: string
+          next_reassess?: string | null
           nihss?: string | null
           phone?: string | null
           refer_dept?: string | null
           refer_doctor?: string | null
           risk_tags?: string[]
+          scd_q9?: number | null
           source?: Database["public"]["Enums"]["patient_source"]
           status?: Database["public"]["Enums"]["patient_status"]
           stroke_type?: string | null
@@ -470,11 +488,16 @@ export type Database = {
         }
         Update: {
           abnormal?: boolean
+          ad8?: number | null
+          adl?: number | null
           age?: number
           allergy?: string | null
           appointment_time?: string | null
           bed_number?: string | null
           bp?: string | null
+          caregiver?: string | null
+          cognitive_diagnosis?: string | null
+          cognitive_risk?: string | null
           community_stage?: string | null
           condition_category?: string | null
           created_at?: string
@@ -490,13 +513,17 @@ export type Database = {
           ldl?: string | null
           lifestyle_warnings?: string[]
           limb_power?: string | null
+          mmse?: number | null
+          moca?: number | null
           mrs?: string | null
           name?: string
+          next_reassess?: string | null
           nihss?: string | null
           phone?: string | null
           refer_dept?: string | null
           refer_doctor?: string | null
           risk_tags?: string[]
+          scd_q9?: number | null
           source?: Database["public"]["Enums"]["patient_source"]
           status?: Database["public"]["Enums"]["patient_status"]
           stroke_type?: string | null
@@ -624,6 +651,7 @@ export type Database = {
       referrals: {
         Row: {
           created_at: string
+          direction: string
           doctor_name: string | null
           from_hospital: string
           id: string
@@ -635,6 +663,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          direction?: string
           doctor_name?: string | null
           from_hospital?: string
           id?: string
@@ -646,6 +675,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          direction?: string
           doctor_name?: string | null
           from_hospital?: string
           id?: string
@@ -734,7 +764,7 @@ export type Database = {
     }
     Enums: {
       app_role: "doctor" | "nurse" | "community" | "patient"
-      patient_source: "南京市鼓楼医院" | "兰园社区"
+      patient_source: "南京市鼓楼医院" | "兰园社区" | "小市社区"
       patient_status: "候诊中" | "接诊中" | "待处方" | "已完成"
     }
     CompositeTypes: {
@@ -864,7 +894,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["doctor", "nurse", "community", "patient"],
-      patient_source: ["南京市鼓楼医院", "兰园社区"],
+      patient_source: ["南京市鼓楼医院", "兰园社区", "小市社区"],
       patient_status: ["候诊中", "接诊中", "待处方", "已完成"],
     },
   },
