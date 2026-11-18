@@ -8,7 +8,6 @@ const tabs = [
   { to: "/community/patients", icon: Users, label: "患者档案" },
   { to: "/community/followup", icon: Stethoscope, label: "随访" },
   { to: "/community/education", icon: BookOpen, label: "宣教" },
-  { to: "/community/messages", icon: MessageSquare, label: "沟通" },
 ];
 
 const titleMap: Record<string, string> = {
@@ -16,13 +15,12 @@ const titleMap: Record<string, string> = {
   "/community/patients": "患者档案",
   "/community/education": "宣教管理",
   "/community/followup": "随访管理",
-  "/community/messages": "沟通",
   "/community/refer": "上转鼓楼医院",
 };
 
 const CommunityLayout = () => {
   const location = useLocation();
-  const isFullscreenChild = location.pathname.startsWith("/community/chat");
+  const isFullscreenChild = location.pathname.startsWith("/community/__none");
   const title = titleMap[location.pathname] ?? "工作台";
 
   return (
@@ -50,7 +48,7 @@ const CommunityLayout = () => {
                 <h1 className="text-base font-semibold">{title}</h1>
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => toast({ title: "您有 4 条新消息", description: "请前往沟通查看" })}
+                    onClick={() => toast({ title: "暂无新通知" })}
                     className="relative rounded-full p-1.5 text-muted-foreground hover:bg-muted"
                   >
                     <Bell className="h-4 w-4" />
@@ -69,7 +67,7 @@ const CommunityLayout = () => {
 
             {!isFullscreenChild && (
               <nav className="absolute bottom-0 left-0 right-0 z-40 border-t bg-card/95 backdrop-blur-md">
-                <div className="grid grid-cols-5">
+                <div className="grid grid-cols-4">
                   {tabs.map((t) => (
                     <NavLink
                       key={t.to}

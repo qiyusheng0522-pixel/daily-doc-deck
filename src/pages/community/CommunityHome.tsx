@@ -86,7 +86,7 @@ const CommunityHome = () => {
       type: "随访",
       name: f.patients?.name ?? "患者",
       sub: `${f.item}${f.post_discharge_day != null ? ` · 出院 ${f.post_discharge_day} 天` : ""}`,
-      go: () => navigate(`/community/chat/patient/${f.patient_id}`),
+      go: () => navigate(`/community/patients/${f.patient_id}`),
     })),
     ...uploads.filter((u) => u.status === "已上传").map((u) => ({
       id: u.id,

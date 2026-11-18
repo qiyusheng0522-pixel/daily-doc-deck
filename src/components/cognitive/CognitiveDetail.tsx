@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Brain, MessageSquare, Send, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Brain, Send, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import ActionSheet from "@/components/nurse/ActionSheet";
 import { planConfirmed, needsReferral, COMMUNITY_STATIONS, DIAG_DEPTS, AD8_ITEMS } from "@/data/cognitive";
 import PlanReview from "@/components/cognitive/PlanReview";
 import { Camera } from "lucide-react";
+import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 import AiAdvicePanel from "@/components/cognitive/AiAdvicePanel";
 import {
   usePatient, usePatientDocuments, useReferrals, usePatientEducation, useTrainingRecords, useCreateReferral, useCreateUpload, type Patient,
@@ -50,7 +51,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const { data: docs = [] } = usePatientDocuments(id);
   const [station, setStation] = useState<string>(COMMUNITY_STATIONS[0]);
   const [uploading, setUploading] = useState(false);
-  const [task, setTask] = useState<null | { domain: string; activity: string; setting: string; date: string; duration: string }>(null);
+  const [task, setTask] = useState<null | { domain: string; activity: string; setting: string; date: string; duration: string; completion: string; freq?: string }>(null);
+  const [docsOpen, setDocsOpen] = useState(false);
   const [ad8, setAd8] = useState<null | boolean[]>(null);
   const [accept, setAccept] = useState<null | { rid: string; dept: string; diag: string; feedback: string }>(null);
   const [fu, setFu] = useState<null | { item: string; note: string }>(null);
@@ -103,7 +105,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       const path = `${p.id}/${Date.now()}-${file.name.replace(/[^\w.]/g, "_")}`;
       const { error } = await supabase.storage.from("patient-docs").upload(path, file);
       if (error) { toast({ title: "上传失败", description: error.message }); continue; }
-      await supabase.from("patient_documents").insert({ patient_id: p.id, path, kind: "检查检验", uploaded_by: "评估医生" });
+      await supabase.from("patient_documents").insert({ patient_id: p.id, path, kind: "检查检验", uploaded_by: role === "doctor" ? "评估医生" : "社区护理康复" });
     }
     setUploading(false);
     qc.invalidateQueries({ queryKey: ["patient-docs", p.id] });
@@ -111,14 +113,14 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   };
   const refresh = () => { qc.invalidateQueries({ queryKey: ["training-records", p.id] }); qc.invalidateQueries({ queryKey: ["followups"] }); };
   const saveTask = async () => {
-    if (!task || !task.activity.trim()) return toast({ title: "请填写训练内容" });
+    if (!task) return;
     setSaving(true);
     const { error } = await supabase.from("training_records").insert({ patient_id: p.id, trained_on: task.date, domain: task.domain,
-      activity: task.activity.trim().slice(0, 200), setting: task.setting, duration_min: Number(task.duration) || 30, completion: "待执行", operator: "社区护理康复" });
+      activity: task.activity.slice(0, 200), setting: task.setting, duration_min: Number(task.duration) || 30, completion: task.completion, operator: "社区护理康复" });
     setSaving(false);
     if (error) return toast({ title: "安排失败", description: error.message });
     refresh(); setTask(null);
-    toast({ title: task.setting === "家庭任务" ? "家庭任务已发放" : "小组训练已安排", description: "完成后在训练记录里登记执行情况" });
+    toast({ title: task.completion === "待执行" ? (task.setting === "家庭任务" ? "家庭任务已发放" : "训练已安排") : `已记录执行：${task.completion}`, description: "按医生确认的训练方案执行" });
   };
   const markExec = async (rid: string, completion: string) => {
     const { error } = await supabase.from("training_records").update({ completion }).eq("id", rid);
@@ -205,16 +207,14 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             {p.cognitive_risk && <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${riskTone(p.cognitive_risk)}`}>{p.cognitive_risk}</span>}
           </div>
           <div className="mt-3 flex gap-2">
-            {role !== "doctor" && (
-              <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate(`/${role}/chat/patient/${p.id}`)}>
-                <MessageSquare className="mr-1 h-4 w-4" />沟通
-              </Button>
+            {role === "community" && (
+              <Button size="sm" variant="outline" className="flex-1" onClick={() => setDocsOpen(true)}><Camera className="mr-1 h-4 w-4" />上传档案</Button>
             )}
             {role !== "doctor" && needsReferral(p.cognitive_risk) && (
               <Button size="sm" className="flex-1" onClick={() => setSheet("up")}><Send className="mr-1 h-4 w-4" />开上转单</Button>
             )}
             {role === "doctor" && (
-              <Button size="sm" variant="outline" className="flex-1" onClick={() => openEdit("profile")}>录入档案</Button>
+              <Button size="sm" variant="outline" className="flex-1" onClick={() => setDocsOpen(true)}><Camera className="mr-1 h-4 w-4" />录入档案</Button>
             )}
             {role === "doctor" && (
               <Button size="sm" className="flex-1" onClick={() => setSheet("down")}><Send className="mr-1 h-4 w-4" />转诊</Button>
@@ -237,9 +237,33 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         )}
         {role === "doctor" && <AiAdvicePanel key={p.id} patientId={p.id} name={p.name} saved={p.ai_plan} savedAt={p.ai_plan_at} />}
         {role === "doctor" && <PlanReview p={p} showCurrent={false} />}
-        {role === "community" && (planConfirmed(p)
-          ? <AiAdvicePanel key={p.id} patientId={p.id} name={p.name} saved={p.ai_plan} savedAt={p.ai_plan_at} />
-          : <div className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">干预方案待评估医生确认，确认后在此显示并下发执行。</div>)}
+        {role === "community" && (planConfirmed(p) ? (
+          <Card className="p-4 shadow-soft">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold">医生训练方案 · 按方案执行</p>
+              {p.ai_plan_confirmed_at && <span className="text-[11px] text-success">✓ 医生已确认 {new Date(p.ai_plan_confirmed_at).toLocaleDateString("zh-CN")}</span>}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">{(p.ai_plan as Advice).summary}</p>
+            <ul className="mt-2 space-y-1.5">
+              {(p.ai_plan as Advice).training.map((t, i) => {
+                const setting = t.setting === "家庭作业" ? "家庭任务" : t.setting;
+                const open = (completion: string) => setTask({ domain: t.domain, activity: t.activity, setting, freq: `${t.frequency} · ${t.duration}`,
+                  date: new Date().toISOString().slice(0, 10), duration: String(parseInt(t.duration.replace(/\D*(\d+).*/, "$1")) || 20), completion });
+                return (
+                  <li key={i} className="rounded-lg border p-2.5 text-xs">
+                    <div className="flex items-center justify-between"><span className="font-medium">{t.domain}</span><span className="text-[11px] text-muted-foreground">{setting}</span></div>
+                    <p className="mt-0.5">{t.activity}</p>
+                    <p className="text-[11px] text-muted-foreground">{t.frequency} · {t.duration}</p>
+                    <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => open("待执行")}>{setting === "家庭任务" ? "发放家庭任务" : "安排训练"}</Button>
+                      <Button size="sm" className="h-7 text-xs" onClick={() => open("完成")}>记录执行</Button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
+        ) : <div className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">训练方案待评估医生确认，确认后在此按方案安排训练并记录执行。</div>)}
         {role === "community" && (
           <Card className="p-3 shadow-soft">
             <p className="mb-2 text-sm font-semibold">训练站工作</p>
@@ -249,12 +273,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
                 ? <Button size="sm" onClick={buildFile}>干预建档</Button>
                 : <Button size="sm" variant="outline" disabled>{p.community_stage === "干预中" ? "干预管理中" : "已建档"}</Button>}
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <Button size="sm" variant="outline" onClick={() => setTask({ domain: TRAINING_DOMAINS[0], activity: "", setting: "站内小组", date: new Date().toISOString().slice(0, 10), duration: "30" })}>安排小组训练</Button>
-              <Button size="sm" variant="outline" onClick={() => setTask({ domain: TRAINING_DOMAINS[0], activity: "", setting: "家庭任务", date: new Date().toISOString().slice(0, 10), duration: "20" })}>发放家庭任务</Button>
-              <Button size="sm" onClick={() => setFu({ item: "月度电话随访", note: "" })}>记录随访</Button>
-            </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">训练完成后，在下方"认知训练记录"中点选执行情况。</p>
+            <Button size="sm" className="w-full" onClick={() => setFu({ item: "月度电话随访", note: "" })}>记录随访</Button>
+            <p className="mt-2 text-[11px] text-muted-foreground">认知训练按上方医生方案逐项安排、记录执行；已安排的在"认知训练记录"中登记完成情况。</p>
           </Card>
         )}
         {role === "community" && !needsReferral(p.cognitive_risk) && p.cognitive_risk && <p className="px-1 text-[11px] text-muted-foreground">低风险无需转诊：与家庭医生联合制定随访评估计划并开展健康宣教。</p>}
@@ -369,35 +389,42 @@ export default function CognitiveDetail({ role }: { role: Role }) {
                   onChange={(e) => setEdit({ ...edit, v: { ...edit.v, [k]: e.target.value } })} />
               </label>
             ))}
-            {edit.kind === "profile" && (
-              <div className="col-span-2 space-y-2">
-                <p className="text-xs">建档材料（检查检验报告、影像等）</p>
-                <label className="flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-dashed py-3 text-xs text-primary">
-                  <Camera className="h-4 w-4" />{uploading ? "上传中…" : "拍照 / 选择图片上传"}
-                  <input type="file" accept="image/*,application/pdf" capture="environment" multiple className="hidden" disabled={uploading}
-                    onChange={(e) => { uploadDocs(e.target.files); e.target.value = ""; }} />
-                </label>
-                {docs.length > 0 && <div className="grid grid-cols-4 gap-1">{docs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer"><img src={d.url} alt={d.kind} className="h-16 w-full rounded object-cover" /></a>)}</div>}
-              </div>
+          </div>
+        )}
+      </ActionSheet>
+
+      <ActionSheet open={!!task} onOpenChange={(o) => !o && setTask(null)} title={task?.completion === "待执行" ? (task?.setting === "家庭任务" ? "发放家庭任务" : "安排训练") : "记录执行"}
+        description="按医生确认的训练方案执行"
+        footer={<Button className="w-full" disabled={saving} onClick={saveTask}>确认</Button>}>
+        {task && (
+          <div className="space-y-3">
+            <div className="rounded-lg bg-primary/5 p-2.5 text-xs">
+              <p className="font-medium">{task.domain} · {task.setting}</p>
+              <p className="mt-0.5">{task.activity}</p>
+              {task.freq && <p className="mt-0.5 text-muted-foreground">方案要求：{task.freq}</p>}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="text-xs">{task.completion === "待执行" ? "计划日期" : "执行日期"}<Input className="mt-1" type="date" value={task.date} onChange={(e) => setTask({ ...task, date: e.target.value })} /></label>
+              <label className="text-xs">时长(分钟)<Input className="mt-1" type="number" value={task.duration} onChange={(e) => setTask({ ...task, duration: e.target.value })} /></label>
+            </div>
+            {task.completion !== "待执行" && (
+              <div className="grid grid-cols-3 gap-1">{["完成", "部分完成", "未完成"].map((c) => (
+                <button key={c} onClick={() => setTask({ ...task, completion: c })} className={`rounded border py-1.5 text-xs ${task.completion === c ? "border-primary bg-primary/10 text-primary" : ""}`}>{c}</button>))}</div>
             )}
           </div>
         )}
       </ActionSheet>
 
-      <ActionSheet open={!!task} onOpenChange={(o) => !o && setTask(null)} title={task?.setting === "家庭任务" ? "发放家庭任务" : "安排小组训练"}
-        description={task?.setting === "家庭任务" ? "每周 1-2 次，每次 20-30 分钟" : "每周 1-3 次，每次 20-30 分钟，6-12 人小组"}
-        footer={<Button className="w-full" disabled={saving} onClick={saveTask}>确认</Button>}>
-        {task && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-4 gap-1">{TRAINING_DOMAINS.map((d) => (
-              <button key={d} onClick={() => setTask({ ...task, domain: d })} className={`rounded border py-1 text-[11px] ${task.domain === d ? "border-primary bg-primary/10 text-primary" : ""}`}>{d}</button>))}</div>
-            <Textarea rows={2} maxLength={200} value={task.activity} onChange={(e) => setTask({ ...task, activity: e.target.value })} placeholder="训练内容，如：数字划消、日历定向练习" />
-            <div className="grid grid-cols-2 gap-2">
-              <label className="text-xs">{task.setting === "家庭任务" ? "完成日期" : "训练日期"}<Input className="mt-1" type="date" value={task.date} onChange={(e) => setTask({ ...task, date: e.target.value })} /></label>
-              <label className="text-xs">时长(分钟)<Input className="mt-1" type="number" value={task.duration} onChange={(e) => setTask({ ...task, duration: e.target.value })} /></label>
-            </div>
-          </div>
-        )}
+      <ActionSheet open={docsOpen} onOpenChange={setDocsOpen} title={role === "doctor" ? "录入档案" : "上传档案"} description="拍照上传化验单、检查报告、体检单等，用于建档">
+        <div className="space-y-2">
+          <label className="flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-dashed py-6 text-sm text-primary">
+            <Camera className="h-5 w-5" />{uploading ? "上传中…" : "拍照 / 选择图片上传"}
+            <input type="file" accept="image/*,application/pdf" capture="environment" multiple className="hidden" disabled={uploading}
+              onChange={(e) => { uploadDocs(e.target.files); e.target.value = ""; }} />
+          </label>
+          {docs.length > 0 ? <div className="grid grid-cols-4 gap-1">{docs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer"><img src={d.url} alt={d.kind} className="h-16 w-full rounded object-cover" /></a>)}</div>
+            : <p className="text-center text-xs text-muted-foreground">暂无建档材料</p>}
+        </div>
       </ActionSheet>
 
       <ActionSheet open={!!ad8} onOpenChange={(o) => !o && setAd8(null)} title="AD-8 初筛评估" description="询问知情者，近几年是否出现以下变化（≥2 分为阳性）"

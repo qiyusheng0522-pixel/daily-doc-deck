@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, ChevronRight, MessageSquare, Hospital, Stethoscope, UploadCloud } from "lucide-react";
+import { Search, ChevronRight, Hospital, Stethoscope, UploadCloud } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -82,15 +82,7 @@ const CommunityPatients = () => {
     if (!referFor) return;
     const p = referFor;
     setReferFor(null);
-    navigate(`/community/chat/patient/${p.id}`, {
-      state: {
-        referral: {
-          dept: p.refer_dept ?? "记忆门诊",
-          doctor: p.refer_doctor ?? "王主任",
-          url: "https://www.njglyy.com/",
-        },
-      },
-    });
+    toast({ title: "已向家属推送挂号地址", description: `${p.refer_doctor ?? "王主任"} · 鼓楼医院互联网医院，由家属自主挂号` });
   };
 
   const confirmUpload = () => {
@@ -236,16 +228,6 @@ const CommunityPatients = () => {
                   <span
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/community/chat/patient/${p.id}`);
-                    }}
-                    className="flex items-center gap-1 rounded-full border border-accent/30 bg-accent/5 px-2 py-0.5 text-[10px] text-accent"
-                  >
-                    <MessageSquare className="h-3 w-3" />
-                    沟通
-                  </span>
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
                       setReferFor(p);
                     }}
                     className="flex items-center gap-1 rounded-full border border-warning/30 bg-warning/5 px-2 py-0.5 text-[10px] text-warning"
@@ -303,7 +285,7 @@ const CommunityPatients = () => {
               </p>
             </div>
             <div className="rounded-lg bg-muted/40 p-3 text-muted-foreground">
-              确认后将跳转至与患者的沟通界面，并自动发送 {referFor.refer_doctor ?? "王主任"} 的互联网医院挂号地址，由患者自主完成挂号。
+              确认后将以短信推送 {referFor.refer_doctor ?? "王主任"} 的互联网医院挂号地址，由患者自主完成挂号。
             </div>
           </div>
         )}

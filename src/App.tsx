@@ -34,8 +34,6 @@ import CommunityLayout from "./pages/community/CommunityLayout.tsx";
 import CommunityHome from "./pages/community/CommunityHome.tsx";
 import CommunityPatients from "./pages/community/CommunityPatients.tsx";
 import CommunityEducation from "./pages/community/CommunityEducation.tsx";
-import CommunityMessages from "./pages/community/CommunityMessages.tsx";
-import CommunityChat from "./pages/community/CommunityChat.tsx";
 import CommunityFollowup from "./pages/community/CommunityFollowup.tsx";
 import CommunityPatientDetail from "./pages/community/CommunityPatientDetail.tsx";
 import PatientLayout from "./pages/patient/PatientLayout.tsx";
@@ -121,8 +119,6 @@ const App = () => (
             <Route path="patients" element={<CommunityPatients />} />
             <Route path="patients/:id" element={<CommunityPatientDetail />} />
             <Route path="education" element={<CommunityEducation />} />
-            <Route path="messages" element={<CommunityMessages />} />
-            <Route path="chat/:type/:id" element={<CommunityChat />} />
             <Route path="followup" element={<CommunityFollowup />} />
           </Route>
           <Route path="/patient" element={<PatientLayout />}>
