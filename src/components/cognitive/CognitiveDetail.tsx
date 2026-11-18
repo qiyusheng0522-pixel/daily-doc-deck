@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import ActionSheet from "@/components/nurse/ActionSheet";
+import AiAdvicePanel from "@/components/cognitive/AiAdvicePanel";
 import {
   usePatient, useReferrals, usePatientEducation, useCreateReferral, useCreateUpload, type Patient,
 } from "@/data/patients";
@@ -100,6 +101,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             )}
           </div>
         </Card>
+
+        {role === "nurse" && <AiAdvicePanel patientId={p.id} name={p.name} />}
 
         <Card className="p-4 shadow-soft">
           <p className="mb-2 flex items-center gap-1 text-sm font-semibold"><Brain className="h-4 w-4 text-accent" />认知评估</p>
