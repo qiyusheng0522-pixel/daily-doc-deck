@@ -440,6 +440,8 @@ export type Database = {
           ai_plan_at: string | null
           ai_plan_confirmed_at: string | null
           ai_plan_confirmed_by: string | null
+          ai_risk: Json | null
+          ai_risk_at: string | null
           allergy: string | null
           appointment_time: string | null
           bed_number: string | null
@@ -489,6 +491,8 @@ export type Database = {
           ai_plan_at?: string | null
           ai_plan_confirmed_at?: string | null
           ai_plan_confirmed_by?: string | null
+          ai_risk?: Json | null
+          ai_risk_at?: string | null
           allergy?: string | null
           appointment_time?: string | null
           bed_number?: string | null
@@ -538,6 +542,8 @@ export type Database = {
           ai_plan_at?: string | null
           ai_plan_confirmed_at?: string | null
           ai_plan_confirmed_by?: string | null
+          ai_risk?: Json | null
+          ai_risk_at?: string | null
           allergy?: string | null
           appointment_time?: string | null
           bed_number?: string | null
@@ -735,6 +741,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "referrals_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scale_assessments: {
+        Row: {
+          assessed_by: string | null
+          created_at: string
+          id: string
+          items: Json
+          patient_id: string
+          scale: string
+          total: number
+        }
+        Insert: {
+          assessed_by?: string | null
+          created_at?: string
+          id?: string
+          items?: Json
+          patient_id: string
+          scale: string
+          total: number
+        }
+        Update: {
+          assessed_by?: string | null
+          created_at?: string
+          id?: string
+          items?: Json
+          patient_id?: string
+          scale?: string
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scale_assessments_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"

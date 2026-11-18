@@ -71,6 +71,13 @@
       "when": 1795008610459,
       "tag": "0009_plan_history_and_documents",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795009349278,
+      "tag": "0010_scale_assessments",
+      "breakpoints": true
     }
   ]
 }

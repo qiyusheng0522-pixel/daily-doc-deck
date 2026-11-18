@@ -35,6 +35,8 @@ export type Patient = {
   ai_plan_at: string | null;
   ai_plan_confirmed_at: string | null;
   ai_plan_confirmed_by: string | null;
+  ai_risk: unknown;
+  ai_risk_at: string | null;
   abnormal: boolean;
   last_visit: string | null;
   refer_dept: string | null;
@@ -176,7 +178,7 @@ export type Med = {
 export const DEMO_PATIENT_NAME = "王建国";
 
 const PATIENT_FIELDS =
-  "id, name, gender, age, phone, diagnosis, allergy, source, bed_number, id_no, vip, stroke_type, condition_category, hospital_stage, community_stage, abnormal, last_visit, refer_dept, refer_doctor, nihss, mrs, limb_power, bp, hr, ldl, glucose, vitals_flags, risk_tags, lifestyle_warnings, ad8, mmse, moca, scd_q9, adl, cognitive_risk, cognitive_diagnosis, next_reassess, caregiver, ai_plan, ai_plan_at, ai_plan_confirmed_at, ai_plan_confirmed_by, created_at";
+  "id, name, gender, age, phone, diagnosis, allergy, source, bed_number, id_no, vip, stroke_type, condition_category, hospital_stage, community_stage, abnormal, last_visit, refer_dept, refer_doctor, nihss, mrs, limb_power, bp, hr, ldl, glucose, vitals_flags, risk_tags, lifestyle_warnings, ad8, mmse, moca, scd_q9, adl, cognitive_risk, cognitive_diagnosis, next_reassess, caregiver, ai_plan, ai_plan_at, ai_plan_confirmed_at, ai_plan_confirmed_by, ai_risk, ai_risk_at, created_at";
 
 async function pick<T>(query: { then: (r: (v: { data: T | null; error: unknown }) => void) => unknown }, label: string): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -332,6 +334,18 @@ export function usePatientDocuments(patientId?: string) {
         const { data: s } = await supabase.storage.from("patient-docs").createSignedUrl(d.path, 3600);
         return { ...d, url: s?.signedUrl ?? null };
       }));
+    },
+  });
+}
+
+export function useScaleAssessments(patientId?: string) {
+  return useQuery({
+    queryKey: ["scale-assessments", patientId],
+    enabled: !!patientId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("scale_assessments").select("*").eq("patient_id", patientId!).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
     },
   });
 }

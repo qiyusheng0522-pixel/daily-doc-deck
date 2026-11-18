@@ -42,3 +42,16 @@ describe("referral by risk", () => {
     expect(planConfirmed({ ai_plan: {}, cognitive_risk: "低风险", ai_plan_confirmed_at: null })).toBe(true);
   });
 });
+
+import { SCALES, scaleTotal } from "@/data/scales";
+describe("scales", () => {
+  it("each scale's item maxima sum to its full score", () => {
+    for (const s of SCALES) {
+      const full = Object.fromEntries(s.items.map((it, i) => [i, Math.max(...it.options)]));
+      expect(scaleTotal(s, full)).toBe(s.max);
+    }
+  });
+  it("returns null until every item is scored", () => {
+    expect(scaleTotal(SCALES[0], { 0: 1 })).toBeNull();
+  });
+});
