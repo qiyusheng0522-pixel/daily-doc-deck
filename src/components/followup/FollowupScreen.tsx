@@ -63,7 +63,7 @@ const FollowupScreen = ({ chatBase, gradientClass = "bg-gradient-nurse", accentT
       <Card className="overflow-hidden">
         <div className="flex items-center justify-between border-b px-4 py-3">
           <h3 className="text-sm font-semibold">随访患者</h3>
-          <span className="text-[15.4px] text-muted-foreground">按出院后天数</span>
+
         </div>
         <div className="divide-y">
           {isLoading && <p className="px-4 py-8 text-center text-sm text-muted-foreground">加载中…</p>}

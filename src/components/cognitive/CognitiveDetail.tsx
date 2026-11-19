@@ -330,13 +330,13 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const week = trainings.filter((t) => Date.now() - new Date(t.trained_on).getTime() < 7 * 864e5).length;
 
   return (
-    <div className="min-h-full bg-muted/30">
+    <div className="flex min-h-full flex-col bg-muted/30">
       <div className="sticky top-0 z-20 flex items-center gap-3 border-b bg-card px-4 py-3">
         <DoctorBackButton fallback={`/${role}/patients`} />
         <h2 className="text-xl font-semibold">患者详情</h2>
       </div>
 
-      <div className="space-y-3 p-4">
+      <div className="flex flex-1 flex-col gap-3 px-4 pb-2 pt-4">
         <Card className="flex items-center gap-5 rounded-2xl border-0 p-5 shadow-soft" style={{ zoom: 0.8 }}>
           <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-accent/20 text-4xl font-bold text-accent">{p.name[0]}</div>
           <div className="min-w-0 flex-1">
@@ -382,9 +382,9 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           ))}
         </Card>
 
-        <div style={{ zoom: 0.7 }} className="space-y-4">
+        <div style={{ zoom: 0.7 }} className="flex flex-1 flex-col gap-4">
         {tab === "overview" && (
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.45fr)_minmax(0,1fr)] [&_.rounded-lg.border-card]:rounded-2xl">
+          <div className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.45fr)_minmax(0,1fr)] [&_.rounded-lg.border-card]:rounded-2xl">
             <div className="flex h-full flex-col gap-3">
               <Card className="rounded-2xl border-0 p-5 shadow-soft">
                 <Head icon={User} title="患者概况" />
