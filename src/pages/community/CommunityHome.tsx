@@ -2,7 +2,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Users, BookOpen, AlertTriangle, Bell, Stethoscope, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HeroCard } from "@/pages/doctor/DoctorHome";
-import { usePatients, useFollowups, useReferrals, useEducationItems, useMyProfile, useTrainingRecords } from "@/data/patients";
+import { usePatients, useFollowups, useReferrals, useEducationItems, useMyProfile, useTrainingRecords, useReceiveReferral } from "@/data/patients";
+import { toast } from "@/hooks/use-toast";
 import { communityScreeningAbnormal, filterCommunityPatients, pendingCommunityReferral } from "@/data/communityReception";
 
 const CommunityHome = () => {
@@ -13,14 +14,16 @@ const CommunityHome = () => {
   const { data: trainings = [] } = useTrainingRecords();
   const { data: eduItems = [] } = useEducationItems();
   const { data: profile } = useMyProfile();
+  const receive = useReceiveReferral();
   const community = filterCommunityPatients(patients, referrals, { reception: "全部患者", risk: "全部", source: "全部", gender: "全部", query: "" });
   const ids = new Set(community.map(p => p.id));
   const pendingFollowups = followups.filter(f => ids.has(f.patient_id) && f.status !== "已完成");
   const abnormal = community.filter(communityScreeningAbnormal);
   const riskPatients = community.filter(communityScreeningAbnormal);
   const today = new Date().toLocaleDateString("sv-SE");
-  const tasks = [
-    ...community.flatMap(p => { const r = pendingCommunityReferral(referrals, p.id); return r ? [{ id: `receive-${p.id}`, type: "接收", title: `${p.name} · 下转待接收`, time: r.created_at.slice(0, 10), to: "/community/patients?tab=new" }] : []; }),
+  type Task = { id: string; type: string; title: string; time: string; to: string; rid?: string; pid?: string };
+  const tasks: Task[] = [
+    ...community.flatMap(p => { const r = pendingCommunityReferral(referrals, p.id); return r ? [{ id: `receive-${p.id}`, rid: r.id, pid: p.id, type: "接收", title: `${p.name} · 下转待接收`, time: r.created_at.slice(0, 10), to: "/community/patients?tab=new" }] : []; }),
     ...abnormal.map(p => ({ id: `abnormal-${p.id}`, type: "异常", title: `${p.name} · AD-8 筛查阳性`, time: p.last_visit ?? "待进一步评估", to: `/community/patients/${p.id}` })),
     ...trainings.filter(t => ids.has(t.patient_id) && t.completion === "待执行" && t.trained_on <= today).map(t => ({ id: `train-${t.id}`, type: "训练", title: `${community.find(p => p.id === t.patient_id)?.name ?? "患者"} · ${t.domain}`, time: t.trained_on, to: `/community/patients/${t.patient_id}` })),
     ...pendingFollowups.map(f => ({ id: `followup-${f.id}`, type: "随访", title: `${f.patients?.name ?? "患者"} · ${f.item}`, time: f.status, to: "/community/followup" })),
@@ -36,7 +39,7 @@ const CommunityHome = () => {
     <p className="text-sm text-muted-foreground">小市社区认知训练站 · 今日 {tasks.length} 项待处理</p>
     <section className="grid grid-cols-2 gap-3">{modules.map((m, i) => <HeroCard key={m.label} tone={heroTone[i]} icon={m.icon} title={`${m.label} ${m.count}`} desc={m.desc} onClick={() => navigate(m.to)} />)}</section>
     <section className="rounded-3xl bg-card p-6 shadow-card ring-1 ring-border/60"><div className="flex items-center justify-between"><h3 className="flex items-center gap-2 text-lg font-bold"><Bell className="h-6 w-6 text-accent" />今日待办清单</h3><span className="text-sm text-muted-foreground">{tasks.length} 项</span></div>
-      <ul className="mt-4 divide-y divide-border border-t">{!tasks.length && <li className="py-10 text-center text-sm text-muted-foreground">暂无待办</li>}{tasks.map(t => <li key={t.id} className="grid grid-cols-[80px_1fr_160px_110px] items-center gap-4 py-4"><span className={`justify-self-start rounded-full px-4 py-1.5 text-sm font-semibold ${t.type === "异常" ? "bg-destructive/10 text-destructive" : t.type === "接收" ? "bg-warning/15 text-warning" : "bg-success/10 text-success"}`}>{t.type}</span><p className="truncate text-base font-semibold">{t.title}</p><p className="flex items-center gap-1 text-sm text-muted-foreground"><CalendarClock className="h-4 w-4" />{t.time}</p><Button variant="outline" className="rounded-full border-accent/50 font-semibold text-accent" onClick={() => navigate(t.to)}>去处理</Button></li>)}</ul></section>
+      <ul className="mt-4 divide-y divide-border border-t">{!tasks.length && <li className="py-10 text-center text-sm text-muted-foreground">暂无待办</li>}{tasks.map(t => <li key={t.id} className="grid grid-cols-[80px_1fr_160px_110px] items-center gap-4 py-4"><span className={`justify-self-start rounded-full px-4 py-1.5 text-sm font-semibold ${t.type === "异常" ? "bg-destructive/10 text-destructive" : t.type === "接收" ? "bg-warning/15 text-warning" : "bg-success/10 text-success"}`}>{t.type}</span><p className="truncate text-base font-semibold">{t.title}</p><p className="flex items-center gap-1 text-sm text-muted-foreground"><CalendarClock className="h-4 w-4" />{t.time}</p><Button variant="outline" className="rounded-full border-accent/50 font-semibold text-accent" disabled={t.type === "接收" && receive.isPending} onClick={() => t.rid && t.pid ? receive.mutate({ referralId: t.rid, patientId: t.pid }, { onSuccess: () => toast({ title: "已接收", description: "患者已加入社区患者列表" }), onError: e => toast({ title: "接收失败", description: e.message, variant: "destructive" }) }) : navigate(t.to)}>{t.type === "接收" ? "去接收" : "去处理"}</Button></li>)}</ul></section>
   </div>;
 };
 export default CommunityHome;
