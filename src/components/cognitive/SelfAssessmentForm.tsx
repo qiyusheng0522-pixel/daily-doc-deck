@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useScaleAssessments } from "@/data/patients";
-import { SELF_QUESTIONNAIRES, latestSelfAssessments, questionnaireTotal } from "../../../supabase/functions/_shared/selfAssessment";
+import { SELF_QUESTIONNAIRES, latestSelfAssessments, questionnaireTotal, selfAssessmentConcerns } from "../../../supabase/functions/_shared/selfAssessment";
 
 export default function SelfAssessmentForm({ patientId, assisted = false }: { patientId: string; assisted?: boolean }) {
   const qc = useQueryClient();
@@ -43,7 +43,9 @@ export default function SelfAssessmentForm({ patientId, assisted = false }: { pa
     {latest.map(({ questionnaire: q, record }) => <section key={q.id} className="border-b py-2">
       <div className="flex items-center justify-between gap-2"><p className="text-sm font-medium">{q.name}</p><Button size="sm" variant="outline" onClick={() => { setActive(q.id); setAnswers({}); }}>{record ? "重新评估" : assisted ? "协助完成" : "开始自评"}</Button></div>
       <p className="mt-1 text-xs text-muted-foreground">{record ? `${record.total} 分 · ${new Date(record.created_at).toLocaleString("zh-CN")} · ${record.assessed_by ?? "未登记"}` : "暂无数据"}</p>
-      {record && <details className="mt-1 text-xs"><summary className="cursor-pointer text-primary">查看作答</summary>{q.questions.map(item => <p key={item.id} className="mt-1">{item.text}：{item.options.find(o => o.score === (record.items as Record<string, number>)[item.id])?.label}</p>)}</details>}
+      {record && (() => { const concerns = selfAssessmentConcerns(q, record.items); return concerns.length
+        ? <div className="mt-1 flex flex-wrap gap-1">{concerns.map(x => <span key={x.id} title={x.question} className="rounded bg-warning/10 px-1.5 py-1 text-[10px] text-warning">{x.question}：{x.answer}</span>)}</div>
+        : <p className="mt-1 text-[11px] text-muted-foreground">本份作答无异常问题项</p>; })()}
     </section>)}
   </div>;
 }
