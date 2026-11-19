@@ -10,7 +10,7 @@ import { useTreatmentPlans, type Patient } from "@/data/patients";
 import { needsReferral } from "@/data/cognitive";
 import { TREATMENT_PROTOCOL } from "../../../supabase/functions/_shared/treatment";
 import PlanEditor from "./PlanEditor";
-import { planEditError, treatmentCategories } from "@/data/treatmentPlan";
+import { planEditError, treatmentCategories, STANDARD } from "@/data/treatmentPlan";
 import ActionSheet from "@/components/nurse/ActionSheet";
 
 const fmt = (d: string) => new Date(d).toLocaleDateString("zh-CN");
@@ -87,19 +87,6 @@ export default function PlanReview({ p, showCurrent = true, historyOnly = false 
     </>
   );
 }
-
-const STANDARD: Record<string, string[]> = {
-  认知训练: ["每周 1-3 次，每次 20-30 分钟", "累计 20-36 小时/期", "6-12 人小组制，覆盖记忆、注意、执行等领域"],
-  其他非药物干预: ["音乐、怀旧、运动等非药物干预", "结合兴趣安排，每周至少 1 次"],
-  家庭作业: ["每周 1-2 次，每次 20-30 分钟", "家属协助完成并记录"],
-  风险因素管理: ["血压、血糖、血脂监测与控制", "戒烟限酒、规律体力活动"],
-  睡眠: ["规律作息，保证夜间睡眠 6-8 小时", "减少日间久睡"],
-  营养: ["地中海/MIND 饮食模式", "定期评估体重与营养状况"],
-  心理: ["筛查焦虑抑郁情绪", "鼓励社交参与，必要时心理疏导"],
-  长期护理或家庭病床服务: ["纳入长期护理或家庭病床服务", "每 3 个月复评"],
-  家庭病床准入评估: ["评估行动能力与居家条件", "符合准入条件的行动不便对象纳入家庭病床"],
-  上门评估与康复干预: ["家庭病床框架内定期上门评估", "上门开展康复与认知干预"],
-};
 
 function TypeDetails({ p }: { p: Patient }) {
   const proto = TREATMENT_PROTOCOL[p.cognitive_risk === "高风险" ? "高风险" : "中风险"];

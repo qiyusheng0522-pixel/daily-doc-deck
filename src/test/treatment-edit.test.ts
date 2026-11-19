@@ -3,9 +3,11 @@ import { editablePlan, planEditError, treatmentCategories } from "@/data/treatme
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 const base: Advice = { summary: "个性化方案", focus: [], training: [{ domain: "记忆", activity: "图片回忆：准备三张物品图片，观察后遮盖并回忆，重复三轮", setting: "站内小组", frequency: "每周2次", duration: "每次25分钟" }], followup: { cycle: "每月", reassess: "6个月", items: [] }, caregiver_tips: [], red_flags: [], interventions: [] };
 describe("医生修改方案", () => {
-  it("未生成方案也能打开全部类型的空白编辑稿，不将服务标准视为个性化方案", () => {
+  it("未生成方案时编辑稿预填页面展示的标准内容，频次时长仍需医生填写", () => {
     const draft = editablePlan(null, "中风险");
     expect(draft.interventions).toHaveLength(7);
+    expect(draft.interventions?.[0].actions[0]).toContain("每周 1-3 次");
+    expect(draft.interventions?.[0].frequency).toBe("");
     expect(draft.training).toHaveLength(1);
     expect(draft.training[0].activity).toBe("");
     expect(planEditError(draft, "中风险")).toBe("请填写方案概要");
