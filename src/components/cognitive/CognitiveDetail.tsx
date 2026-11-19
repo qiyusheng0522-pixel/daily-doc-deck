@@ -382,18 +382,18 @@ export default function CognitiveDetail({ role }: { role: Role }) {
 
         <div style={{ zoom: 0.7 }} className="space-y-4">
         {tab === "overview" && (
-          <div className="grid gap-4 lg:grid-cols-[1fr_1.45fr_1fr] [&_.rounded-lg.border-card]:rounded-2xl">
-            <div className="space-y-3">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.45fr)_minmax(0,1fr)] [&_.rounded-lg.border-card]:rounded-2xl">
+            <div className="flex h-full flex-col gap-3">
               <Card className="rounded-2xl border-0 p-5 shadow-soft">
                 <Head icon={User} title="患者概况" />
                 <Rows rows={[["年龄/性别", `${p.age}岁 / ${p.gender}`], ["联系方式", p.phone], ["来源渠道", p.source], ["照护者", p.caregiver]]} />
               </Card>
-              <Card className="rounded-2xl border-0 p-5 shadow-soft">
+              <Card className="flex-1 rounded-2xl border-0 p-5 shadow-soft">
                 <Head icon={ClipboardCheck} title="主要诊断与病情" />
                 <dl className="divide-y text-sm">{([...(role !== "community" ? [["主要诊断", p.cognitive_diagnosis ?? "待评估"]] : []), ["合并疾病", p.past_history ?? (p.risk_tags.join("、") || null)], ["当前分级", p.cognitive_risk], ["病情摘要", p.condition_summary ?? (p.ai_risk as { summary?: string } | null)?.summary ?? null]] as [string, string | null][]).map(([k, v]) => <div key={k} className="flex gap-3 py-2"><dt className="w-24 shrink-0 text-muted-foreground">{k}</dt><dd className="min-w-0 break-words font-medium">{v || "未登记"}</dd></div>)}</dl>
               </Card>
             </div>
-            <div className="space-y-3">
+            <div className="flex h-full flex-col gap-3">
               <Card className="rounded-2xl border-0 p-5 shadow-soft">
                 <Head icon={BarChart3} title="最近评估结果" action={<More to="scale" />} />
                 <div className="grid grid-cols-4 gap-2">{([["MMSE", "mmse", p.mmse, 30], ["MoCA", "moca", p.moca, 30], ["AD-8", "ad8", p.ad8, 8], ["SCD-Q9", "scd_q9", p.scd_q9, 9]] as const).map(([label, kind, v, max]) => { const r = scalePresentation(kind, v); const tone = { neutral: "text-foreground", low: "text-success", medium: "text-warning", high: "text-destructive" }[r.tone]; const bg = { neutral: "bg-muted", low: "bg-success/10", medium: "bg-warning/10", high: "bg-destructive/10" }[r.tone]; return (
@@ -409,19 +409,21 @@ export default function CognitiveDetail({ role }: { role: Role }) {
                   {([[Target, "干预目标", advice.summary], [Layers, "干预措施", (advice.training ?? []).map((t) => `${t.domain}（${t.frequency}）`).filter((v, i, a) => a.indexOf(v) === i).slice(0, 4).join("、")]] as const).map(([I, k, v]) => <div key={k} className="flex gap-2"><I className="mt-0.5 h-5 w-5 shrink-0 text-primary" /><dt className="shrink-0 font-semibold">{k}：</dt><dd className="min-w-0 break-words">{v || "—"}</dd></div>)}
                 </dl> : <p className="text-sm text-muted-foreground">尚未生成非药物干预类治疗方案</p>}
               </Card>
-              <Card className="rounded-2xl border-0 p-5 shadow-soft">
+              <Card className="flex-1 rounded-2xl border-0 p-5 shadow-soft">
                 <Head icon={Clock} title="近期动态" badge={<span className="ml-2 text-sm font-normal text-muted-foreground">最近2天</span>} action={<More to="training" />} />
                 {recent.length === 0 ? <p className="text-sm text-muted-foreground">暂无记录</p> : <ol className="text-sm">
                   {recent.map((r, i) => <li key={i} className="relative flex gap-4 pb-3 pl-6 last:pb-0">{i < recent.length - 1 && <span className="absolute left-[5px] top-3 h-full w-0.5 bg-primary/15" />}<span className={`absolute left-0 top-1.5 h-3 w-3 rounded-full ${i === 0 ? "bg-primary" : "bg-primary/30"}`} /><span className="w-28 shrink-0 tabular-nums">{r.at}</span><span className="min-w-0 truncate">{r.text}</span></li>)}
                 </ol>}
               </Card>
             </div>
-            <Card className="space-y-3 rounded-2xl border-0 p-5 shadow-soft">
+            <Card className="flex h-full flex-col gap-3 rounded-2xl border-0 p-5 shadow-soft">
               <Head icon={ShieldCheck} title="关键记录" />
+              <div className="flex-1 space-y-3">
               <KeyRow icon={BarChart3} title="量表评估" sub={`医生评 MMSE ${p.mmse ?? "—"}/30 · MoCA ${p.moca ?? "—"}/30`} to="scale" />
               <KeyRow icon={ClipboardCheck} title="方案记录" sub={advice?.summary ? (planConfirmed(p) ? "当前方案已确认" : "当前方案待审核") : "暂无方案"} to="plan" />
               <KeyRow icon={Dumbbell} title="训练记录" sub={`近7天 ${week} 次 · 累计 ${trainings.length} 次`} to="training" />
               <KeyRow icon={Repeat} title="转诊记录" sub={myRefs.length ? `共 ${myRefs.length} 次 · 最近：${myRefs[0].direction}（${myRefs[0].approval_status ?? myRefs[0].status}）` : "暂无转诊"} to="referral" />
+              </div>
             </Card>
           </div>
         )}
