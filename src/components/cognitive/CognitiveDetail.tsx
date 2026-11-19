@@ -73,12 +73,13 @@ export default function CognitiveDetail({ role }: { role: Role }) {
 
   const aiRisk = suggestRisk(p);
   const planItems = planConfirmed(p) ? ((p.ai_plan as Advice).training ?? []) : [];
+  const presetDuration = (d: string) => { const n = parseInt(d.replace(/\D*(\d+).*/, "$1")) || 20; return [10, 15, 20, 30, 45].reduce((a, b) => (Math.abs(b - n) < Math.abs(a - n) ? b : a), 20); };
   const openTask = (idx: number) => {
     const t = planItems[idx];
     if (!t) return;
     setTrainingOpen(false);
     setTask({ domain: t.domain, activity: t.activity, setting: t.setting === "家庭作业" ? "家庭任务" : t.setting, freq: `${t.frequency} · ${t.duration}`, planIdx: idx,
-      date: new Date().toLocaleDateString("en-CA"), time: new Date().toTimeString().slice(0, 5), feedback: "", duration: String(parseInt(t.duration.replace(/\D*(\d+).*/, "$1")) || 20), completion: "完成" });
+      date: new Date().toLocaleDateString("en-CA"), time: new Date().toTimeString().slice(0, 5), feedback: "", duration: String(presetDuration(t.duration)), completion: "完成" });
   };
   const confirmGrade = async () => {
     if (!grade) return;
@@ -322,7 +323,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </Card>
 
         <Card className="p-4 shadow-soft">
-          <div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold">训练记录 <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>{role === "community" && <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => (planItems.length > 0 ? openTask(0) : setTrainingOpen(true))}>添加训练记录</Button>}</div>
+          <div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold">训练记录 <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>{role === "community" && <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => (planItems.length > 0 ? openTask(0) : toast({ title: "暂无可训练项目", description: "该患者的训练方案尚待评估医生确认，确认后即可选择训练项目记录。" }))}>添加训练记录</Button>}</div>
           {trainings.length === 0 ? <p className="text-xs text-muted-foreground">暂无训练记录</p> : trainings.map((t) => (
             <div key={t.id} className="flex flex-wrap items-start justify-between gap-2 border-b py-1.5 text-xs last:border-0">
               <div className="min-w-0 flex-1"><p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on}{t.training_time ? ` ${t.training_time.slice(0, 5)}` : ""} · {t.setting} · {t.duration_min} 分钟{t.operator ? ` · ${t.operator}` : ""}</p>{t.feedback && <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">备注：{t.feedback}</p>}</div>
@@ -367,7 +368,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           <div className="space-y-3">
             {planItems.length > 0 && (
               <label className="block text-xs">训练内容（来自医生确认的方案）
-                <Select value={String(task.planIdx ?? 0)} onValueChange={(v) => { const idx = Number(v); const t = planItems[idx]; if (!t) return; setTask({ ...task, planIdx: idx, domain: t.domain, activity: t.activity, setting: t.setting === "家庭作业" ? "家庭任务" : t.setting, freq: `${t.frequency} · ${t.duration}`, duration: String(parseInt(t.duration.replace(/\D*(\d+).*/, "$1")) || 20) }); }}>
+                <Select value={String(task.planIdx ?? 0)} onValueChange={(v) => { const idx = Number(v); const t = planItems[idx]; if (!t) return; setTask({ ...task, planIdx: idx, domain: t.domain, activity: t.activity, setting: t.setting === "家庭作业" ? "家庭任务" : t.setting, freq: `${t.frequency} · ${t.duration}`, duration: String(presetDuration(t.duration)) }); }}>
                   <SelectTrigger className="mt-1"><SelectValue placeholder="选择训练内容" /></SelectTrigger>
                   <SelectContent>
                     {planItems.map((t, i) => <SelectItem key={i} value={String(i)}>{t.domain} · {t.activity}</SelectItem>)}
