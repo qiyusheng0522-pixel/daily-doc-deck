@@ -19,6 +19,7 @@ import { acceptDoctorPatient, pendingDoctorReferral } from "@/data/doctorRecepti
 import { Camera, FileText, Cpu, HandHeart, LayoutGrid, User, Target, Layers, BarChart3, ClipboardCheck, Dumbbell, Repeat, ChevronRight, Pencil, ShieldPlus, ShieldCheck, Clock } from "lucide-react";
 import ScaleDetailSheet from "@/components/cognitive/ScaleDetailSheet";
 import ScaleBrowser from "@/components/cognitive/ScaleBrowser";
+import PlanRecords from "@/components/cognitive/PlanRecords";
 import TrainingRecords from "@/components/cognitive/TrainingRecords";
 import AddTrainingSheet from "@/components/cognitive/AddTrainingSheet";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
@@ -423,7 +424,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         )}
         {tab === "info" && <><div className="grid gap-3 lg:grid-cols-2">{fullInfoCard}{healthCard}</div>{visitCard}</>}
                 {tab === "scale" && <>{role === "doctor" && <div className="flex justify-end"><Button size="sm" className="h-9" onClick={() => navigate(`/doctor/assess/${p.id}`)}>新增量表评估</Button></div>}{role === "community" && <div className="flex justify-end"><Button size="sm" variant="outline" className="h-9" onClick={() => setAd8(AD8_ITEMS.map(() => false))}>AD-8 初筛评估</Button></div>}<ScaleBrowser patientId={p.id} initialScale={scaleFocus} />{role === "doctor" && <SelfAssessmentResults patientId={p.id} assist />}</>}
-        {tab === "plan" && (role === "doctor" || role === "community") && <PlanReview p={p} historyOnly confirmedOnly={role === "community"} />}
+        {tab === "plan" && (role === "doctor" || role === "community") && <PlanRecords p={p} role={role as "doctor" | "community"} />}
         {tab === "training" && trainingCard}
         {tab === "referral" && referralCard}
 
