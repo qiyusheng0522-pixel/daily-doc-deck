@@ -4,13 +4,12 @@ import { ArrowRight, ClipboardCheck, Hospital, ListChecks } from "lucide-react";
 import { planConfirmed, needsReferral } from "@/data/cognitive";
 import { Button } from "@/components/ui/button";
 import { doctorReceptionQueue } from "@/data/doctorReception";
-import { referralApprovalQueue } from "@/data/referralApproval";
 import { usePatients, useReferrals } from "@/data/patients";
 
-type Kind = "待审核" | "待接收" | "待审批";
+type Kind = "待审核" | "待接收";
 const AVATAR = ["bg-primary/10 text-primary", "bg-warning/15 text-warning", "bg-success/10 text-success", "bg-accent/15 text-accent"];
-const TAG: Record<Kind, string> = { 待审核: "bg-primary/10 text-primary", 待接收: "bg-success/10 text-success", 待审批: "bg-warning/15 text-warning" };
-const ACTION: Record<Kind, string> = { 待审核: "去审核", 待接收: "去接收", 待审批: "去审批" };
+const TAG: Record<Kind, string> = { 待审核: "bg-primary/10 text-primary", 待接收: "bg-success/10 text-success" };
+const ACTION: Record<Kind, string> = { 待审核: "去审核", 待接收: "去接收" };
 
 const DoctorHome = () => {
   const navigate = useNavigate();
@@ -21,12 +20,11 @@ const DoctorHome = () => {
   const fmt = (d?: string | null) => d ? new Date(d).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "待生成方案";
 
   const todos = [
-    ...referralApprovalQueue(referrals).map(r => ({ id: `a-${r.id}`, kind: "待审批" as Kind, pid: r.patient_id, desc: "社区转诊申请审批", time: fmt(r.created_at), to: `/doctor/patients/${r.patient_id}` })),
     ...doctorReceptionQueue(referrals).map(r => ({ id: `r-${r.id}`, kind: "待接收" as Kind, pid: r.patient_id, desc: `转诊待接收 · 来自${r.from_hospital}`, time: fmt(r.created_at), to: `/doctor/patients/${r.patient_id}` })),
     ...reviews.map(p => ({ id: `p-${p.id}`, kind: "待审核" as Kind, pid: p.id, desc: `${p.cognitive_risk} · 非药物干预方案审核`, time: fmt(p.ai_plan_at), to: `/doctor/plans/${p.id}` })),
   ];
   const [tab, setTab] = useState<"全部" | Kind>("全部");
-  const tabs = (["全部", "待审核", "待接收", "待审批"] as const).map(t => [t, t === "全部" ? todos.length : todos.filter(x => x.kind === t).length] as const);
+  const tabs = (["全部", "待审核", "待接收"] as const).map(t => [t, t === "全部" ? todos.length : todos.filter(x => x.kind === t).length] as const);
   const list = tab === "全部" ? todos : todos.filter(x => x.kind === tab);
 
   return (
