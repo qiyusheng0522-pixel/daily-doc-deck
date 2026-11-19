@@ -14,7 +14,6 @@ Roles: doctor=上级指导中心(鼓楼记忆门诊), nurse=评估师/治疗管�
 - [x] Rule tests: AD-8 ≥2 positive; reassess 1y/6m/3m. Verified nurse 上转 → doctor queue in browser.
 
 ## Open
-- [x] Community: four workbench entries only; doctor-style patient reception/list and shared detail with cognitive execution recording and upward referral; education/follow-up unchanged. Signed-in reception, training/referral save/readback and self/plan detail sheets verified; validation records removed; 68 tests passed.
 - [x] Current request: show every saved historical scale with readable answer details; simplify doctor profile to shared service counts and referral rate, removing earnings, certification and fabricated outcome statistics. Signed-in doctor/self history open-close and profile readback verified; all 63 tests passed.
 - [x] Current request: show reception action only, move accepted patients into managed list, and add combined reception/risk/source/gender filters. Verified signed-in acceptance, reload and combined filters; demo referral restored; 11 tests passed.
 - [x] Current request: remove absent-plan copy in doctor plan list; add persisted doctor acceptance action for pending upward referrals in patient list. Reception save/reload verified; demo referral restored; 3 reception tests passed.
@@ -25,6 +24,7 @@ Roles: doctor=上级指导中心(鼓楼记忆门诊), nurse=评估师/治疗管�
 - [x] Doctor home simplified; mid/high-risk AI treatment confirmation centralized in plans with risk-specific service categories; patient files keep reception and referral/training/plan history. Reception and confirmation verified signed in; new AI output not invoked during verification.
 - [x] Provincial screen: reference layout, data hover details, metric/topic drilldowns, map-linked regional trends and detail interactions; verified desktop/mobile and drilldown navigation.
 - [ ] Patient end: AD-8 self-test questionnaire, cognitive training check-in (pages still use old structure with replaced wording).
+- [ ] Community home: AD-8 screening entry + group training card; doctor stats → 3 quality metrics.
 - [ ] Nurse education / handover pages: rework content beyond wording.
 
 ## Deferred

@@ -5,14 +5,14 @@ import RoleSwitcher from "@/components/RoleSwitcher";
 
 const tabs = [
   { to: "/community", icon: Home, label: "工作台", end: true },
-  { to: "/community/patients", icon: Users, label: "全部患者" },
+  { to: "/community/patients", icon: Users, label: "患者档案" },
   { to: "/community/followup", icon: Stethoscope, label: "随访" },
   { to: "/community/education", icon: BookOpen, label: "宣教" },
 ];
 
 const titleMap: Record<string, string> = {
   "/community": "工作台",
-  "/community/patients": "全部患者",
+  "/community/patients": "患者档案",
   "/community/education": "宣教管理",
   "/community/followup": "随访管理",
   "/community/refer": "上转鼓楼医院",
