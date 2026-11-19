@@ -142,11 +142,6 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     refresh(); setTask(null);
     toast({ title: "训练记录已保存", description: "按医生确认的训练方案执行" });
   };
-  const markExec = async (rid: string, completion: string) => {
-    const { error } = await supabase.from("training_records").update({ completion }).eq("id", rid);
-    if (error) return toast({ title: "记录失败", description: error.message });
-    refresh(); toast({ title: `已记录：${completion}` });
-  };
   const saveFu = async () => {
     if (!fu || !fu.item.trim()) return toast({ title: "请填写随访内容" });
     setSaving(true);
@@ -331,10 +326,6 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           {trainings.length === 0 ? <p className="text-xs text-muted-foreground">暂无训练记录</p> : trainings.map((t) => (
             <div key={t.id} className="flex flex-wrap items-start justify-between gap-2 border-b py-1.5 text-xs last:border-0">
               <div className="min-w-0 flex-1"><p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on}{t.training_time ? ` ${t.training_time.slice(0, 5)}` : ""} · {t.setting} · {t.duration_min} 分钟{t.operator ? ` · ${t.operator}` : ""}</p>{t.feedback && <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">备注：{t.feedback}</p>}</div>
-              {t.completion === "待执行" && role === "community" ? (
-                <span className="flex shrink-0 gap-1">{["完成", "部分完成", "未完成"].map((c) => (
-                   <Button key={c} size="sm" variant="outline" onClick={() => markExec(t.id, c)} className="h-7 px-1.5 text-[11px] text-primary">{c}</Button>))}</span>
-              ) : <span className={`shrink-0 whitespace-nowrap ${t.completion === "完成" ? "text-success" : t.completion === "待执行" ? "text-primary" : "text-warning"}`}>{t.completion}</span>}
             </div>
           ))}
         </Card>
