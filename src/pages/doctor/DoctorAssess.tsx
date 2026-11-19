@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Sparkles, Loader2, Check } from "lucide-react";
+import { useParams } from "react-router-dom";
+import { Sparkles, Loader2, Check } from "lucide-react";
+import DoctorBackButton from "@/components/doctor/DoctorBackButton";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,6 @@ import RiskAnalysisCard, { type RiskAnalysis } from "@/components/cognitive/Risk
 /** 评估医生：逐项完成 SCD-Q9 / MMSE / MoCA / ADL，保存后由模型分析风险等级 */
 export default function DoctorAssess() {
   const { id = "" } = useParams();
-  const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: p } = usePatient(id);
   const { data: history = [] } = useScaleAssessments(id);
@@ -67,7 +67,7 @@ export default function DoctorAssess() {
   return (
     <div className="min-h-full bg-muted/30">
       <div className="sticky top-0 z-20 flex items-center justify-between border-b bg-card px-4 py-3">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-accent"><ArrowLeft className="h-4 w-4" /><span className="text-sm">返回</span></button>
+        <DoctorBackButton fallback={`/doctor/patients/${id}`} />
         <h2 className="text-base font-semibold">{p.name} · 量表评估</h2>
         <span className="w-10" />
       </div>

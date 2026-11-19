@@ -1,4 +1,5 @@
 <!-- AGENT-MEMORY:BEGIN -->
+- Doctor assessment and plan back controls use a shared history-aware button with a parent-page fallback; questionnaire tab changes replace history so one return exits the detail page.
 - Keep provincial dashboard presentation and demo analytics in dedicated screen modules; derive map, trends and drilldown rows from the same selected region to prevent inconsistent interactions.
 - All four ends read one shared database via hooks in src/data/patients.ts; never add per-page hardcoded patient lists (ends must show the same people).
 - patients.hospital_stage is the nurse/assessor stage and community_stage the training-station stage; one row per person carries both so one record flows across ends.
