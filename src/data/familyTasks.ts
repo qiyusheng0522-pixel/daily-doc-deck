@@ -44,6 +44,14 @@ export function familyTaskLabel(task: FamilyTask): string {
   const activities = task.title.match(/从(.+?)中选/);
   return activities?.[1] ?? task.title.replace(/^家庭作业[^：:]*[：:]\s*/, "").split(/[；;]/)[0].trim();
 }
+export const MEALS = [
+  { name: "早餐", time: "07:00-08:30" },
+  { name: "午餐", time: "11:00-13:00" },
+  { name: "晚餐", time: "17:30-19:00" },
+] as const;
+export function mealTaskKey(task: FamilyTask, mealIndex: number): string {
+  return `${task.key}:meal-${mealIndex}`;
+}
 export function prescribedBedtime(tasks: FamilyTask[]): string | null {
   for (const task of tasks.filter(t => t.category === "睡眠")) {
     const match = task.title.match(/(?:晚上|晚间|每晚)?\s*(2[0-3]|[01]?\d)\s*(?:[:：](\d{2})|点(?:(\d{1,2})分?)?)\s*(?:前)?\s*(?:入睡|睡觉|上床|就寝)/);

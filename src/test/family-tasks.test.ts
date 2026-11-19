@@ -1,11 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { familyPlanTasks, familyVisibleTasks, prescribedBedtime } from "@/data/familyTasks";
+import { familyPlanTasks, familyVisibleTasks, prescribedBedtime, MEALS, mealTaskKey } from "@/data/familyTasks";
 import type { Patient } from "@/data/patients";
 const p = { cognitive_risk: "中风险", ai_plan_at: "2026-11-19T00:00:00Z", ai_plan_confirmed_at: "2026-11-19T01:00:00Z", ai_plan: { interventions: [{ category: "营养", actions: ["每日补充优质蛋白"], frequency: "每天", duration: "4周" }, { category: "睡眠", actions: ["固定起床时间"], frequency: "每天", duration: "4周" }, { category: "用药", actions: ["用药任务"], frequency: "每天", duration: "4周" }], training: [{ setting: "家庭作业", activity: "图片配对", frequency: "每周2次", duration: "20分钟" }, { setting: "小组", activity: "站内训练", frequency: "每周1次", duration: "30分钟" }] } } as Pick<Patient,"cognitive_risk" | "ai_plan_at" | "ai_plan_confirmed_at" | "ai_plan">;
 describe("家庭方案任务", () => {
   it("饮食和睡眠各提供一次打卡，保留全部家庭训练项目", () => {
     const tasks = familyPlanTasks(p);
     expect(familyVisibleTasks([...tasks, {...tasks[0], key: "intervention-0-1"}, {...tasks[1], key: "intervention-1-1"}, {...tasks[2], key: "training-2"}]).map(t => t.key)).toEqual(["intervention-0-0", "intervention-1-0", "training-0", "training-2"]);
+  });
+  it("饮食按早中晚三餐分别打卡，三餐键互不相同且保留原任务键", () => {
+    const task = familyPlanTasks(p)[0];
+    expect(MEALS.map(m => m.name)).toEqual(["早餐", "午餐", "晚餐"]);
+    const keys = MEALS.map((_, i) => mealTaskKey(task, i));
+    expect(new Set(keys).size).toBe(3);
+    keys.forEach(k => expect(k.startsWith(`${task.key}:meal-`)).toBe(true));
   });
   it("入睡提醒只使用方案给出的时间，不虚构默认入睡时间", () => {
     expect(prescribedBedtime(familyPlanTasks(p))).toBeNull();
