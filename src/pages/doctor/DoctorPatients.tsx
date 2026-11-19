@@ -86,7 +86,7 @@ function PatientRow({ p, first, pendingId, saving, onReceive }: { p: Patient; fi
           {p.cognitive_risk && <Tag color={p.cognitive_risk === "高风险" ? "rose" : p.cognitive_risk === "中风险" ? "amber" : "teal"}>{p.cognitive_risk}</Tag>}
         </div>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          {p.gender} · {p.age}岁 · {p.cognitive_diagnosis ?? p.diagnosis}
+          {p.gender} · {p.age}岁
         </p>
         <p className="mt-0.5 text-xs text-muted-foreground">创建于 {p.created_at.slice(0, 16).replace("T", " ")}</p>
         <div className="mt-2 flex flex-wrap gap-1.5">
