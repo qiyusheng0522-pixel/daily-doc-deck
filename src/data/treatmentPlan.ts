@@ -40,3 +40,16 @@ export function planEditError(plan: Advice, risk: string | null): string | null 
   if (plan.training.some(t => !t.activity.trim() || !t.domain.trim() || !t.setting.trim() || !t.frequency.trim() || !t.duration.trim())) return "请补全每项训练的内容、领域、场景、频次与时长";
   return null;
 }
+/** 非药物干预方案的三类展示分组：认知训练、家庭作业、危险因素与生活方式管理。 */
+export const PLAN_GROUPS: [string, string[]][] = [
+  ["认知训练", ["认知训练", "其他非药物干预", "上门评估与康复干预"]],
+  ["家庭作业", ["家庭作业", "长期护理或家庭病床服务", "家庭病床准入评估"]],
+  ["危险因素与生活方式管理", ["风险因素管理", "睡眠", "营养", "心理"]],
+];
+export function planGroups(categories: readonly string[]): [string, string[]][] {
+  const known = PLAN_GROUPS.flatMap(([, c]) => c);
+  const groups = PLAN_GROUPS.map(([g, c]) => [g, categories.filter(x => c.includes(x))] as [string, string[]]);
+  const rest = categories.filter(x => !known.includes(x));
+  if (rest.length) groups[2][1].push(...rest);
+  return groups.filter(([, c]) => c.length);
+}

@@ -21,7 +21,7 @@ const DoctorPatients = () => {
     onError: error => toast({ title: "接收失败", description: error.message }),
   });
 
-  const list = filterDoctorPatients(patients, referrals, { ...filters, query: q });
+  const list = filterDoctorPatients(patients.filter(p => p.cognitive_risk !== "低风险"), referrals, { ...filters, query: q });
 
   return (
     <div className="px-4 py-3">
@@ -37,7 +37,7 @@ const DoctorPatients = () => {
 
       <div className="mb-3 grid grid-cols-2 gap-2">
         <FilterSelect label="接收筛选" value={filters.reception} options={["在管患者", "待接收", "全部患者"]} onChange={value => setFilters(previous => ({ ...previous, reception: value as DoctorPatientFilters["reception"] }))} />
-        <FilterSelect label="风险等级" value={filters.risk} options={["全部", "低风险", "中风险", "高风险"]} allLabel="全部风险" onChange={value => setFilters(previous => ({ ...previous, risk: value }))} />
+        <FilterSelect label="风险等级" value={filters.risk} options={["全部", "中风险", "高风险"]} allLabel="全部风险" onChange={value => setFilters(previous => ({ ...previous, risk: value }))} />
         <FilterSelect label="来源渠道" value={filters.source} options={["全部", "南京市鼓楼医院", "小市社区"]} allLabel="全部来源" onChange={value => setFilters(previous => ({ ...previous, source: value }))} />
         <FilterSelect label="性别" value={filters.gender} options={["全部", "男", "女"]} allLabel="全部性别" onChange={value => setFilters(previous => ({ ...previous, gender: value }))} />
       </div>

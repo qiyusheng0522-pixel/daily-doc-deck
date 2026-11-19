@@ -27,4 +27,5 @@
 - Family self-assessments and doctor-assisted questionnaires share SelfAssessmentForm and functions/_shared/selfAssessment.ts; persist item answers as self_* scale_assessments and require all four saved questionnaires before AI generation to avoid treating missing results as normal.
 - Scale items/maxima live in src/data/scales.ts; each completed scale is a `scale_assessments` row and also updates the patient column. Model risk analysis is the `mode: "risk"` branch of cognitive-advice, saved to patients.ai_risk; doctor adoption sets cognitive_risk.
 - DemoSession (mounted in App) auto-signs in the demo account when signed out, so stakeholder demos never hit RLS write failures; all ends share that multi-role account.
+- Doctor visit records are patient_documents with kind 诊疗记录 (doctor uploads, community read-only); training_records.record_type separates device training from non-device interventions; plan categories render in three planGroups so all plan views stay consistent.
 <!-- AGENT-MEMORY:END -->

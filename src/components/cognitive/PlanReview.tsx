@@ -10,7 +10,7 @@ import { useTreatmentPlans, type Patient } from "@/data/patients";
 import { needsReferral } from "@/data/cognitive";
 import { TREATMENT_PROTOCOL } from "../../../supabase/functions/_shared/treatment";
 import PlanEditor from "./PlanEditor";
-import { planEditError, treatmentCategories, STANDARD } from "@/data/treatmentPlan";
+import { planEditError, treatmentCategories, STANDARD, planGroups } from "@/data/treatmentPlan";
 import ActionSheet from "@/components/nurse/ActionSheet";
 
 const fmt = (d: string) => new Date(d).toLocaleDateString("zh-CN");
@@ -49,7 +49,7 @@ export default function PlanReview({ p, showCurrent = true, historyOnly = false,
       {showCurrent && !historyOnly && (
         <Card className="p-4 shadow-soft">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold">认知治疗方案 · {p.cognitive_risk ?? "待分级"}</p>
+            <p className="text-sm font-semibold">非药物干预类治疗方案 · {p.cognitive_risk ?? "待分级"}</p>
             {p.ai_plan_at && <span className="text-[11px] text-muted-foreground">生成于 {fmt(p.ai_plan_at)}</span>}
           </div>
           <div role="button" tabIndex={0} aria-label="点击编辑治疗方案" className="mt-3 cursor-pointer rounded-lg transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setEditing(true)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setEditing(true); } }}>
@@ -96,7 +96,7 @@ function TypeDetails({ p }: { p: Patient }) {
   return (
     <div className="mt-3 space-y-2 border-b pb-3">
       <p className="text-xs font-medium">治疗类型及方案内容</p>
-      {proto.categories.map((c) => {
+      {planGroups(proto.categories).map(([group, cats]) => <div key={group} className="space-y-2"><p className="pt-1 text-xs font-semibold text-primary">{group}</p>{cats.map((c) => {
         const m = match(c);
         return (
           <div key={c} className="rounded-lg border p-2.5">
@@ -108,7 +108,7 @@ function TypeDetails({ p }: { p: Patient }) {
             {m && <p className="mt-1 text-[11px] text-muted-foreground">{m.frequency} · {m.duration}</p>}
           </div>
         );
-      })}
+      })}</div>)}
     </div>
   );
 }

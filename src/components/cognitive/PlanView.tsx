@@ -1,4 +1,5 @@
 import { Dumbbell, CalendarCheck, HeartHandshake, AlertTriangle } from "lucide-react";
+import { planGroups } from "@/data/treatmentPlan";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 
 /** 认知治疗方案的统一展示：患者详情与方案审核共用，保证内容一致 */
@@ -11,13 +12,13 @@ export default function PlanView({ advice }: { advice: Advice }) {
             {advice.focus.length > 0 && (
               <ul className="list-disc space-y-0.5 pl-4 text-xs">{advice.focus.map((f) => <li key={f}>{f}</li>)}</ul>
             )}
-            {advice.interventions?.map((item, i) => (
+            {planGroups((advice.interventions ?? []).map(x => x.category)).map(([group, cats]) => <div key={group} className="rounded-lg border p-2.5"><p className="mb-2 text-xs font-bold">{group}</p>{(advice.interventions ?? []).filter(x => cats.includes(x.category)).map((item, i) => (
               <section key={`${item.category}-${i}`} className="border-b pb-3 last:border-0">
                 <h4 className="mb-1.5 text-sm font-semibold text-primary">{item.category}</h4>
                 <ul className="list-disc space-y-1 pl-4 text-xs">{item.actions.map((action, j) => <li key={j}>{action}</li>)}</ul>
                 <p className="mt-1 text-xs text-muted-foreground">{item.frequency} · {item.duration}</p>
               </section>
-            ))}
+            ))}</div>)}
             <section>
               <h4 className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-primary"><Dumbbell className="h-3.5 w-3.5" />具体认知训练内容</h4>
               {!advice.training.length && <p className="text-xs text-warning">此版本缺少具体训练内容，请重新生成或由医生补充后确认。</p>}

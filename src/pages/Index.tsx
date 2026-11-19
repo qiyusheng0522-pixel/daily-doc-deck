@@ -11,7 +11,7 @@ const ENDS = [
   },
   {
     to: "/doctor", icon: Stethoscope, grad: "bg-gradient-doctor", dot: "bg-primary",
-    title: "评估医生端", sub: "鼓楼医院记忆门诊 / 评估医生",
+    title: "医生端", sub: "鼓楼医院记忆门诊 / 评估医生",
     desc: "查看量表与智能体初步风险等级，确认分级、转诊与方案",
     items: ["查看 MMSE / MoCA 等量表结果", "确认风险分级、是否转诊", "制定并调整后续方案"],
   },

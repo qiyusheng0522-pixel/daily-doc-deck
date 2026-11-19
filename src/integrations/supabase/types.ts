@@ -927,6 +927,7 @@ export type Database = {
           id: string
           operator: string | null
           patient_id: string
+          record_type: string
           setting: string
           trained_on: string
           training_time: string | null
@@ -941,6 +942,7 @@ export type Database = {
           id?: string
           operator?: string | null
           patient_id: string
+          record_type?: string
           setting?: string
           trained_on?: string
           training_time?: string | null
@@ -955,6 +957,7 @@ export type Database = {
           id?: string
           operator?: string | null
           patient_id?: string
+          record_type?: string
           setting?: string
           trained_on?: string
           training_time?: string | null

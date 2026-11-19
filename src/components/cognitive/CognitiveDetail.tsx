@@ -16,7 +16,8 @@ import ReferralApproval from "@/components/cognitive/ReferralApproval";
 import { referralApprovalQueue, upwardReferralState } from "@/data/referralApproval";
 import { communityRiskPatient, pendingCommunityReferral } from "@/data/communityReception";
 import { acceptDoctorPatient, pendingDoctorReferral } from "@/data/doctorReception";
-import { Camera } from "lucide-react";
+import { Camera, FileText, Cpu, HandHeart } from "lucide-react";
+import ScaleDetailSheet from "@/components/cognitive/ScaleDetailSheet";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 import {
   usePatient, usePatientDocuments, useReferrals, usePatientEducation, useTrainingRecords, useCreateReferral, useReceiveReferral, type Patient,
@@ -28,16 +29,16 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Role = "doctor" | "nurse" | "community";
 
-const Scale = ({ label, value, max, kind }: { label: string; value: number | null; max: number; kind: PresentedScale }) => {
+const Scale = ({ label, value, max, kind, onOpen }: { label: string; value: number | null; max: number; kind: PresentedScale; onOpen?: () => void }) => {
   const result = scalePresentation(kind, value);
   const tone = { neutral: "text-foreground", low: "text-success", medium: "text-warning", high: "text-destructive" }[result.tone];
-  return <div className="min-w-0 rounded-lg border bg-card p-2.5">
+  return <button type="button" onClick={onOpen} className="min-w-0 rounded-lg border bg-card p-2.5 text-left transition-colors hover:bg-muted/50">
     <p className="text-[11px] text-muted-foreground">{label}</p>
     <p className={`mt-0.5 text-lg font-bold ${tone}`}>
       {value ?? "—"}<span className="text-[11px] font-normal text-muted-foreground"> / {max}</span>
     </p>
     <p className={`break-words text-[10px] ${tone}`}>{result.label}</p>
-  </div>;
+  </button>;
 };
 
 const riskTone = (r: Patient["cognitive_risk"]) =>
@@ -71,6 +72,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const [ad8, setAd8] = useState<null | boolean[]>(null);
   const [accept, setAccept] = useState<null | { rid: string; dept: string; diag: string; feedback: string }>(null);
   const [fu, setFu] = useState<null | { item: string; note: string }>(null);
+  const [scaleOpen, setScaleOpen] = useState<string | null>(null);
+  const [visitOpen, setVisitOpen] = useState(false);
   const [edit, setEdit] = useState<null | { kind: "profile" | "assess"; v: Record<string, string> }>(null);
 
   if (isLoading) return <p className="p-6 text-sm text-muted-foreground">加载中…</p>;
@@ -121,7 +124,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     qc.invalidateQueries({ queryKey: ["patient", p.id] }); qc.invalidateQueries({ queryKey: ["patients"] });
     setEdit(null); toast({ title: edit.kind === "profile" ? "档案已保存" : "评估结果已更新" });
   };
-  const uploadDocs = async (files: FileList | null) => {
+  const uploadDocs = async (files: FileList | null, kind = "检查检验") => {
     if (!files?.length) return;
     setUploading(true);
     for (const file of Array.from(files)) {
@@ -129,11 +132,11 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       const path = `${p.id}/${Date.now()}-${file.name.replace(/[^\w.]/g, "_")}`;
       const { error } = await supabase.storage.from("patient-docs").upload(path, file);
       if (error) { toast({ title: "上传失败", description: error.message }); continue; }
-      await supabase.from("patient_documents").insert({ patient_id: p.id, path, kind: "检查检验", uploaded_by: role === "doctor" ? "评估医生" : "社区护理康复" });
+      await supabase.from("patient_documents").insert({ patient_id: p.id, path, kind, uploaded_by: role === "doctor" ? "评估医生" : "社区护理康复" });
     }
     setUploading(false);
     qc.invalidateQueries({ queryKey: ["patient-docs", p.id] });
-    toast({ title: "建档材料已上传" });
+    toast({ title: kind === "诊疗记录" ? "诊疗记录已上传，社区端同步可见" : "建档材料已上传" });
   };
   const refresh = () => { qc.invalidateQueries({ queryKey: ["training-records"] }); qc.invalidateQueries({ queryKey: ["followups"] }); };
   const saveTask = async () => {
@@ -187,6 +190,10 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     qc.invalidateQueries(); setAccept(null);
     toast({ title: "已接诊确认", description: "指导意见已反馈至社区训练站" });
   };
+  const visitDocs = docs.filter(d => d.kind === "诊疗记录");
+  const fileDocs = docs.filter(d => d.kind !== "诊疗记录");
+  const deviceTrainings = trainings.filter(t => (t as { record_type?: string }).record_type === "设备训练");
+  const otherTrainings = trainings.filter(t => (t as { record_type?: string }).record_type !== "设备训练");
   const myRefs = referrals.filter((r) => r.patient_id === p.id);
   const pendingUp = pendingDoctorReferral(myRefs, p.id);
   const pendingDown = pendingCommunityReferral(myRefs, p.id);
@@ -247,6 +254,22 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           {role === "community" && transferState && <p className="mt-2 text-xs text-primary">转诊状态：{transferState}</p>}
         </Card>
 
+        <Card className="p-4 shadow-soft">
+          <div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold">患者基本信息</p>{role === "doctor" && <Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => openEdit("profile")}>编辑</Button>}</div>
+          <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+            {([["姓名", p.name], ["性别", p.gender], ["年龄", `${p.age} 岁`], ["联系电话", p.phone], ["照护者", p.caregiver], ["来源渠道", p.source], ["过敏史", p.allergy], ["身份证号", p.id_no ? p.id_no.replace(/^(.{6}).+(.{4})$/, "$1********$2") : null]] as [string, string | null][]).map(([k, v]) => (
+              <div key={k} className="min-w-0"><dt className="text-[11px] text-muted-foreground">{k}</dt><dd className="mt-0.5 break-words font-medium">{v || "未登记"}</dd></div>
+            ))}
+          </dl>
+        </Card>
+
+        {(role === "doctor" || role === "community") && <Card className="p-4 shadow-soft">
+          <div className="mb-2 flex items-center justify-between"><p className="flex items-center gap-1 text-sm font-semibold"><FileText className="h-4 w-4 text-primary" />诊疗记录 <span className="text-xs font-normal text-muted-foreground">({visitDocs.length})</span></p>{role === "doctor" && <Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => setVisitOpen(true)}><Camera className="mr-1 h-3.5 w-3.5" />拍照上传</Button>}</div>
+          {visitDocs.length === 0 ? <p className="text-xs text-muted-foreground">{role === "doctor" ? "可拍照上传院内就诊单、门诊病历、检查报告等，社区端同步查看" : "暂无医生上传的诊疗记录"}</p>
+            : <div className="grid grid-cols-4 gap-1">{visitDocs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer" className="block"><img src={d.url} alt="诊疗记录" className="h-16 w-full rounded object-cover" /><p className="mt-0.5 truncate text-[10px] text-muted-foreground">{new Date(d.created_at).toLocaleDateString("zh-CN")}</p></a>)}</div>}
+          {role === "community" && visitDocs.length > 0 && <p className="mt-2 text-[10px] text-muted-foreground">由上级医院医生上传，社区端只读</p>}
+        </Card>}
+
         {role === "doctor" && pendingApproval && <ReferralApproval key={pendingApproval.id} referral={pendingApproval} />}
         {role === "doctor" && pendingUp && (
           <Card className="border-warning/40 bg-warning/5 p-3 shadow-soft">
@@ -287,11 +310,11 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         <Card className="p-4 shadow-soft">
           <div className="mb-2 flex items-center justify-between"><p className="flex items-center gap-1 text-sm font-semibold"><Brain className="h-4 w-4 text-accent" />认知风险评估</p>{role === "doctor" && <span className="flex gap-1"><Button size="sm" className="h-7 text-xs" onClick={() => navigate(`/doctor/assess/${p.id}`)}>量表评估</Button><Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => openEdit("assess")}>编辑</Button></span>}{role === "community" && <Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => setAssessmentOpen(true)}>量表详情</Button>}</div>
           <div className="grid grid-cols-3 gap-2">
-            <Scale label="AD-8 初筛" kind="ad8" value={p.ad8} max={8} />
-            <Scale label="MMSE" kind="mmse" value={p.mmse} max={30} />
-            <Scale label="MoCA" kind="moca" value={p.moca} max={30} />
-            <Scale label="SCD-Q9" kind="scd_q9" value={p.scd_q9} max={9} />
-            <Scale label="ADL(Barthel)" kind="adl" value={p.adl} max={100} />
+            <Scale onOpen={() => setScaleOpen("ad8")} label="AD-8 初筛" kind="ad8" value={p.ad8} max={8} />
+            <Scale onOpen={() => setScaleOpen("mmse")} label="MMSE" kind="mmse" value={p.mmse} max={30} />
+            <Scale onOpen={() => setScaleOpen("moca")} label="MoCA" kind="moca" value={p.moca} max={30} />
+            <Scale onOpen={() => setScaleOpen("scd_q9")} label="SCD-Q9" kind="scd_q9" value={p.scd_q9} max={9} />
+            <Scale onOpen={() => setScaleOpen("adl")} label="ADL(Barthel)" kind="adl" value={p.adl} max={100} />
             <div className="rounded-lg border bg-card p-2.5">
               <p className="text-[11px] text-muted-foreground">下次复评</p>
               <p className="mt-1 text-sm font-semibold">{p.next_reassess ?? "—"}</p>
@@ -316,15 +339,16 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           )}
         </Card>
 
-        {(role === "doctor" || role === "community") && <SelfAssessmentResults patientId={p.id} readOnly />}
+        {(role === "doctor" || role === "community") && <SelfAssessmentResults patientId={p.id} readOnly assist={role === "doctor"} />}
+        <ScaleDetailSheet patientId={p.id} scale={scaleOpen} onClose={() => setScaleOpen(null)} />
         <ActionSheet open={assessmentOpen} onOpenChange={setAssessmentOpen} title="历史量表记录">
           {role === "community" && <div className="mb-3 flex gap-2"><Button size="sm" variant="outline" className="text-xs" onClick={() => { setAssessmentOpen(false); setAd8(AD8_ITEMS.map(() => false)); }}>AD-8 初筛评估</Button>{p.community_stage === "新接收" && <Button size="sm" variant="outline" className="text-xs" onClick={buildFile}>干预建档</Button>}</div>}
           <AssessmentHistory patientId={p.id} />
         </ActionSheet>
 
-        {docs.length > 0 && <Card className="p-4 shadow-soft">
-          <p className="mb-2 text-sm font-semibold">建档材料 <span className="text-xs font-normal text-muted-foreground">({docs.length})</span></p>
-          <div className="grid grid-cols-4 gap-1">{docs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer"><img src={d.url} alt={d.kind} className="h-16 w-full rounded object-cover" /></a>)}</div>
+        {fileDocs.length > 0 && <Card className="p-4 shadow-soft">
+          <p className="mb-2 text-sm font-semibold">建档材料 <span className="text-xs font-normal text-muted-foreground">({fileDocs.length})</span></p>
+          <div className="grid grid-cols-4 gap-1">{fileDocs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer"><img src={d.url} alt={d.kind} className="h-16 w-full rounded object-cover" /></a>)}</div>
         </Card>}
 
         <Card className="p-4 shadow-soft">
@@ -341,11 +365,16 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </Card>
 
         <Card className="p-4 shadow-soft">
-          <div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold">训练记录 <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>{role === "community" && <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => (planItems.length > 0 ? openTask(0) : toast({ title: "暂无可训练项目", description: "该患者的训练方案尚待评估医生确认，确认后即可选择训练项目记录。" }))}>添加训练记录</Button>}</div>
-          {trainings.length === 0 ? <p className="text-xs text-muted-foreground">暂无训练记录</p> : trainings.map((t) => (
-            <div key={t.id} className="flex flex-wrap items-start justify-between gap-2 border-b py-1.5 text-xs last:border-0">
-              <div className="min-w-0 flex-1"><p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on}{t.training_time ? ` ${t.training_time.slice(0, 5)}` : ""} · {t.duration_min} 分钟 · 小市社区</p>{t.feedback && <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">备注：{t.feedback}</p>}</div>
-            </div>
+          <div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold">训练记录 <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>{role === "community" && <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => (planItems.length > 0 ? openTask(0) : toast({ title: "暂无可训练项目", description: "该患者的训练方案尚待评估医生确认，确认后即可选择训练项目记录。" }))}>添加干预记录</Button>}</div>
+          {([["设备训练记录", Cpu, deviceTrainings, "暂无认知训练设备同步的记录"], ["非设备干预记录", HandHeart, otherTrainings, "暂无非设备干预记录"]] as const).map(([title, Icon, rows, empty]) => (
+            <section key={title} className="mb-2 rounded-lg border p-2.5 last:mb-0">
+              <p className="mb-1 flex items-center gap-1 text-xs font-semibold text-primary"><Icon className="h-3.5 w-3.5" />{title} <span className="font-normal text-muted-foreground">({rows.length})</span></p>
+              {rows.length === 0 ? <p className="text-[11px] text-muted-foreground">{empty}</p> : rows.map((t) => (
+                <div key={t.id} className="border-b py-1.5 text-xs last:border-0">
+                  <p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on}{t.training_time ? ` ${t.training_time.slice(0, 5)}` : ""} · {t.duration_min} 分钟 · {t.setting}</p>{t.feedback && <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">{title === "设备训练记录" ? "设备结果" : "备注"}：{t.feedback}</p>}
+                </div>
+              ))}
+            </section>
           ))}
         </Card>
 
@@ -421,6 +450,14 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         )}
       </ActionSheet>
 
+      <ActionSheet open={visitOpen} onOpenChange={setVisitOpen} title="上传诊疗记录" description="拍照上传院内就诊单、门诊病历、检查报告等，同步至社区端">
+        <label className="flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-dashed py-6 text-sm text-primary">
+          <Camera className="h-5 w-5" />{uploading ? "上传中…" : "拍照 / 选择图片上传"}
+          <input type="file" accept="image/*" capture="environment" multiple className="hidden" disabled={uploading}
+            onChange={(e) => { uploadDocs(e.target.files, "诊疗记录"); e.target.value = ""; }} />
+        </label>
+      </ActionSheet>
+
       <ActionSheet open={docsOpen} onOpenChange={setDocsOpen} title="录入档案" description="拍照上传化验单、检查报告、体检单等，用于建档">
         <div className="space-y-2">
           <label className="flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-dashed py-6 text-sm text-primary">
@@ -428,7 +465,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             <input type="file" accept="image/*,application/pdf" capture="environment" multiple className="hidden" disabled={uploading}
               onChange={(e) => { uploadDocs(e.target.files); e.target.value = ""; }} />
           </label>
-          {docs.length > 0 ? <div className="grid grid-cols-4 gap-1">{docs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer"><img src={d.url} alt={d.kind} className="h-16 w-full rounded object-cover" /></a>)}</div>
+          {fileDocs.length > 0 ? <div className="grid grid-cols-4 gap-1">{fileDocs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer"><img src={d.url} alt={d.kind} className="h-16 w-full rounded object-cover" /></a>)}</div>
             : <p className="text-center text-xs text-muted-foreground">暂无建档材料</p>}
         </div>
       </ActionSheet>

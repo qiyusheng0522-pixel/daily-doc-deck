@@ -1,0 +1,2 @@
+ALTER TABLE public.training_records ADD COLUMN IF NOT EXISTS record_type text NOT NULL DEFAULT '非设备干预';
+ALTER TABLE public.training_records ADD CONSTRAINT training_records_record_type_check CHECK (record_type IN ('设备训练','非设备干预'));

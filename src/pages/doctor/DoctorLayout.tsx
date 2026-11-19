@@ -15,7 +15,7 @@ export const tabs = [
 const titleMap: Record<string, string> = {
   "/doctor": "工作台",
   "/doctor/patients": "患者列表",
-  "/doctor/plans": "方案审核",
+  "/doctor/plans": "非药物干预类治疗方案",
   "/doctor/stats": "我的",
 };
 
@@ -95,7 +95,7 @@ const DoctorLayout = () => {
             )}
           </div>
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">评估医生端 · 移动端预览 (iPhone 15)</p>
+        <p className="mt-4 text-center text-xs text-muted-foreground">医生端 · 移动端预览 (iPhone 15)</p>
       </div>
     </div>
   );
