@@ -16,7 +16,7 @@ import ReferralApproval from "@/components/cognitive/ReferralApproval";
 import { referralApprovalQueue, upwardReferralState } from "@/data/referralApproval";
 import { communityRiskPatient, pendingCommunityReferral } from "@/data/communityReception";
 import { acceptDoctorPatient, pendingDoctorReferral } from "@/data/doctorReception";
-import { Camera, FileText, Cpu, HandHeart, LayoutGrid, User, BarChart3, ClipboardCheck, Dumbbell, Repeat, ChevronRight, Pencil, ShieldPlus, ShieldCheck, Clock } from "lucide-react";
+import { Camera, FileText, Cpu, HandHeart, LayoutGrid, User, Target, Layers, BarChart3, ClipboardCheck, Dumbbell, Repeat, ChevronRight, Pencil, ShieldPlus, ShieldCheck, Clock } from "lucide-react";
 import ScaleDetailSheet from "@/components/cognitive/ScaleDetailSheet";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 import {
@@ -229,8 +229,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   ].filter((x) => x.at).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 4);
   const tags = [...p.risk_tags, ...p.lifestyle_warnings].slice(0, 3);
   const TABS = [["overview", "概览", LayoutGrid], ["info", "基本信息", User], ["scale", "量表评估", BarChart3], ["plan", "方案记录", ClipboardCheck], ["training", "训练记录", Dumbbell], ["referral", "转诊记录", Repeat]] as const;
-  const Head = ({ icon: Icon, title, action }: { icon: typeof User; title: string; action?: ReactNode }) => (
-    <div className="mb-3 flex items-center justify-between border-b pb-2"><p className="flex items-center gap-2 whitespace-nowrap text-base font-semibold"><Icon className="h-5 w-5 shrink-0 text-primary" />{title}</p>{action}</div>
+  const Head = ({ icon: Icon, title, action, badge }: { icon: typeof User; title: string; action?: ReactNode; badge?: ReactNode }) => (
+    <div className="mb-3 flex items-center justify-between border-b pb-2"><p className="flex items-center gap-2 whitespace-nowrap text-lg font-bold"><Icon className="h-6 w-6 shrink-0 text-primary" />{title}{badge}</p>{action}</div>
   );
   const More = ({ to, label = "查看全部" }: { to: string; label?: string }) => (
     <button type="button" onClick={() => setTab(to)} className="flex items-center text-sm text-primary">{label}<ChevronRight className="h-4 w-4" /></button>
@@ -319,9 +319,9 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     </Card>
   );
   const KeyRow = ({ icon: Icon, title, sub, to }: { icon: typeof User; title: string; sub: string; to: string }) => (
-    <button type="button" onClick={() => setTab(to)} className="flex w-full items-center gap-3 rounded-xl border bg-card p-3 text-left transition-colors hover:bg-muted/50">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Icon className="h-5 w-5" /></span>
-      <span className="min-w-0 flex-1"><span className="block text-base font-semibold">{title}</span><span className="block break-words text-sm text-muted-foreground">{sub}</span></span>
+    <button type="button" onClick={() => setTab(to)} className="flex w-full items-center gap-3 rounded-2xl border bg-card p-4 text-left transition-colors hover:bg-muted/50">
+      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><Icon className="h-7 w-7" /></span>
+      <span className="min-w-0 flex-1"><span className="block text-lg font-bold">{title}</span><span className="block break-words text-sm text-muted-foreground">{sub}</span></span>
       <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
     </button>
   );
@@ -335,27 +335,27 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       </div>
 
       <div className="space-y-3 p-4">
-        <Card className="flex flex-wrap items-center gap-4 p-4 shadow-soft">
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-accent/20 text-3xl font-bold text-accent">{p.name[0]}</div>
+        <Card className="flex items-center gap-5 rounded-2xl border-0 p-5 shadow-soft" style={{ zoom: 0.8 }}>
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-accent/20 text-4xl font-bold text-accent">{p.name[0]}</div>
           <div className="min-w-0 flex-1">
-            <p className="text-2xl font-bold">{p.name} <span className="ml-2 text-base font-normal text-muted-foreground">{p.gender}　{p.age}岁</span></p>
+            <p className="text-3xl font-bold">{p.name} <span className="ml-3 text-lg font-normal text-muted-foreground">{p.gender}　{p.age}岁</span></p>
             <div className="mt-2 flex flex-wrap gap-2 text-sm">
               {p.cognitive_risk && <span className={`rounded-full px-3 py-0.5 font-medium ${riskTone(p.cognitive_risk)}`}>{p.cognitive_risk}</span>}
               {tags.map((t) => <span key={t} className="rounded-full bg-muted px-3 py-0.5">{t}</span>)}
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex shrink-0 gap-3">
             {role === "doctor" && <>
-              <Button size="lg" onClick={() => navigate(`/doctor/plans/${p.id}`)}><ClipboardCheck className="mr-1 h-5 w-5" />方案审核</Button>
-              <Button size="lg" variant="outline" className="border-primary text-primary" onClick={() => setSheet("down")}><Repeat className="mr-1 h-5 w-5" />转诊办理</Button>
-              <Button size="lg" variant="outline" className="border-primary text-primary" onClick={() => setVisitOpen(true)}><Camera className="mr-1 h-5 w-5" />拍照存档</Button>
+              <Button className="h-12 rounded-xl px-5 text-base shadow-soft" onClick={() => navigate(`/doctor/plans/${p.id}`)}><ClipboardCheck className="mr-2 !h-5 !w-5" />方案审核</Button>
+              <Button variant="outline" className="h-12 rounded-xl border-primary/40 px-5 text-base text-primary" onClick={() => setSheet("down")}><Repeat className="mr-2 !h-5 !w-5" />转诊办理</Button>
+              <Button variant="outline" className="h-12 flex-col gap-0 rounded-xl border-primary/40 px-4 text-primary" onClick={() => setVisitOpen(true)}><span className="flex items-center text-base font-semibold"><Camera className="mr-2 !h-5 !w-5" />拍照存档</span><span className="text-xs font-normal text-muted-foreground">就诊单上传 · 同步社区</span></Button>
             </>}
             {role === "community" && <Button size="lg" variant="outline" className="border-primary text-primary" onClick={() => setDocsOpen(true)}><Camera className="mr-1 h-5 w-5" />录入档案</Button>}
             {role !== "doctor" && (role === "community" ? communityRiskPatient(p) : needsReferral(p.cognitive_risk)) && (
               <Button size="lg" disabled={role === "community" && transferBusy} onClick={() => setSheet("up")}><Send className="mr-1 h-5 w-5" />{role === "community" ? "转诊" : "患者上传"}</Button>
             )}
           </div>
-          {role === "community" && transferState && <p className="w-full text-sm text-primary">转诊状态：{transferState}</p>}
+          {role === "community" && transferState && <p className="shrink-0 text-sm text-primary">转诊状态：{transferState}</p>}
         </Card>
 
         {role === "doctor" && pendingApproval && <ReferralApproval key={pendingApproval.id} referral={pendingApproval} />}
@@ -368,54 +368,56 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         )}
         {role === "community" && pendingDown && <Card className="border-warning/40 bg-warning/5 p-3"><p className="text-sm font-semibold">下转待接收 · {pendingDown.from_hospital}</p><Button size="sm" className="mt-2" disabled={receiveReferral.isPending} onClick={() => receiveReferral.mutate({ referralId: pendingDown.id, patientId: p.id }, { onSuccess: () => { qc.invalidateQueries({ queryKey: ["patient", p.id] }); toast({ title: "患者已加入社区患者列表" }); }, onError: e => toast({ title: "接收失败", description: e.message }) })}>确认接收</Button></Card>}
 
-        <Card className="flex gap-1 overflow-x-auto p-1.5 shadow-soft">
-          {TABS.map(([k, label, Icon]) => (
-            <button key={k} type="button" onClick={() => setTab(k)}
-              className={`flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-2 text-base transition-colors ${tab === k ? "bg-primary font-semibold text-primary-foreground" : "text-foreground hover:bg-muted"}`}>
-              <Icon className="h-5 w-5" />{label}
-            </button>
+        <Card className="flex items-center overflow-x-auto rounded-2xl border-0 p-1.5 shadow-soft" style={{ zoom: 0.8 }}>
+          {TABS.map(([k, label, Icon], i) => (
+            <div key={k} className="flex flex-1 items-center">
+              {i > 0 && tab !== k && tab !== TABS[i - 1][0] && <span className="h-6 w-px bg-border" />}
+              <button type="button" onClick={() => setTab(k)}
+                className={`flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-base transition-colors ${tab === k ? "bg-primary font-semibold text-primary-foreground shadow-soft" : "text-foreground hover:bg-muted"}`}>
+                <Icon className="h-5 w-5" />{label}
+              </button>
+            </div>
           ))}
         </Card>
 
         {tab === "overview" && (
-          <div className="grid gap-3 lg:grid-cols-[1fr_1.3fr_1fr]">
+          <div className="grid gap-4 lg:grid-cols-[1fr_1.45fr_1fr] [&_.rounded-lg.border-card]:rounded-2xl" style={{ zoom: 0.7 }}>
             <div className="space-y-3">
-              <Card className="p-4 shadow-soft">
+              <Card className="rounded-2xl border-0 p-5 shadow-soft">
                 <Head icon={User} title="患者概况" />
                 <Rows rows={[["年龄/性别", `${p.age}岁 / ${p.gender}`], ["联系方式", p.phone], ["来源渠道", p.source], ["照护者", p.caregiver]]} />
               </Card>
-              <Card className="p-4 shadow-soft">
+              <Card className="rounded-2xl border-0 p-5 shadow-soft">
                 <Head icon={ClipboardCheck} title="主要诊断与病情" />
                 <dl className="divide-y text-sm">{([...(role !== "community" ? [["主要诊断", p.cognitive_diagnosis ?? "待评估"]] : []), ["合并疾病", p.past_history ?? (p.risk_tags.join("、") || null)], ["当前分级", p.cognitive_risk], ["病情摘要", p.condition_summary ?? (p.ai_risk as { summary?: string } | null)?.summary ?? null]] as [string, string | null][]).map(([k, v]) => <div key={k} className="flex gap-3 py-2"><dt className="w-24 shrink-0 text-muted-foreground">{k}</dt><dd className="min-w-0 break-words font-medium">{v || "未登记"}</dd></div>)}</dl>
               </Card>
             </div>
             <div className="space-y-3">
-              <Card className="p-4 shadow-soft">
+              <Card className="rounded-2xl border-0 p-5 shadow-soft">
                 <Head icon={BarChart3} title="最近评估结果" action={<More to="scale" />} />
-                <div className="grid grid-cols-2 gap-2">{([["MMSE", "mmse", p.mmse, 30], ["MoCA", "moca", p.moca, 30], ["AD-8", "ad8", p.ad8, 8], ["SCD-Q9", "scd_q9", p.scd_q9, 9]] as const).map(([label, kind, v, max]) => { const r = scalePresentation(kind, v); const tone = { neutral: "text-foreground", low: "text-success", medium: "text-warning", high: "text-destructive" }[r.tone]; const bg = { neutral: "bg-muted", low: "bg-success/10", medium: "bg-warning/10", high: "bg-destructive/10" }[r.tone]; return (
+                <div className="grid grid-cols-4 gap-2">{([["MMSE", "mmse", p.mmse, 30], ["MoCA", "moca", p.moca, 30], ["AD-8", "ad8", p.ad8, 8], ["SCD-Q9", "scd_q9", p.scd_q9, 9]] as const).map(([label, kind, v, max]) => { const r = scalePresentation(kind, v); const tone = { neutral: "text-foreground", low: "text-success", medium: "text-warning", high: "text-destructive" }[r.tone]; const bg = { neutral: "bg-muted", low: "bg-success/10", medium: "bg-warning/10", high: "bg-destructive/10" }[r.tone]; return (
                   <button key={kind} type="button" onClick={() => setScaleOpen(kind)} className="rounded-xl border bg-card p-3 text-left hover:bg-muted/40">
                     <p className="text-sm text-muted-foreground">{label}</p>
-                    <p className={`text-2xl font-bold ${tone}`}>{v ?? "—"}<span className="text-sm font-normal text-muted-foreground"> /{max}</span></p>
-                    <span className={`mt-1 inline-block rounded px-1.5 text-sm ${bg} ${tone}`}>{r.label}</span>
+                    <p className={`mt-1 text-3xl font-bold ${tone}`}>{v ?? "—"}<span className="text-sm font-normal text-muted-foreground"> /{max}</span></p>
+                    <span className={`mt-1 inline-block rounded px-1.5 text-xs ${bg} ${tone}`}>{r.label.split(" ")[0].replace(/参考$/, "")}</span>
                   </button>); })}</div>
               </Card>
-              <Card className="p-4 shadow-soft">
-                <Head icon={ClipboardCheck} title="当前干预方案" action={<More to="plan" label="查看详情" />} />
-                {advice?.summary ? <>
-                  <span className={`mb-2 inline-block rounded-full px-2.5 py-0.5 text-sm ${planConfirmed(p) ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}`}>{planConfirmed(p) ? "医生已确认" : "待医生审核"}</span>
-                  <Rows rows={[["干预目标", advice.summary], ["干预措施", (advice.training ?? []).map((t) => t.domain).filter((v, i, a) => a.indexOf(v) === i).join("、")]]} />
-                </> : <p className="text-sm text-muted-foreground">尚未生成非药物干预类治疗方案</p>}
+              <Card className="rounded-2xl border-0 p-5 shadow-soft">
+                <Head icon={ClipboardCheck} title="当前干预方案" badge={advice?.summary && <span className={`ml-2 rounded-full px-3 py-0.5 text-sm font-medium ${planConfirmed(p) ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}`}>{planConfirmed(p) ? "已确认" : "待审核"}</span>} action={<More to="plan" label="查看详情" />} />
+                {advice?.summary ? <dl className="space-y-2 text-sm">
+                  {([[Target, "干预目标", advice.summary], [Layers, "干预措施", (advice.training ?? []).map((t) => `${t.domain}（${t.frequency}）`).filter((v, i, a) => a.indexOf(v) === i).slice(0, 4).join("、")]] as const).map(([I, k, v]) => <div key={k} className="flex gap-2"><I className="mt-0.5 h-5 w-5 shrink-0 text-primary" /><dt className="shrink-0 font-semibold">{k}：</dt><dd className="min-w-0 break-words">{v || "—"}</dd></div>)}
+                </dl> : <p className="text-sm text-muted-foreground">尚未生成非药物干预类治疗方案</p>}
               </Card>
-              <Card className="p-4 shadow-soft">
+              <Card className="rounded-2xl border-0 p-5 shadow-soft">
                 <Head icon={Clock} title="近期动态" action={<More to="training" />} />
-                {recent.length === 0 ? <p className="text-sm text-muted-foreground">暂无记录</p> : <ol className="space-y-2 border-l-2 border-primary/20 pl-4 text-sm">
-                  {recent.map((r, i) => <li key={i} className="relative"><span className="absolute -left-[1.4rem] top-1.5 h-2.5 w-2.5 rounded-full bg-primary" /><span className="mr-3 text-muted-foreground">{r.at}</span>{r.text}</li>)}
+                {recent.length === 0 ? <p className="text-sm text-muted-foreground">暂无记录</p> : <ol className="text-sm">
+                  {recent.map((r, i) => <li key={i} className="relative flex gap-4 pb-3 pl-6 last:pb-0">{i < recent.length - 1 && <span className="absolute left-[5px] top-3 h-full w-0.5 bg-primary/15" />}<span className={`absolute left-0 top-1.5 h-3 w-3 rounded-full ${i === 0 ? "bg-primary" : "bg-primary/30"}`} /><span className="w-28 shrink-0 tabular-nums">{r.at}</span><span className="min-w-0 break-words">{r.text}</span></li>)}
                 </ol>}
               </Card>
             </div>
-            <Card className="space-y-3 p-4 shadow-soft">
+            <Card className="space-y-3 rounded-2xl border-0 p-5 shadow-soft">
               <Head icon={ShieldCheck} title="关键记录" />
-              <KeyRow icon={BarChart3} title="量表评估" sub={`MMSE ${p.mmse ?? "—"} · MoCA ${p.moca ?? "—"}`} to="scale" />
+              <KeyRow icon={BarChart3} title="量表评估" sub={`医生评 MMSE ${p.mmse ?? "—"}/30 · MoCA ${p.moca ?? "—"}/30`} to="scale" />
               <KeyRow icon={ClipboardCheck} title="方案记录" sub={advice?.summary ? (planConfirmed(p) ? "当前方案已确认" : "当前方案待审核") : "暂无方案"} to="plan" />
               <KeyRow icon={Dumbbell} title="训练记录" sub={`近7天 ${week} 次 · 累计 ${trainings.length} 次`} to="training" />
               <KeyRow icon={Repeat} title="转诊记录" sub={myRefs.length ? `共 ${myRefs.length} 次 · 最近：${myRefs[0].direction}（${myRefs[0].approval_status ?? myRefs[0].status}）` : "暂无转诊"} to="referral" />
