@@ -155,6 +155,13 @@
       "when": 1795070738778,
       "tag": "0021_mixed_family_guidance_category",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1795075615548,
+      "tag": "0022_restrict_selected_patient_data_reads",
+      "breakpoints": true
     }
   ]
 }
