@@ -247,13 +247,13 @@ export default function CognitiveDetail({ role }: { role: Role }) {
 
   const infoCard = (
     <Card className="p-4 shadow-soft">
-      <Head icon={User} title="患者基本信息" action={role === "doctor" && <Button size="sm" variant="ghost" className="h-7 text-sm text-primary" onClick={() => openEdit("profile")}><Pencil className="mr-1 h-3.5 w-3.5" />编辑</Button>} />
+      <Head icon={User} title="患者基本信息" action={(role === "doctor" || role === "community") && <Button size="sm" variant="ghost" className="h-7 text-sm text-primary" onClick={() => openEdit("profile")}><Pencil className="mr-1 h-3.5 w-3.5" />编辑</Button>} />
       <Rows rows={[["性别", p.gender], ["年龄", `${p.age} 岁`], ["联系方式", p.phone], ["来源渠道", p.source], ["照护者", p.caregiver]]} />
     </Card>
   );
   const fullInfoCard = (
     <Card className="p-4 shadow-soft">
-      <Head icon={User} title="患者基本信息" action={role === "doctor" && <Button size="sm" variant="ghost" className="h-7 text-sm text-primary" onClick={() => openEdit("profile")}><Pencil className="mr-1 h-3.5 w-3.5" />编辑</Button>} />
+      <Head icon={User} title="患者基本信息" action={(role === "doctor" || role === "community") && <Button size="sm" variant="ghost" className="h-7 text-sm text-primary" onClick={() => openEdit("profile")}><Pencil className="mr-1 h-3.5 w-3.5" />编辑</Button>} />
       <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
         {([["姓名", p.name], ["性别", p.gender], ["年龄", `${p.age} 岁`], ["联系电话", p.phone], ["照护者", p.caregiver], ["来源渠道", p.source], ["过敏史", p.allergy], ["身份证号", p.id_no ? p.id_no.replace(/^(.{6}).+(.{4})$/, "$1********$2") : null]] as [string, string | null][]).map(([k, v]) => (
           <div key={k} className="min-w-0"><dt className="text-muted-foreground">{k}</dt><dd className="mt-0.5 break-words font-medium">{v || "未登记"}</dd></div>
@@ -333,7 +333,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         <Card className="flex items-center gap-5 rounded-2xl border-0 p-5 shadow-soft" style={{ zoom: 0.8 }}>
           <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-accent/20 text-4xl font-bold text-accent">{p.name[0]}</div>
           <div className="min-w-0 flex-1">
-            <p className="text-3xl font-bold">{p.name} <span className="ml-3 text-lg font-normal text-muted-foreground">{p.gender}　{p.age}岁</span></p>
+            <p className="text-3xl font-bold">{p.name} <span className="ml-3 text-lg font-normal text-muted-foreground">{p.gender}　{p.age}岁</span>{(role === "doctor" || role === "community") && <Button size="sm" variant="ghost" className="ml-2 h-8 align-middle text-base text-primary" onClick={() => openEdit("profile")}><Pencil className="mr-1 h-4 w-4" />编辑</Button>}</p>
             <div className="mt-2 flex flex-wrap gap-2 text-sm">
               {p.cognitive_risk && <span className={`rounded-full px-3 py-0.5 font-medium ${riskTone(p.cognitive_risk)}`}>{p.cognitive_risk}</span>}
               {tags.map((t) => <span key={t} className="rounded-full bg-muted px-3 py-0.5">{t}</span>)}
@@ -450,7 +450,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         <AssessmentHistory patientId={p.id} />
       </ActionSheet>
 
-      <ActionSheet open={!!edit} onOpenChange={(o) => !o && setEdit(null)} title={edit?.kind === "profile" ? "录入患者档案" : "编辑认知风险评估"}
+      <ActionSheet open={!!edit} onOpenChange={(o) => !o && setEdit(null)} title={edit?.kind === "profile" ? "编辑患者基本信息" : "编辑认知风险评估"}
         footer={<Button className="w-full" disabled={saving} onClick={saveEdit}>保存</Button>}>
         {edit && (
           <div className="grid grid-cols-2 gap-2">
