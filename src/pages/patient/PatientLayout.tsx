@@ -2,6 +2,7 @@ import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import { Home, ClipboardList, Bot, Utensils, User, ArrowLeft, Bell, Wifi, Signal, BatteryFull } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import RoleSwitcher from "@/components/RoleSwitcher";
+import { usePatientsRealtime } from "@/data/patients";
 
 const tabs = [
   { to: "/patient", icon: Home, label: "首页", end: true },
@@ -17,9 +18,11 @@ const titleMap: Record<string, string> = {
   "/patient/ai": "AI 助手",
   "/patient/plan": "健康方案",
   "/patient/profile": "我的",
+  "/patient/tasks": "家庭任务",
 };
 
 const PatientLayout = () => {
+  usePatientsRealtime();
   const location = useLocation();
   const title = titleMap[location.pathname] ?? "首页";
   const hideHeader = location.pathname === "/patient" || location.pathname === "/patient/ai" || location.pathname === "/patient/profile";

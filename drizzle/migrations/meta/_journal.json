@@ -127,6 +127,34 @@
       "when": 1795069059614,
       "tag": "0017_referral_approval_workflow",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1795070455594,
+      "tag": "0018_family_plan_checkins",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1795070546252,
+      "tag": "0019_family_checkin_timestamp_validation",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1795070626836,
+      "tag": "0020_legacy_family_task_checkins",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1795070738778,
+      "tag": "0021_mixed_family_guidance_category",
+      "breakpoints": true
     }
   ]
 }

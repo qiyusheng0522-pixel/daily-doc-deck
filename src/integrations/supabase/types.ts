@@ -173,6 +173,56 @@ export type Database = {
         }
         Relationships: []
       }
+      family_task_checkins: {
+        Row: {
+          category: string
+          created_at: string
+          duration_min: number | null
+          id: string
+          note: string | null
+          patient_id: string
+          plan_version: string
+          recorded_by: string
+          recorded_on: string
+          task_key: string
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          duration_min?: number | null
+          id?: string
+          note?: string | null
+          patient_id: string
+          plan_version: string
+          recorded_by: string
+          recorded_on?: string
+          task_key: string
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          duration_min?: number | null
+          id?: string
+          note?: string | null
+          patient_id?: string
+          plan_version?: string
+          recorded_by?: string
+          recorded_on?: string
+          task_key?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_task_checkins_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       followups: {
         Row: {
           created_at: string

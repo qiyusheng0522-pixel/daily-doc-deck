@@ -5,8 +5,10 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useScaleAssessments } from "@/data/patients";
 import { SELF_QUESTIONNAIRES, latestSelfAssessments, questionnaireTotal, selfAssessmentConcerns } from "../../../supabase/functions/_shared/selfAssessment";
+import { Moon, Utensils, Footprints, Heart } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
-export default function SelfAssessmentForm({ patientId, assisted = false }: { patientId: string; assisted?: boolean }) {
+export default function SelfAssessmentForm({ patientId, assisted = false, familyList = false }: { patientId: string; assisted?: boolean; familyList?: boolean }) {
   const qc = useQueryClient();
   const { data: records = [], isLoading } = useScaleAssessments(patientId);
   const [active, setActive] = useState<string | null>(null);
@@ -37,6 +39,16 @@ export default function SelfAssessmentForm({ patientId, assisted = false }: { pa
       <div className="grid grid-cols-2 gap-2">{q.options.map(o => <Button key={o.label} variant={answers[q.id] === o.score ? "default" : "outline"} className="h-auto min-h-10 whitespace-normal text-xs" onClick={() => setAnswers({ ...answers, [q.id]: o.score })}>{o.label}</Button>)}</div>
     </section>)}
     <Button className="w-full" disabled={saving || questionnaireTotal(current, answers) === null} onClick={save}>{saving ? "保存中…" : "保存本份评估"}</Button>
+  </div>;
+  if (familyList) return <div className="space-y-4">
+    <div className="bg-gradient-primary p-4 text-primary-foreground"><h2 className="text-2xl font-bold">评估中心</h2><p className="mt-1 text-sm">老年综合评估 · 共 4 项</p></div>
+    <div className="flex items-center gap-3"><Progress className="flex-1" value={latest.filter(x => x.record).length * 25} /><span className="shrink-0 text-xs text-muted-foreground">已填 {latest.filter(x => x.record).length}/4</span></div>
+    <h3 className="text-lg font-semibold">健康问卷 <span className="text-sm text-destructive">必填</span></h3>
+    {latest.map(({ questionnaire:q, record }, i) => { const Icon = [Moon, Utensils, Footprints, Heart][i]; return <section key={q.id} className="relative flex items-center gap-3 rounded-lg border bg-card p-3 shadow-sm">
+      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Icon className="h-7 w-7" /></div>
+      <div className="min-w-0 flex-1"><h4 className="text-base font-semibold">{q.name}</h4><p className="mt-1 text-xs text-muted-foreground">{record ? `${new Date(record.created_at).toLocaleDateString("zh-CN")} · ${record.total} 分` : `约 ${q.minutes} 分钟`}</p></div>
+      <Button size="sm" className="shrink-0 px-2 text-xs" onClick={() => { setActive(q.id); setAnswers({}); }}>{record ? "再次评估" : "去填写"}</Button>
+    </section>; })}
   </div>;
   return <div className="space-y-2">
     <p className="text-sm font-semibold">自评量表 · {latest.filter(x => x.record).length}/4 已完成</p>

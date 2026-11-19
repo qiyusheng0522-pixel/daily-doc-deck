@@ -10,6 +10,7 @@ import { useCurrentPatient, usePatientsRealtime } from "@/data/patients";
 import { planConfirmed } from "@/data/cognitive";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 import PatientActionSheet from "@/components/patient/PatientActionSheet";
+import FamilyTasks from "@/components/patient/FamilyTasks";
 import {
   isProfileComplete, subscribeProfile, setProfileComplete,
   diseaseTags, lifestyleTags, riskOverview,
@@ -291,89 +292,7 @@ const PatientPlan = () => {
         </div>
       </section>
 
-      {/* 今日运动 */}
-      <section className="mx-3 rounded-2xl bg-gradient-to-b from-cyan-50 to-white p-4 shadow-sm ring-1 ring-cyan-100 dark:from-cyan-950/40 dark:to-transparent dark:ring-cyan-900/40">
-        <div className="mb-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-bold">运动方案</h3>
-            <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] font-medium text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300">
-              通用方案 · 免费
-            </span>
-          </div>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-100 dark:bg-cyan-900/40">
-            <HeartPulse className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground">认知训练建议:每周 ≥150 分钟中等强度有氧,循序渐进</p>
-
-        <div className="mt-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-border/60 dark:bg-card">
-          <div className="flex items-center justify-between text-sm">
-            <span>今日打卡进度</span>
-            <span className="text-primary">完成度</span>
-          </div>
-          <div className="mt-1 flex items-end justify-between">
-            <p className="text-lg"><b>1</b><span className="text-muted-foreground text-sm"> / 2 项</span></p>
-            <p className="text-xl font-bold text-primary">50%</p>
-          </div>
-          <div className="mt-2 h-2 rounded-full bg-muted">
-            <div className="h-full w-1/2 rounded-full bg-primary" />
-          </div>
-        </div>
-
-        <button className="mt-2 flex w-full items-center gap-2 rounded-xl bg-rose-50 p-2.5 text-xs text-rose-600 dark:bg-rose-950/30">
-          <AlertTriangle className="h-4 w-4" />
-          <span>运动风险提示:胸闷 / 头晕请立即停止,血压 &lt;180/110</span>
-          <ChevronDown className="ml-auto h-3 w-3" />
-        </button>
-
-        <div className="mt-2 flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-border/60 dark:bg-card">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/40">
-            <Footprints className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">授权微信步数</p>
-            <p className="text-xs text-muted-foreground">同步每日步数,自动计入运动量</p>
-          </div>
-          <button className="whitespace-nowrap rounded-full bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white">立即授权</button>
-        </div>
-
-        {/* 今日运动清单 */}
-        <div className="mt-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <HeartPulse className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold">今日运动清单</span>
-            <span className="rounded-full bg-cyan-100 px-1.5 py-0.5 text-[10px] font-medium text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300">2 项</span>
-          </div>
-          <button className="text-xs text-primary">打卡记录 ›</button>
-        </div>
-
-        <div className="mt-2 space-y-3">
-          <ExerciseCard
-            done
-            gradient="from-amber-300 to-orange-400"
-            title="有氧慢走"
-            level="入门"
-            tags={["#轻度认知障碍", "#血压偏高", "#久坐少动"]}
-            time="午餐后 13:00"
-            duration="15-20 分钟"
-            coach="社区康复指导员 · 06:00"
-            goal="1000 步 · 配速 4km/h"
-            streak="已连续 12 天"
-          />
-          <ExerciseCard
-            gradient="from-sky-300 to-cyan-400"
-            title="下肢静力训练"
-            level="入门"
-            tags={["#高血压", "#膝关节不适", "#肌少风险"]}
-            time="今晚 19:30"
-            duration="12 分钟"
-            coach="康复治疗师 · 10:00"
-            goal="3 组 × 每侧 30 秒"
-            streak="已连续 5 天"
-          />
-        </div>
-      </section>
-
+      <section className="mx-3 space-y-3"><h3 className="text-lg font-semibold">家庭任务清单</h3><FamilyTasks /></section>
 
       {/* 健康服务入口 */}
       <section className="mx-3 rounded-2xl bg-card p-4 shadow-sm ring-1 ring-border/60">

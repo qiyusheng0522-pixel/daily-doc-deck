@@ -26,95 +26,15 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import PatientActionSheet from "@/components/patient/PatientActionSheet";
+import FamilyTasks from "@/components/patient/FamilyTasks";
 
 const STORAGE_KEY = "patient-guide-step-v1";
 const GUIDE_SEEN_KEY = "patient-guide-seen-v1";
 
 const guideSteps = [
   { key: "upload", title: "第 1 步 · 档案上传", desc: "拍照上传出院小结/病历,OCR 自动识别", cta: "去拍照", icon: Camera, to: "/patient/archive" },
-  { key: "assess", title: "第 2 步 · 风险评估", desc: "填写认知量表,评估复发风险", cta: "去填写", icon: ClipboardList, to: "/patient/assessment" },
+  { key: "assess", title: "第 2 步 · 风险评估", desc: "完成睡眠、营养、跌倒与心理自评", cta: "去填写", icon: ClipboardList, to: "/patient/assessment" },
   { key: "plan", title: "第 3 步 · 查看方案", desc: "查看专属健康方案,开启每日打卡", cta: "去查看", icon: FileText, to: "/patient/plan" },
-];
-
-type TaskType = "med" | "diet" | "exercise" | "bp";
-
-type Task = {
-  id: string;
-  type: TaskType;
-  title: string;
-  desc: string;
-  icon: typeof Pill;
-  color: string;
-  actionLabel: string; // 记录 / 打卡 / 确认
-  doneLabel: string;   // 已记录 / 已打卡
-  done?: boolean;
-};
-
-const initialTasks: Task[] = [
-  {
-    id: "t-med",
-    type: "med",
-    title: "用药 · 阿司匹林肠溶片",
-    desc: "10:30 · 餐后服用 · +20 积分",
-    icon: Pill,
-    color: "bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-300",
-    actionLabel: "记录",
-    doneLabel: "已记录",
-  },
-  {
-    id: "t-bp",
-    type: "bp",
-    title: "血压监测 · 晨起",
-    desc: "已完成 · +10 积分",
-    icon: HeartPulse,
-    color: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300",
-    actionLabel: "记录",
-    doneLabel: "已记录",
-    done: true,
-  },
-  {
-    id: "t-diet",
-    type: "diet",
-    title: "饮食 · 午餐打卡",
-    desc: "推荐:糙米饭 + 清蒸鲈鱼 · +15 积分",
-    icon: Utensils,
-    color: "bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300",
-    actionLabel: "打卡",
-    doneLabel: "已打卡",
-  },
-  {
-    id: "t-ex",
-    type: "exercise",
-    title: "康复训练 · 15 分钟",
-    desc: "18:00 · 手部精细动作 · +30 积分",
-    icon: Dumbbell,
-    color: "bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-300",
-    actionLabel: "记录",
-    doneLabel: "已记录",
-  },
-];
-
-const dietPlan7d = [
-  { day: "周一 07/15", breakfast: "燕麦南瓜粥 + 水煮蛋", lunch: "糙米饭 + 清蒸鲈鱼 + 西兰花", dinner: "红薯 + 番茄豆腐汤" },
-  { day: "周二 07/16", breakfast: "小米粥 + 蒸山药", lunch: "藜麦饭 + 白灼虾 + 芦笋", dinner: "杂粮饭 + 清炖鸡" },
-  { day: "周三 07/17", breakfast: "全麦面包 + 牛奶", lunch: "糙米饭 + 香煎三文鱼 + 时蔬", dinner: "紫薯 + 冬瓜排骨汤" },
-  { day: "周四 07/18", breakfast: "杂粮粥 + 水煮蛋", lunch: "藜麦沙拉 + 鸡胸肉", dinner: "山药 + 蘑菇豆腐汤" },
-  { day: "周五 07/19", breakfast: "燕麦牛奶 + 蓝莓", lunch: "糙米饭 + 清蒸鲈鱼 + 菠菜", dinner: "红薯 + 冬瓜虾仁汤" },
-  { day: "周六 07/20", breakfast: "小米粥 + 蒸蛋", lunch: "全麦面 + 番茄鸡蛋", dinner: "杂粮饭 + 木耳鸡丝" },
-  { day: "周日 07/21", breakfast: "南瓜粥 + 全麦馒头", lunch: "糙米饭 + 蒸鲳鱼 + 时蔬", dinner: "紫薯 + 白菜豆腐汤" },
-];
-
-const medPlan = [
-  { name: "阿司匹林肠溶片", dose: "100mg", times: ["10:30 早餐后"], note: "抗血小板 · 长期服用" },
-  { name: "阿托伐他汀钙片", dose: "40mg", times: ["21:00 睡前"], note: "调脂稳定斑块" },
-  { name: "苯磺酸氨氯地平", dose: "5mg", times: ["08:00 早餐前"], note: "降压 · 目标 <140/90" },
-];
-
-const exerciseSessions = [
-  { name: "手部精细动作训练", duration: 15, intensity: "轻度", desc: "抓握、捏取、拧毛巾等,恢复上肢协调" },
-  { name: "坐位平衡训练", duration: 10, intensity: "轻度", desc: "坐位重心转移,配合上肢伸展" },
-  { name: "步行训练", duration: 20, intensity: "中度", desc: "室内平地慢走,注意保持步态" },
 ];
 
 const PatientHome = () => {
@@ -132,12 +52,6 @@ const PatientHome = () => {
     return false;
   });
   const [mountEl, setMountEl] = useState<HTMLElement | null>(null);
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [openTask, setOpenTask] = useState<Task | null>(null);
-
-  // exercise sheet state
-  const [exMinutes, setExMinutes] = useState(15);
-  const [exFeel, setExFeel] = useState<string>("刚好");
 
   useEffect(() => {
     setMountEl(document.querySelector<HTMLElement>("[data-patient-frame]"));
@@ -150,10 +64,6 @@ const PatientHome = () => {
   const handleStepAction = () => {
     const target = guideSteps[step]?.to;
     if (target) navigate(target);
-  };
-
-  const markDone = (id: string) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done: true } : t)));
   };
 
   const done = step >= guideSteps.length;
@@ -174,7 +84,7 @@ const PatientHome = () => {
           </div>
         </div>
         <p className="mb-4 text-base leading-relaxed opacity-95">
-          出院小结、检验报告、用药清单,拍一拍即可建立您的认知健康档案。
+          出院小结、检验报告、体检材料,拍一拍即可建立您的认知健康档案。
         </p>
         <Button size="lg" className="w-full bg-white text-primary hover:bg-white/90">
           <Camera className="mr-2 h-5 w-5" /> 立即拍照录入
@@ -213,7 +123,7 @@ const PatientHome = () => {
       </div>
 
       {/* 三项指标 */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <div className="rounded-xl border bg-card p-3">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <HeartPulse className="h-3.5 w-3.5" /> 血压
@@ -230,15 +140,7 @@ const PatientHome = () => {
           <p className="mt-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">5.6</p>
           <p className="text-[11px] text-muted-foreground">mmol/L · 平稳</p>
         </div>
-        <div className="rounded-xl border bg-card p-3">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Pill className="h-3.5 w-3.5" /> 今日用药
-          </div>
-          <p className="mt-1 text-xl font-bold text-primary">
-            1<span className="text-sm font-medium text-muted-foreground">/3</span>
-          </p>
-          <p className="text-[11px] text-muted-foreground">下次 12:30</p>
-        </div>
+
       </div>
 
       {/* 四个入口 */}
@@ -266,53 +168,10 @@ const PatientHome = () => {
         })}
       </div>
 
-      {/* 今日任务 */}
-      <div>
-        <div className="mb-2 flex items-center justify-between px-1">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold">今日任务</h2>
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">打卡得积分</span>
-          </div>
-          <button className="flex items-center text-sm text-primary">
-            全部 <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="space-y-2">
-          {tasks.map((t) => {
-            const Icon = t.icon;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setOpenTask(t)}
-                className="flex w-full items-center gap-3 rounded-xl border bg-card p-3 text-left"
-              >
-                <div className={`flex h-11 w-11 items-center justify-center rounded-full ${t.color}`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-base font-medium">{t.title}</p>
-                  <p className="text-xs text-muted-foreground">{t.desc}</p>
-                </div>
-                {t.done ? (
-                  <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300">
-                    <CheckCircle2 className="h-4 w-4" /> {t.doneLabel}
-                  </span>
-                ) : (
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenTask(t);
-                    }}
-                    className="rounded-full border border-primary/40 px-3 py-1 text-sm font-medium text-primary hover:bg-primary/10"
-                  >
-                    {t.actionLabel}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <section className="space-y-3">
+        <div className="flex items-center justify-between"><h2 className="text-lg font-semibold">今日任务</h2><Button variant="ghost" size="sm" onClick={() => navigate("/patient/tasks")}>全部 <ChevronRight className="h-4 w-4" /></Button></div>
+        <FamilyTasks compact />
+      </section>
 
       {/* 认知评估量表 */}
       <div>
@@ -349,9 +208,9 @@ const PatientHome = () => {
         </div>
         <div className="space-y-2">
           {[
-            { title: "认知障碍早期信号识别 BEFAST 口诀", tag: "科普", read: "3 min" },
+            { title: "认知功能变化的早期信号", tag: "科普", read: "3 min" },
             { title: "居家认知训练怎么做", tag: "康复", read: "6 min" },
-            { title: "抗血小板药物长期服用要点", tag: "用药", read: "4 min" },
+            { title: "规律睡眠与均衡营养", tag: "健康", read: "4 min" },
           ].map((a) => (
             <div key={a.title} className="flex items-center gap-3 rounded-xl border bg-card p-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -369,204 +228,6 @@ const PatientHome = () => {
       <div className="pb-2 text-center text-xs text-muted-foreground">
         <Activity className="mr-1 inline h-3 w-3" /> 数据同步自 南京市鼓楼医院 · 记忆门诊
       </div>
-
-      {/* 任务详情 ActionSheet */}
-      <PatientActionSheet
-        open={!!openTask}
-        onOpenChange={(v) => !v && setOpenTask(null)}
-        title={openTask?.type === "med" ? "用药计划" : openTask?.type === "diet" ? "饮食打卡" : openTask?.type === "exercise" ? "运动任务" : openTask?.title ?? ""}
-        description={openTask?.type === "med" ? "查看用药计划并记录服药" : openTask?.type === "diet" ? "拍照或语音打卡,AI 分析饮食结构" : openTask?.type === "exercise" ? "记录实际运动时长与强度" : undefined}
-      >
-        {openTask?.type === "med" && (
-          <div className="space-y-3">
-            <div className="rounded-xl border bg-muted/30 p-3">
-              <div className="flex items-center gap-2 text-sm">
-                <Camera className="h-4 w-4 text-primary" />
-                <span className="font-medium">拍照记录本次服药</span>
-              </div>
-              <div className="mt-2 flex gap-2">
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => toast({ title: "已拍照", description: "药盒信息识别成功" })}>
-                  <Camera className="mr-1 h-4 w-4" /> 拍药盒
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => toast({ title: "已语音记录" })}>
-                  <Mic className="mr-1 h-4 w-4" /> 语音
-                </Button>
-              </div>
-            </div>
-            <p className="px-1 text-sm font-semibold">我的用药计划</p>
-            {medPlan.map((m) => (
-              <div key={m.name} className="rounded-xl border p-3">
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold">{m.name}</p>
-                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">{m.dose}</span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">{m.note}</p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {m.times.map((t) => (
-                    <span key={t} className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs">
-                      <Clock className="h-3 w-3" /> {t}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-            <Button variant="outline" className="w-full" onClick={() => toast({ title: "添加用药", description: "可扫码药盒或手动录入" })}>
-              <Plus className="mr-1 h-4 w-4" /> 添加用药 / 设置服药时间
-            </Button>
-            <Button
-              className="w-full bg-gradient-primary"
-              onClick={() => {
-                if (openTask) markDone(openTask.id);
-                toast({ title: "已记录服药", description: "+20 积分" });
-                setOpenTask(null);
-              }}
-            >
-              确认已服药并记录
-            </Button>
-          </div>
-        )}
-
-        {openTask?.type === "diet" && (
-          <div className="space-y-3">
-            <div className="rounded-xl bg-gradient-to-br from-cyan-50 to-white p-3 ring-1 ring-cyan-100 dark:from-cyan-950/40 dark:to-transparent dark:ring-cyan-900/40">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">通用饮食方案 · 午餐</p>
-                <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300">约 560 千卡</span>
-              </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">推荐结构:粗细搭配主食 + 优质蛋白 + 深色蔬菜(与方案保持一致)</p>
-              <div className="mt-3 space-y-2">
-                <div className="rounded-lg bg-muted/40 p-2.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-semibold">粗细搭配主食</span>
-                    <span className="text-xs text-primary">75-100 克(生重)</span>
-                  </div>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {["糙米饭", "杂粮饭", "全麦面"].map((i) => (
-                      <span key={i} className="rounded-md bg-white px-2 py-0.5 text-[11px] ring-1 ring-border dark:bg-card">{i}</span>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-lg bg-muted/40 p-2.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-semibold">优质蛋白</span>
-                    <span className="text-xs text-primary">1 掌心份</span>
-                  </div>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {["清蒸鲈鱼", "白灼虾", "香煎三文鱼", "去皮鸡胸"].map((i) => (
-                      <span key={i} className="rounded-md bg-white px-2 py-0.5 text-[11px] ring-1 ring-border dark:bg-card">{i}</span>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-lg bg-muted/40 p-2.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-semibold">深色蔬菜</span>
-                    <span className="text-xs text-primary">≥ 200 克</span>
-                  </div>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {["西兰花", "菠菜", "芦笋", "彩椒"].map((i) => (
-                      <span key={i} className="rounded-md bg-white px-2 py-0.5 text-[11px] ring-1 ring-border dark:bg-card">{i}</span>
-                    ))}
-                  </div>
-                  <p className="mt-1 text-[11px] text-muted-foreground">提示:少盐少油,酱汁不超过 1 勺</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-xl bg-primary/5 p-3">
-              <p className="mb-2 text-sm font-semibold">本餐打卡</p>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => toast({ title: "已拍照", description: "AI 正在识别菜品……" })}>
-                  <Camera className="mr-1 h-4 w-4" /> 拍照
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => toast({ title: "语音打卡中" })}>
-                  <Mic className="mr-1 h-4 w-4" /> 语音
-                </Button>
-              </div>
-              <div className="mt-3 rounded-lg border bg-card p-3 text-xs">
-                <p className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-primary">
-                  <Sparkles className="h-4 w-4" /> AI 饮食结构分析
-                </p>
-                <div className="space-y-1">
-                  <p>· 碳水占比 <b>52%</b> · 蛋白质 <b>21%</b> · 脂肪 <b>27%</b></p>
-                  <p>· 钠摄入偏高,建议下一餐减少咸菜/酱汁</p>
-                  <p>· 蔬菜量达标,继续保持深色蔬菜比例</p>
-                </div>
-              </div>
-            </div>
-            <Button
-              className="w-full bg-gradient-primary"
-              onClick={() => {
-                if (openTask) markDone(openTask.id);
-                toast({ title: "本餐打卡成功", description: "+15 积分" });
-                setOpenTask(null);
-              }}
-            >
-              提交打卡
-            </Button>
-          </div>
-        )}
-
-        {openTask?.type === "exercise" && (
-          <div className="space-y-3">
-            <p className="px-1 text-sm font-semibold">今日康复训练</p>
-            {exerciseSessions.map((s) => (
-              <div key={s.name} className="rounded-xl border p-3">
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold">{s.name}</p>
-                  <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
-                    {s.intensity} · {s.duration} min
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">{s.desc}</p>
-              </div>
-            ))}
-            <div className="rounded-xl bg-primary/5 p-3">
-              <p className="mb-2 text-sm font-semibold">记录本次实际训练</p>
-              <label className="text-xs text-muted-foreground">实际时长 (分钟)</label>
-              <div className="mt-1 flex items-center gap-2">
-                {[5, 10, 15, 20, 30].map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setExMinutes(m)}
-                    className={`flex-1 rounded-lg border py-1.5 text-sm ${exMinutes === m ? "border-primary bg-primary/10 font-medium text-primary" : ""}`}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
-              <label className="mt-3 block text-xs text-muted-foreground">强度感受</label>
-              <div className="mt-1 grid grid-cols-4 gap-2">
-                {["轻松", "刚好", "偏累", "很累"].map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setExFeel(f)}
-                    className={`rounded-lg border py-1.5 text-sm ${exFeel === f ? "border-primary bg-primary/10 font-medium text-primary" : ""}`}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <Button
-              className="w-full bg-gradient-primary"
-              onClick={() => {
-                if (openTask) markDone(openTask.id);
-                toast({ title: "训练已记录", description: `${exMinutes} 分钟 · ${exFeel} · +30 积分` });
-                setOpenTask(null);
-              }}
-            >
-              提交记录
-            </Button>
-          </div>
-        )}
-
-        {openTask?.type === "bp" && (
-          <div className="space-y-3">
-            <p className="text-sm">本次晨起测量已记录:<b className="text-emerald-600">128 / 82 mmHg</b></p>
-            <Button className="w-full bg-gradient-primary" onClick={() => setOpenTask(null)}>关闭</Button>
-          </div>
-        )}
-      </PatientActionSheet>
 
       {/* 悬浮使用引导 */}
       {!done && mountEl && createPortal(

@@ -42,7 +42,6 @@ const PatientProfile = () => {
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold">张伟</span>
             <span className="rounded bg-gradient-to-r from-amber-400 to-orange-500 px-1.5 py-0.5 text-[10px] font-bold text-white">✦ VIP</span>
-            <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] text-violet-700 dark:bg-violet-950/40 dark:text-violet-300">✦ 1,280</span>
           </div>
           <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
             建议完善健康档案,给您更精准的… <ChevronRight className="h-3 w-3" />

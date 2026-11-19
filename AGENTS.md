@@ -1,4 +1,5 @@
 <!-- AGENT-MEMORY:BEGIN -->
+- FamilyTasks is shared by home/tasks/plan; derive nutrition/sleep and home-only training from confirmed plans, persist per-day/version check-ins with server validation, so UI completion cannot drift from the prescribed plan.
 - Shared detail score coloring uses scalePresentation reference bands, not patient risk; keep binary screening and unvalidated scales out of invented three-tier cutoffs, because single scores cannot diagnose or determine referral eligibility.
 - Community upward requests use request_upward_referral and doctor review uses review_upward_referral; approval_status is independent of hospital reception, preserving legacy referrals and community intervention. Subscribe both ends to referral changes so approval and reception read back live.
 - Community screening badges/todos and risk lists/referral controls use separate predicates in communityReception over saved patient fields, so screening positivity cannot be promoted into an assessment risk or referral eligibility.

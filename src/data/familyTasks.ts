@@ -1,0 +1,51 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { planConfirmed } from "@/data/cognitive";
+import type { Patient } from "@/data/patients";
+import type { Advice } from "@/components/cognitive/AiAdvicePanel";
+
+export type FamilyTask = { key: string; category: "营养" | "睡眠" | "训练"; title: string; frequency: string; duration: string };
+export function familyPlanTasks(p: Pick<Patient, "ai_plan" | "ai_plan_at" | "ai_plan_confirmed_at" | "cognitive_risk"> | null | undefined): FamilyTask[] {
+  if (!planConfirmed(p)) return [];
+  const plan = p?.ai_plan as Advice;
+  const tasks: FamilyTask[] = [];
+  (plan.interventions ?? []).forEach((item, i) => {
+    if (item.category !== "营养" && item.category !== "睡眠") return;
+    const category = item.category;
+    item.actions.forEach((title, j) => tasks.push({ key: `intervention-${i}-${j}`, category, title, frequency: item.frequency, duration: item.duration }));
+  });
+  (plan.training ?? []).forEach((t, i) => {
+    if (!["家庭作业", "家庭任务", "居家", "家庭"].includes(t.setting)) return;
+    tasks.push({ key: `training-${i}`, category: "训练", title: t.activity, frequency: t.frequency, duration: t.duration });
+  });
+  // Older confirmed plans store home instructions in follow-up/caregiver prose.
+  // Reuse those exact instructions instead of inventing new clinical advice.
+  if (!plan.interventions?.length) {
+    const legacy = [...(plan.followup?.items ?? []).map((title, i) => ({ key: `followup-${i}`, title })), ...(plan.caregiver_tips ?? []).map((title, i) => ({ key: `caregiver-${i}`, title }))];
+    legacy.forEach(item => {
+      if (/用药|服药|降压药|助眠药/.test(item.title)) return;
+      const category = /家庭作业/.test(item.title) ? "训练" : /营养|饮食|食欲/.test(item.title) ? "营养" : /睡眠|作息/.test(item.title) ? "睡眠" : null;
+      if (!category) return;
+      tasks.push({ ...item, category, frequency: category === "训练" ? "按方案家庭作业频次" : "按方案执行", duration: "" });
+    });
+  }
+  return tasks;
+}
+export function familyPlanVersion(p: { ai_plan_at: string | null }): string {
+  // PostgreSQL timestamptz textual form; normalize so SQL and client versions match.
+  return p.ai_plan_at ? new Date(p.ai_plan_at).toISOString().replace("T", " ").replace(/\.000Z$/, "+00").replace(/Z$/, "+00") : "initial";
+}
+export function useFamilyCheckins(patientId?: string) {
+  return useQuery({ queryKey: ["family-checkins", patientId], enabled: !!patientId, queryFn: async () => {
+    const { data, error } = await supabase.from("family_task_checkins").select("*").eq("patient_id", patientId ?? "").order("created_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
+  }});
+}
+export function useSaveFamilyCheckin() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: async (input: { patient: Patient; task: FamilyTask; date: string; minutes?: number; note: string; by: string }) => {
+    const { error } = await supabase.from("family_task_checkins").insert({ patient_id: input.patient.id, plan_version: familyPlanVersion(input.patient), task_key: input.task.key, category: input.task.category, title: input.task.title, recorded_on: input.date, duration_min: input.minutes ?? null, note: input.note.trim() || null, recorded_by: input.by });
+    if (error) throw error;
+  }, onSuccess: () => qc.invalidateQueries({ queryKey: ["family-checkins"] }) });
+}
