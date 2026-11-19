@@ -15,7 +15,7 @@ import AiAdvicePanel from "@/components/cognitive/AiAdvicePanel";
 import {
   usePatient, usePatientDocuments, useReferrals, usePatientEducation, useTrainingRecords, useCreateReferral, type Patient,
 } from "@/data/patients";
-import { RISK_PLAN, TRAINING_DOMAINS, scaleLevel, suggestRisk } from "@/data/cognitive";
+import { RISK_PLAN, scaleLevel, suggestRisk } from "@/data/cognitive";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -163,7 +163,6 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     qc.invalidateQueries(); setAccept(null);
     toast({ title: "已接诊确认", description: "指导意见已反馈至社区训练站" });
   };
-  const plan = p.cognitive_risk ? RISK_PLAN[p.cognitive_risk] : null;
   const myRefs = referrals.filter((r) => r.patient_id === p.id);
   const pendingUp = myRefs.find((r) => r.direction === "上转" && r.status === "待接收");
 
@@ -304,29 +303,6 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             </div>
           )}
         </Card>
-
-        {plan && (
-          <Card className="p-4 shadow-soft">
-            <p className="text-sm font-semibold">分级干预方案 · {p.cognitive_risk}</p>
-            <p className="text-[11px] text-muted-foreground">{plan.group} · 复评{plan.reassess}</p>
-            <div className="mt-2 space-y-2">
-              {([["doctor", "评估医生要做"], ["community", "社区训练站要做"]] as const).map(([k, label]) => (
-                <div key={k} className={`rounded-lg border p-2.5 ${role === k ? "border-primary bg-primary/5" : "opacity-70"}`}>
-                  <p className="mb-1 text-xs font-semibold">{label}{role === k && <span className="ml-1 text-primary">· 我</span>}</p>
-                  <ol className="list-decimal space-y-1 pl-4 text-xs">{plan[k].map((a) => <li key={a}>{a}</li>)}</ol>
-                </div>
-              ))}
-            </div>
-            {p.cognitive_risk !== "低风险" && (
-              <>
-                <p className="mt-3 text-[11px] text-muted-foreground">认知训练八大领域</p>
-                <div className="mt-1 grid grid-cols-4 gap-1">
-                  {TRAINING_DOMAINS.map((d) => <span key={d} className="rounded bg-accent/10 px-1 py-1 text-center text-[11px] text-accent">{d}</span>)}
-                </div>
-              </>
-            )}
-          </Card>
-        )}
 
         {docs.length > 0 && <Card className="p-4 shadow-soft">
           <p className="mb-2 text-sm font-semibold">建档材料 <span className="text-xs font-normal text-muted-foreground">({docs.length})</span></p>
