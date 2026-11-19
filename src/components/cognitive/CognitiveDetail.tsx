@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import ActionSheet from "@/components/nurse/ActionSheet";
 import { planConfirmed, needsReferral, COMMUNITY_STATIONS, DIAG_DEPTS, DEPT_DOCTORS, AD8_ITEMS } from "@/data/cognitive";
@@ -37,6 +38,8 @@ const Scale = ({ label, value, max, hint }: { label: string; value: number | nul
 const riskTone = (r: Patient["cognitive_risk"]) =>
   r === "高风险" ? "bg-destructive/15 text-destructive" : r === "中风险" ? "bg-warning/15 text-warning" : "bg-success/15 text-success";
 
+const DURATION_OPTIONS = [10, 15, 20, 30, 45];
+
 export default function CognitiveDetail({ role }: { role: Role }) {
   const { id = "" } = useParams();
   const navigate = useNavigate();
@@ -58,7 +61,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const [upDoc, setUpDoc] = useState<string>(DEPT_DOCTORS[DIAG_DEPTS[0]][0]);
   const [station, setStation] = useState<string>(COMMUNITY_STATIONS[0]);
   const [uploading, setUploading] = useState(false);
-  const [task, setTask] = useState<null | { domain: string; activity: string; setting: string; date: string; time: string; feedback: string; duration: string; completion: string; freq?: string }>(null);
+  const [task, setTask] = useState<null | { domain: string; activity: string; setting: string; date: string; time: string; feedback: string; duration: string; completion: string; freq?: string; planIdx?: number }>(null);
   const [docsOpen, setDocsOpen] = useState(false);
   const [ad8, setAd8] = useState<null | boolean[]>(null);
   const [accept, setAccept] = useState<null | { rid: string; dept: string; diag: string; feedback: string }>(null);
@@ -69,6 +72,14 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   if (!p) return <p className="p-6 text-sm text-muted-foreground">未找到该患者档案</p>;
 
   const aiRisk = suggestRisk(p);
+  const planItems = planConfirmed(p) ? ((p.ai_plan as Advice).training ?? []) : [];
+  const openTask = (idx: number, completion: string) => {
+    const t = planItems[idx];
+    if (!t) return;
+    setTrainingOpen(false);
+    setTask({ domain: t.domain, activity: t.activity, setting: t.setting === "家庭作业" ? "家庭任务" : t.setting, freq: `${t.frequency} · ${t.duration}`, planIdx: idx,
+      date: new Date().toLocaleDateString("en-CA"), time: new Date().toTimeString().slice(0, 5), feedback: "", duration: String(parseInt(t.duration.replace(/\D*(\d+).*/, "$1")) || 20), completion });
+  };
   const confirmGrade = async () => {
     if (!grade) return;
     setSaving(true);
@@ -245,7 +256,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             <ul className="mt-2 space-y-1.5">
               {((p.ai_plan as Advice).training ?? []).map((t, i) => {
                 const setting = t.setting === "家庭作业" ? "家庭任务" : t.setting;
-                const open = (completion: string) => { setTrainingOpen(false); setTask({ domain: t.domain, activity: t.activity, setting, freq: `${t.frequency} · ${t.duration}`,
+                const open = (completion: string) => { setTrainingOpen(false); setTask({ domain: t.domain, activity: t.activity, setting, freq: `${t.frequency} · ${t.duration}`, planIdx: i,
                   date: new Date().toLocaleDateString("en-CA"), time: new Date().toTimeString().slice(0, 5), feedback: "", duration: String(parseInt(t.duration.replace(/\D*(\d+).*/, "$1")) || 20), completion }); };
                 return (
                   <li key={i} className="rounded-lg border p-2.5 text-xs">
@@ -318,7 +329,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </Card>
 
         <Card className="p-4 shadow-soft">
-          <div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold">训练记录 <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>{role === "community" && <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => setTrainingOpen(true)}>添加训练记录</Button>}</div>
+          <div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold">训练记录 <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>{role === "community" && <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => (planItems.length > 0 ? openTask(0, "完成") : setTrainingOpen(true))}>添加训练记录</Button>}</div>
           {trainings.length === 0 ? <p className="text-xs text-muted-foreground">暂无训练记录</p> : trainings.map((t) => (
             <div key={t.id} className="flex flex-wrap items-start justify-between gap-2 border-b py-1.5 text-xs last:border-0">
               <div className="min-w-0 flex-1"><p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on}{t.training_time ? ` ${t.training_time.slice(0, 5)}` : ""} · {t.setting} · {t.duration_min} 分钟{t.operator ? ` · ${t.operator}` : ""}</p>{t.feedback && <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">训练反馈：{t.feedback}</p>}</div>
@@ -365,6 +376,16 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         footer={<Button className="w-full" disabled={saving} onClick={saveTask}>确认</Button>}>
         {task && (
           <div className="space-y-3">
+            {planItems.length > 0 && (
+              <label className="block text-xs">训练内容（来自医生确认的方案）
+                <Select value={String(task.planIdx ?? 0)} onValueChange={(v) => { const idx = Number(v); const t = planItems[idx]; if (!t) return; setTask({ ...task, planIdx: idx, domain: t.domain, activity: t.activity, setting: t.setting === "家庭作业" ? "家庭任务" : t.setting, freq: `${t.frequency} · ${t.duration}`, duration: String(parseInt(t.duration.replace(/\D*(\d+).*/, "$1")) || 20) }); }}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="选择训练内容" /></SelectTrigger>
+                  <SelectContent>
+                    {planItems.map((t, i) => <SelectItem key={i} value={String(i)}>{t.domain} · {t.activity}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </label>
+            )}
             <div className="rounded-lg bg-primary/5 p-2.5 text-xs">
               <p className="font-medium">{task.domain} · {task.setting}</p>
               <p className="mt-0.5">{task.activity}</p>
@@ -372,8 +393,16 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <label className="text-xs">{task.completion === "待执行" ? "计划日期" : "执行日期"}<Input className="mt-1" type="date" value={task.date} onChange={(e) => setTask({ ...task, date: e.target.value })} /></label>
-              <label className="text-xs">时长(分钟)<Input className="mt-1" type="number" value={task.duration} onChange={(e) => setTask({ ...task, duration: e.target.value })} /></label>
               <label className="text-xs">训练时间<Input className="mt-1" type="time" value={task.time} onChange={(e) => setTask({ ...task, time: e.target.value })} /></label>
+            </div>
+            <div className="text-xs">
+              <p className="mb-1">训练时长（分钟）</p>
+              <div className="flex flex-wrap gap-1.5">
+                {DURATION_OPTIONS.map((d) => (
+                  <Button key={d} type="button" size="sm" variant={Number(task.duration) === d ? "default" : "outline"} className="h-7 px-2.5 text-xs" onClick={() => setTask({ ...task, duration: String(d) })}>{d}</Button>
+                ))}
+                <Input className="h-7 w-20 px-2 text-xs" type="number" placeholder="自定义" value={DURATION_OPTIONS.includes(Number(task.duration)) ? "" : task.duration} onChange={(e) => setTask({ ...task, duration: e.target.value })} />
+              </div>
             </div>
             {task.completion !== "待执行" && (
               <div className="grid grid-cols-3 gap-1">{["完成", "部分完成", "未完成"].map((c) => (
