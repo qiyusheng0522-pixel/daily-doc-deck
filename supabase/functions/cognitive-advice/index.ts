@@ -57,6 +57,18 @@ const riskSchema = {
   },
 };
 
+const scaleSchema = {
+  type: "object", additionalProperties: false,
+  required: ["summary", "findings", "strengths", "suggestions", "caution"],
+  properties: {
+    summary: { type: "string" },
+    findings: { type: "array", items: { type: "object", additionalProperties: false, required: ["item", "note"], properties: { item: { type: "string" }, note: { type: "string" } } } },
+    strengths: { type: "array", items: { type: "string" } },
+    suggestions: { type: "array", items: { type: "string" } },
+    caution: { type: "string" },
+  },
+};
+
 const outText = (res: unknown) => (res as { output_text?: string }).output_text
   ?? (res as any).output?.flatMap((o: any) => o.content ?? []).find((c: any) => c.type === "output_text")?.text;
 
@@ -73,7 +85,7 @@ Deno.serve(async (req) => {
 
   let raw: unknown;
   try { raw = await req.json(); } catch { return json({ error: "请求格式错误" }, 400); }
-  const parsed = z.object({ patientId: z.string().uuid(), careNeeds: z.string().max(1000).optional(), mode: z.enum(["risk"]).optional(), items: z.record(z.unknown()).optional() }).safeParse(raw);
+  const parsed = z.object({ patientId: z.string().uuid(), careNeeds: z.string().max(1000).optional(), mode: z.enum(["risk", "scale"]).optional(), scaleName: z.string().max(60).optional(), items: z.record(z.unknown()).optional() }).safeParse(raw);
   if (!parsed.success) return json({ error: "参数不完整或格式错误" }, 400);
   const body = parsed.data;
   const { patientId, careNeeds = "" } = body;
@@ -84,13 +96,32 @@ Deno.serve(async (req) => {
     .eq("id", patientId).maybeSingle();
   if (error || !p) return json({ error: "无权访问或未找到该老人档案" }, 404);
 
+  if (body.mode === "scale") {
+    const itemText = JSON.stringify(body.items ?? {}).slice(0, 6000);
+    try {
+      const res = await generateResponse({
+        model: "openai/gpt-6-astra",
+        instructions: "你是老年认知训练站的量表解读助手，面向评估医生和社区康复人员。只根据给出的量表名称、评分标准和逐项作答解读本次量表：概括结果所处的量表参考区间、指出失分或异常条目及其含义、列出保留的能力、给出2-4条可执行的照护/训练/复评建议。用简洁中文；不做疾病诊断，不推断未提供的数据，单一量表不能决定风险分级或转诊。",
+        input: [{ role: "user", content: `老人：${p.name}，${p.gender}，${p.age}岁。量表：${body.scaleName ?? "未命名"}。\n本次记录：${itemText}` }],
+        text: { format: { type: "json_schema", name: "scale_reading", strict: true, schema: scaleSchema } },
+      });
+      const out = outText(res);
+      if (!out) return json({ error: "模型未返回内容，请稍后重试" }, 502);
+      return json({ reading: JSON.parse(out) });
+    } catch (e) {
+      console.error(e);
+      const st = e instanceof GatewayError ? e.httpStatus ?? 500 : 500;
+      return json({ error: st === 402 ? "AI 额度不足，请联系管理员充值" : st === 429 ? "请求太频繁，请稍后再试" : "解读失败，请稍后重试" }, st);
+    }
+  }
+
   if (body.mode === "risk") {
     const itemText = JSON.stringify(body.items ?? {}).slice(0, 4000);
     try {
       const res = await generateResponse({
         model: "openai/gpt-6-astra",
         instructions: "你是老年认知评估专家，依据量表结果给出风险分层。分层标准（《老年认知训练站建设基本标准》）：低风险=认知正常或主观认知下降(SCD)；中风险=轻度认知障碍(MCI)或轻、中度痴呆；高风险=重度痴呆。" +
-          "参考界值：MMSE 27-30 正常、21-26 轻度、10-20 中度、<10 重度（需结合文化程度）；MoCA <26 提示认知障碍；SCD-Q9 ≥5 提示主观认知下降；Barthel ADL <40 重度依赖。中、高风险需转诊上级指导中心确诊。用简洁中文，不做最终诊断。",
+          "参考界值：MMSE 27-30 正常、21-26 轻度、10-20 中度、<10 重度（需结合文化程度）；MoCA <26 提示认知障碍；SCD-Q9 ≥5 提示主观认知下降；Barthel ADL <40 重度依赖；IADL 五项中三项以上需协助为轻度失能。中、高风险需转诊上级指导中心确诊。用简洁中文，不做最终诊断。",
         input: [{ role: "user", content: `老人：${p.name}，${p.gender}，${p.age}岁；SCD-Q9 ${p.scd_q9 ?? "-"}，MMSE ${p.mmse ?? "-"}，MoCA ${p.moca ?? "-"}，ADL ${p.adl ?? "-"}，AD-8 ${p.ad8 ?? "-"}；危险因素：${(p.risk_tags ?? []).join("、") || "无"}。\n逐项得分：${itemText}\n请给出风险等级、依据（3-5条）、受损认知领域、是否需转诊及下一步。` }],
         text: { format: { type: "json_schema", name: "risk_analysis", strict: true, schema: riskSchema } },
       });
@@ -108,7 +139,7 @@ Deno.serve(async (req) => {
 
   const { data: selfRecords, error: selfError } = await sb.from("scale_assessments").select("scale,items,total,created_at,assessed_by").eq("patient_id", patientId).order("created_at", { ascending: false });
   if (selfError) return json({ error: "自评记录读取失败" }, 500);
-  const doctorKeys = ["scd_q9", "mmse", "moca", "adl"];
+  const doctorKeys = ["mmse", "moca", "adl", "iadl", "scd_q9"];
   const doctorRecords = doctorKeys.flatMap(scale => {
     const record = selfRecords?.find(r => r.scale === scale);
     return record ? [record] : [];
@@ -121,7 +152,7 @@ Deno.serve(async (req) => {
   const selfText = selfAssessments.map(({ questionnaire: q, record }) => {
     if (!record) return "";
     const answers = record.items as Record<string, number>;
-    return `${q.name}（简版，非正式诊断量表）：总分${record.total}，填写人${record.assessed_by}，日期${record.created_at}；` + q.questions.map(item => `${item.text}：${item.options.find(o => o.score === answers[item.id])?.label}（${answers[item.id]}分）`).join("；");
+    return `${q.name}：总分${record.total}，填写人${record.assessed_by}，日期${record.created_at}；` + q.questions.map(item => `${item.text}：${item.options.find(o => o.score === answers[item.id])?.label}（${answers[item.id]}分）`).join("；");
   }).join("\n");
 
   try {
@@ -131,7 +162,7 @@ Deno.serve(async (req) => {
         "你是江苏省老年认知训练站的认知康复顾问，为训练站评估师/治疗管理师生成可执行建议。遵循《老年认知训练站建设基本标准》：" +
         "风险分层 低风险(认知正常/SCD)→宣教+每年复评；中风险(MCI/轻中度痴呆)→认知训练、家庭作业每周1-2次、危险因素管理、每6个月复评；高风险(重度痴呆)→长期照护/家庭病床/上门评估、每3个月复评；每月随访。" +
         `严格遵循服务参数：${JSON.stringify(TREATMENT_PROTOCOL)}。` +
-        "interventions须逐项包含该风险档位的所有治疗类型，category必须与服务参数中的名称完全一致；每项给出结合本人量表和照护需求的具体措施、频次、时长。中风险认知训练累计20-36小时/期、6-12人小组，家庭作业每周1-2次、每次20-30分钟，另含非药物干预、风险管理、睡眠、营养、心理。高风险以长期护理、家庭病床准入评估、家庭病床框架内上门评估康复和风险管理为主，不套用中风险小组训练；不得声称未经评估已符合家庭病床准入。结合睡眠、营养、跌倒、心理自评个性化调整，具体到频次时长，不做诊断，待医生确认后执行。" +
+        "interventions须逐项包含该风险档位的所有治疗类型，category必须与服务参数中的名称完全一致；每项给出结合本人量表和照护需求的具体措施、频次、时长。中风险认知训练累计20-36小时/期、6-12人小组，家庭作业每周1-2次、每次20-30分钟，另含非药物干预、风险管理、睡眠、营养、心理。高风险以长期护理、家庭病床准入评估、家庭病床框架内上门评估康复和风险管理为主，不套用中风险小组训练；不得声称未经评估已符合家庭病床准入。结合睡眠(PSQI)、营养(MNA)、跌倒(Morse)、焦虑(SAS)、抑郁(SDS)自评个性化调整，具体到频次时长，不做诊断，待医生确认后执行。" +
         "必须同时根据已保存的医生他评逐项评分和患者自评逐题答案制定个性化方案。缺失的他评量表明确写为未评估，不得推断其分数。training必须包含3-6项可直接执行的具体训练，不可只写记忆训练等类别名。每项activity写明训练名称、所需材料、分步操作、重复次数、难度调整、达成目标与安全注意事项；针对他评受损领域及自评异常安排场景。中风险包含站内训练及家庭作业；高风险以照护者协助的居家或上门训练为主。",
       input: [{
         role: "user",

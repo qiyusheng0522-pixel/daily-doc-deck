@@ -14,7 +14,7 @@ import RiskAnalysisCard, { type RiskAnalysis } from "@/components/cognitive/Risk
 import ActionSheet from "@/components/nurse/ActionSheet";
 import { assessmentHistory } from "@/data/assessmentHistory";
 
-/** 评估医生：逐项完成 SCD-Q9 / MMSE / MoCA / ADL，保存后由模型分析风险等级 */
+/** 评估医生：逐项完成 MMSE / MoCA / ADL / IADL / SCD-Q9，保存后由模型分析风险等级 */
 export default function DoctorAssess() {
   const { id = "" } = useParams();
   const qc = useQueryClient();
@@ -23,8 +23,8 @@ export default function DoctorAssess() {
   const [chosen, setChosen] = useState<ScaleKey[]>([]);
   const [libOpen, setLibOpen] = useState(true);
   const [openH, setOpenH] = useState<string | null>(null);
-  const [active, setActive] = useState<ScaleKey>("scd_q9");
-  const [picks, setPicks] = useState<Record<ScaleKey, Record<number, number>>>({ scd_q9: {}, mmse: {}, moca: {}, adl: {} });
+  const [active, setActive] = useState<ScaleKey>("mmse");
+  const [picks, setPicks] = useState<Record<ScaleKey, Record<number, number>>>({ scd_q9: {}, mmse: {}, moca: {}, adl: {}, iadl: {} });
   const [done, setDone] = useState<Partial<Record<ScaleKey, number>>>({});
   const [saving, setSaving] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -116,7 +116,7 @@ export default function DoctorAssess() {
                 <div className="flex flex-wrap gap-1">
                   {it.options.map((o) => (
                     <button key={o} onClick={() => setPicks({ ...picks, [active]: { ...cur, [i]: o } })}
-                      className={`min-w-9 rounded-md border px-2 py-1 text-xs ${cur[i] === o ? "border-primary bg-primary text-primary-foreground" : "bg-card"}`}>{o}</button>
+                      className={`min-w-9 rounded-md border px-2 py-1 text-xs ${cur[i] === o ? "border-primary bg-primary text-primary-foreground" : "bg-card"}`}>{it.labels ? `${it.labels[it.options.indexOf(o)]}（${o}）` : o}</button>
                   ))}
                 </div>
               </div>

@@ -28,4 +28,5 @@
 - Scale items/maxima live in src/data/scales.ts; each completed scale is a `scale_assessments` row and also updates the patient column. Model risk analysis is the `mode: "risk"` branch of cognitive-advice, saved to patients.ai_risk; doctor adoption sets cognitive_risk.
 - DemoSession (mounted in App) auto-signs in the demo account when signed out, so stakeholder demos never hit RLS write failures; all ends share that multi-role account.
 - Visit records = patient_documents kind 诊疗记录; training_records.record_type splits device/non-device; plans render via planGroups for consistency.
+- Scale content follows the user's 评估量表 document: clinician scales in src/data/scales.ts (MMSE/MoCA/ADL/IADL, SCD-Q9 kept as supplement) and self questionnaires PSQI/MNA/Morse/SAS/SDS in _shared/selfAssessment.ts with per-scale score functions; ScaleDetailSheet adds on-demand cognitive-advice mode "scale" readings (not saved), so one definition drives forms, history and AI.
 <!-- AGENT-MEMORY:END -->

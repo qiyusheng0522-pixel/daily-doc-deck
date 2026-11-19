@@ -8,6 +8,10 @@ describe("全部历史量表", () => {
   });
   it("历史自评作答按保存的分值还原为问题和选项", () => {
     const [record] = assessmentHistory([{ id: "1", scale: "self_sleep", items: { s1: 3 }, total: 3, created_at: "2026-11-19", assessed_by: "患者" }]);
-    expect(record.answers).toEqual([{ question: "上床后多久能入睡？", answer: "超过 1 小时", score: 3 }]);
+    expect(record.answers).toEqual([{ question: "近一个月总的来说您认为自己的睡眠质量", group: "睡眠质量", answer: "很差", score: 3 }]);
+  });
+  it("他评逐项按文档选项文字还原", () => {
+    const [record] = assessmentHistory([{ id: "1", scale: "adl", items: { 进食: 5 }, total: 5, created_at: "2026-11-19", assessed_by: "医生" }]);
+    expect(record.answers[0].answer).toBe("需部分帮助");
   });
 });

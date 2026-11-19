@@ -36,7 +36,7 @@ export default function AiAdvicePanel({ patientId, name, saved, savedAt, compact
   const [advice, setAdvice] = useState<Advice | null>((saved as Advice) ?? null);
 
   const run = async () => {
-    if (!complete) return toast({ title: "请先协助患者完成四份自评量表" });
+    if (!complete) return toast({ title: "请先协助患者完成全部自评量表" });
     if (!doctorComplete) return toast({ title: "请先完成医生他评量表" });
     setLoading(true);
     const { data, error } = await supabase.functions.invoke("cognitive-advice", { body: { patientId, careNeeds: needs.trim() } });

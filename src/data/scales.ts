@@ -1,47 +1,67 @@
-/** 医生端量表定义：每项给出可选分值，总分=各项之和 */
-export type ScaleKey = "scd_q9" | "mmse" | "moca" | "adl";
-export type ScaleItem = { label: string; options: number[]; hint?: string };
-export type Scale = { key: ScaleKey; name: string; max: number; desc: string; items: ScaleItem[] };
+/** 医生他评量表定义：以《老年认知训练站评估量表》文档为准；每项给出可选分值及文字，总分=各项之和 */
+export type ScaleKey = "scd_q9" | "mmse" | "moca" | "adl" | "iadl";
+export type ScaleItem = { label: string; options: number[]; labels?: string[]; hint?: string; group?: string };
+export type Scale = { key: ScaleKey; name: string; max: number; desc: string; criteria: string; items: ScaleItem[] };
 
 const range = (n: number) => Array.from({ length: n + 1 }, (_, i) => i);
-const yn = (label: string): ScaleItem => ({ label, options: [0, 1], hint: "否=0 是=1" });
+const yn = (label: string): ScaleItem => ({ label, options: [0, 1], labels: ["否", "是"] });
+const bin = (group: string, label: string): ScaleItem => ({ group, label: `${group} · ${label}`, options: [0, 1], labels: ["错误", "正确"] });
+const opt = (label: string, pairs: [number, string][]): ScaleItem => ({ label, options: pairs.map(p => p[0]), labels: pairs.map(p => p[1]) });
 
 export const SCALES: Scale[] = [
-  { key: "scd_q9", name: "SCD-Q9", max: 9, desc: "主观认知下降问卷，询问老人本人", items: [
+  { key: "mmse", name: "MMSE", max: 30, desc: "简易智能精神状态评估表", criteria: "痴呆分界值：中学或以上（教育年限＞6年）24分；小学（≤6年）20分；文盲17分。", items: [
+    ...["星期几", "几号", "几月", "什么季节", "哪一年", "省市", "区县", "街道或乡", "什么地方", "第几层楼"].map(x => bin("定向力", x)),
+    ...["皮球", "国旗", "树木"].map(x => bin("记忆力", x)),
+    ...["100-7", "93-7", "86-7", "79-7", "72-7"].map(x => bin("注意力和计算力", x)),
+    ...["皮球", "国旗", "树木"].map(x => bin("回忆能力", x)),
+    bin("命名能力", "回答出“手表”"), bin("命名能力", "回答出“铅笔”"),
+    bin("复述能力", "“大家齐心协力拉紧绳”"),
+    bin("三步命令", "右手拿起纸"), bin("三步命令", "将纸对折"), bin("三步命令", "将纸放在左腿上"),
+    bin("阅读能力", "“请闭上您的眼睛”"), bin("书写能力", "写一个完整的句子"), bin("结构能力", "照样临摹图形"),
+  ] },
+  { key: "moca", name: "MoCA", max: 30, desc: "蒙特利尔认知评估量表", criteria: "总分30分，≥26分为正常；受教育≤12年加1分。", items: [
+    bin("视空间与执行", "交替连线"), bin("视空间与执行", "复制立方体"),
+    bin("视空间与执行", "画钟·轮廓"), bin("视空间与执行", "画钟·数字"), bin("视空间与执行", "画钟·指针"),
+    bin("命名", "狮子"), bin("命名", "犀牛"), bin("命名", "骆驼"),
+    bin("注意", "顺背 2 1 8 5 4"), bin("注意", "倒背 7 4 2"), bin("注意", "听到数字1时敲桌（错误≤1次）"),
+    { group: "注意", label: "注意 · 100连续减7（4-5次正确3分，2-3次2分，1次1分）", options: range(3) },
+    bin("语言", "复述“我只知道今天张亮是来帮过忙的人”"), bin("语言", "复述“狗在房间的时候，猫总是躲在沙发下面”"),
+    bin("语言", "流畅性：1分钟说出≥11个动物名称"),
+    bin("抽象", "火车—自行车"), bin("抽象", "手表—尺子"),
+    ...["面孔", "天鹅绒", "教堂", "菊花", "红色"].map(x => bin("延迟回忆", `${x}（不提示）`)),
+    ...["日期", "月份", "年代", "星期几", "地点", "城市"].map(x => bin("定向", x)),
+    { group: "教育", label: "教育 · 受教育≤12年加1分", options: [0, 1], labels: ["否", "是"] },
+  ] },
+  { key: "adl", name: "ADL", max: 100, desc: "日常生活活动能力量表（Barthel）", criteria: "＜40分 A级（差）生活不能自理；41-60分 B级（中）部分自理；＞60分 C级（良）基本自理。", items: [
+    opt("进食", [[0, "依赖"], [5, "需部分帮助"], [10, "自理"]]),
+    opt("洗澡", [[0, "依赖"], [5, "自理"]]),
+    opt("修饰（洗脸、梳头、刷牙、剃须）", [[0, "需帮助"], [5, "自理"]]),
+    opt("穿衣（解系纽扣、拉链、穿鞋等）", [[0, "依赖"], [5, "需部分帮助"], [10, "自理"]]),
+    opt("控制大便", [[0, "失禁或需灌肠"], [5, "偶有失禁（每周＜1次）"], [10, "能控制"]]),
+    opt("控制小便", [[0, "失禁或插尿管"], [5, "偶有失禁（每24小时＜1次）"], [10, "能控制"]]),
+    opt("用厕（拭净、整理衣裤、冲水）", [[0, "依赖"], [5, "需部分帮助"], [10, "自理"]]),
+    opt("床←→椅转移", [[0, "完全依赖，不能坐"], [5, "需大量帮助（2人），能坐"], [10, "需少量帮助（1人）或指导"], [15, "自理"]]),
+    opt("平地行走", [[0, "不能移动或＜45米"], [5, "独自操纵轮椅＞45米"], [10, "需1人帮助步行＞45米"], [15, "独立步行＞45米"]]),
+    opt("上楼梯", [[0, "不能"], [5, "需帮助"], [10, "自理"]]),
+  ] },
+  { key: "iadl", name: "IADL", max: 24, desc: "工具性日常生活活动能力（以最近一个月表现为准）", criteria: "购物、外出、烹调、家务、洗衣五项中三项以上需协助为轻度失能；不适用视为满分。", items: [
+    opt("上街购物", [[3, "独立完成所有购物"], [2, "独立购买日常用品"], [1, "每次购物需有人陪"], [0, "完全不会购物"]]),
+    opt("外出活动", [[4, "自己开车、骑车"], [3, "自己搭乘公共交通"], [2, "能搭出租车但不会坐公交"], [1, "有人陪同可外出"], [0, "完全不能出门"]]),
+    opt("食物烹调", [[3, "独立计划烹煮一餐"], [2, "备好佐料可做饭"], [1, "会加热做好的饭菜"], [0, "需别人煮好摆好"]]),
+    opt("家务维持", [[4, "能做繁重家事"], [3, "能做简单家事"], [2, "能做但不够整洁"], [1, "所有家事需协助"], [0, "完全不会做家事"]]),
+    opt("洗衣服", [[2, "自己清洗所有衣物"], [1, "只清洗小件衣物"], [0, "完全依赖他人"]]),
+    opt("使用电话", [[3, "独立使用电话"], [2, "仅可拨熟悉号码"], [1, "仅会接电话"], [0, "完全不会使用"]]),
+    opt("服用药物", [[3, "按时正确服药"], [2, "需要提醒或少许协助"], [1, "事先分好可自行服用"], [0, "不能自己服药"]]),
+    opt("处理财务", [[2, "独立处理财务"], [1, "日常购买需协助"], [0, "不能处理钱财"]]),
+  ] },
+  { key: "scd_q9", name: "SCD-Q9", max: 9, desc: "主观认知下降问卷（项目筛查补充，文档未收录）", criteria: "仅作主观认知自述参考。", items: [
     yn("感觉自己记忆力比以前差了"), yn("记忆力比同龄人差"), yn("记忆下降让您担忧"),
     yn("常忘记最近发生的事情"), yn("常忘记约会或要做的事"), yn("说话时常想不起合适的词"),
     yn("在熟悉的地方偶尔迷路"), yn("处理钱财或账单比以前困难"), yn("家人或朋友注意到您记忆变差"),
   ] },
-  { key: "mmse", name: "MMSE", max: 30, desc: "简易精神状态检查", items: [
-    { label: "时间定向（年/季/月/日/星期）", options: range(5) },
-    { label: "地点定向（省/市/区/地点/楼层）", options: range(5) },
-    { label: "即刻记忆（复述 3 个词）", options: range(3) },
-    { label: "注意力与计算（100 连减 7）", options: range(5) },
-    { label: "延迟回忆（3 个词）", options: range(3) },
-    { label: "命名（手表、铅笔）", options: range(2) },
-    { label: "复述句子", options: range(1) },
-    { label: "三步指令", options: range(3) },
-    { label: "阅读并执行", options: range(1) },
-    { label: "书写句子", options: range(1) },
-    { label: "临摹图形", options: range(1) },
-  ] },
-  { key: "moca", name: "MoCA", max: 30, desc: "蒙特利尔认知评估；受教育≤12 年加 1 分", items: [
-    { label: "视空间与执行（连线/立方体/画钟）", options: range(5) },
-    { label: "命名（3 种动物）", options: range(3) },
-    { label: "注意力（数字广度/敲击/连减 7）", options: range(6) },
-    { label: "语言（复述/词语流畅性）", options: range(3) },
-    { label: "抽象思维", options: range(2) },
-    { label: "延迟回忆（5 个词）", options: range(5) },
-    { label: "定向力", options: range(6) },
-    { label: "受教育 ≤12 年加分", options: [0, 1] },
-  ] },
-  { key: "adl", name: "ADL（Barthel）", max: 100, desc: "日常生活能力", items: [
-    { label: "进食", options: [0, 5, 10] }, { label: "洗澡", options: [0, 5] }, { label: "修饰", options: [0, 5] },
-    { label: "穿衣", options: [0, 5, 10] }, { label: "控制大便", options: [0, 5, 10] }, { label: "控制小便", options: [0, 5, 10] },
-    { label: "如厕", options: [0, 5, 10] }, { label: "床椅转移", options: [0, 5, 10, 15] },
-    { label: "平地行走", options: [0, 5, 10, 15] }, { label: "上下楼梯", options: [0, 5, 10] },
-  ] },
 ];
+
+export const optionLabel = (item: ScaleItem, value: number) => item.labels?.[item.options.indexOf(value)] ?? String(value);
 
 export function scaleTotal(scale: Scale, picks: Record<number, number>): number | null {
   if (scale.items.some((_, i) => picks[i] == null)) return null;

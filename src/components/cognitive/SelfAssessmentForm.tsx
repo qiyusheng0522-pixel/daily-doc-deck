@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useScaleAssessments } from "@/data/patients";
 import { SELF_QUESTIONNAIRES, latestSelfAssessments, questionnaireTotal, selfAssessmentConcerns } from "../../../supabase/functions/_shared/selfAssessment";
-import { Moon, Utensils, Footprints, Heart } from "lucide-react";
+import { Moon, Utensils, Footprints, Heart, CloudRain } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 export default function SelfAssessmentForm({ patientId, assisted = false, familyList = false }: { patientId: string; assisted?: boolean; familyList?: boolean }) {
@@ -32,7 +32,7 @@ export default function SelfAssessmentForm({ patientId, assisted = false, family
   if (isLoading) return <p className="text-sm text-muted-foreground">读取自评记录…</p>;
   if (current) return <div className="space-y-3">
     <div className="flex items-center justify-between"><h3 className="font-semibold">{current.name}</h3><Button variant="ghost" size="sm" onClick={() => setActive(null)}>返回列表</Button></div>
-    <p className="text-xs text-muted-foreground">{assisted ? "医生协助患者逐题作答" : "老年综合评估自评"} · 简版问卷（非正式诊断量表）</p>
+    <p className="text-xs text-muted-foreground">{assisted ? "医生协助患者逐题作答" : "老年综合评估自评"} · {current.desc}</p>
     {!assisted && <div className="flex gap-2">{["本人", "家属协助"].map(f => <Button key={f} size="sm" variant={filler === f ? "default" : "outline"} onClick={() => setFiller(f)}>{f}</Button>)}</div>}
     {current.questions.map((q, i) => <section key={q.id} className="border-b pb-3">
       <p className="mb-2 text-sm font-medium">{i + 1}. {q.text}</p>
@@ -41,17 +41,17 @@ export default function SelfAssessmentForm({ patientId, assisted = false, family
     <Button className="w-full" disabled={saving || questionnaireTotal(current, answers) === null} onClick={save}>{saving ? "保存中…" : "保存本份评估"}</Button>
   </div>;
   if (familyList) return <div className="space-y-4">
-    <div className="bg-gradient-primary p-4 text-primary-foreground"><h2 className="text-2xl font-bold">评估中心</h2><p className="mt-1 text-sm">老年综合评估 · 共 4 项</p></div>
-    <div className="flex items-center gap-3"><Progress className="flex-1" value={latest.filter(x => x.record).length * 25} /><span className="shrink-0 text-xs text-muted-foreground">已填 {latest.filter(x => x.record).length}/4</span></div>
+    <div className="bg-gradient-primary p-4 text-primary-foreground"><h2 className="text-2xl font-bold">评估中心</h2><p className="mt-1 text-sm">老年综合评估 · 共 {SELF_QUESTIONNAIRES.length} 项</p></div>
+    <div className="flex items-center gap-3"><Progress className="flex-1" value={latest.filter(x => x.record).length * 100 / SELF_QUESTIONNAIRES.length} /><span className="shrink-0 text-xs text-muted-foreground">已填 {latest.filter(x => x.record).length}/{SELF_QUESTIONNAIRES.length}</span></div>
     <h3 className="text-lg font-semibold">健康问卷 <span className="text-sm text-destructive">必填</span></h3>
-    {latest.map(({ questionnaire:q, record }, i) => { const Icon = [Moon, Utensils, Footprints, Heart][i]; return <section key={q.id} className="relative flex items-center gap-3 rounded-lg border bg-card p-3 shadow-sm">
+    {latest.map(({ questionnaire:q, record }, i) => { const Icon = [Moon, Utensils, Footprints, Heart, CloudRain][i] ?? Heart; return <section key={q.id} className="relative flex items-center gap-3 rounded-lg border bg-card p-3 shadow-sm">
       <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Icon className="h-7 w-7" /></div>
       <div className="min-w-0 flex-1"><h4 className="text-base font-semibold">{q.name}</h4><p className="mt-1 text-xs text-muted-foreground">{record ? `${new Date(record.created_at).toLocaleDateString("zh-CN")} · ${record.total} 分` : `约 ${q.minutes} 分钟`}</p></div>
       <Button size="sm" className="shrink-0 px-2 text-xs" onClick={() => { setActive(q.id); setAnswers({}); }}>{record ? "再次评估" : "去填写"}</Button>
     </section>; })}
   </div>;
   return <div className="space-y-2">
-    <p className="text-sm font-semibold">自评量表 · {latest.filter(x => x.record).length}/4 已完成</p>
+    <p className="text-sm font-semibold">自评量表 · {latest.filter(x => x.record).length}/{SELF_QUESTIONNAIRES.length} 已完成</p>
     {latest.map(({ questionnaire: q, record }) => <section key={q.id} className="border-b py-2">
       <div className="flex items-center justify-between gap-2"><p className="text-sm font-medium">{q.name}</p><Button size="sm" variant="outline" onClick={() => { setActive(q.id); setAnswers({}); }}>{record ? "重新评估" : assisted ? "协助完成" : "开始自评"}</Button></div>
       <p className="mt-1 text-xs text-muted-foreground">{record ? `${record.total} 分 · ${new Date(record.created_at).toLocaleString("zh-CN")} · ${record.assessed_by ?? "未登记"}` : "暂无数据"}</p>

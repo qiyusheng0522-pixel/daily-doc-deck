@@ -510,6 +510,7 @@ export type Database = {
           glucose: string | null
           hospital_stage: string | null
           hr: string | null
+          iadl: number | null
           id: string
           id_no: string | null
           last_visit: string | null
@@ -565,6 +566,7 @@ export type Database = {
           glucose?: string | null
           hospital_stage?: string | null
           hr?: string | null
+          iadl?: number | null
           id?: string
           id_no?: string | null
           last_visit?: string | null
@@ -620,6 +622,7 @@ export type Database = {
           glucose?: string | null
           hospital_stage?: string | null
           hr?: string | null
+          iadl?: number | null
           id?: string
           id_no?: string | null
           last_visit?: string | null
