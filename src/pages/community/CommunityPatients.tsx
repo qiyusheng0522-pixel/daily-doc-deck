@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, ChevronRight } from "lucide-react";
+import { Search, ChevronRight, UserPlus, Plus, ClipboardCheck } from "lucide-react";
+import NewPatientScreening from "@/components/community/NewPatientScreening";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,6 +14,7 @@ import { upwardReferralState } from "@/data/referralApproval";
 const CommunityPatients = () => {
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState("");
+  const [adding, setAdding] = useState(false);
   const [filters, setFilters] = useState<Omit<DoctorPatientFilters, "query" | "reception">>({ risk: "全部", source: "全部", gender: "全部" });
   const receptionFilter = params.get("tab") === "new" ? "待接收" : params.get("tab") === "managed" ? "在管患者" : "全部患者";
   const abnormal = params.get("tab") === "abnormal";
@@ -30,6 +32,13 @@ const CommunityPatients = () => {
       <FilterSelect label="来源渠道" value={filters.source} options={["全部", "南京市鼓楼医院", "小市社区"]} allLabel="全部来源" onChange={v => setFilters(f => ({ ...f, source: v }))} />
       <FilterSelect label="性别" value={filters.gender} options={["全部", "男", "女"]} allLabel="全部性别" onChange={v => setFilters(f => ({ ...f, gender: v }))} />
     </div>
+    <div className="relative mb-3 flex items-center gap-4 overflow-hidden rounded-xl border border-success/30 bg-success/5 px-5 py-4">
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-success/15 text-success"><UserPlus className="h-7 w-7" /></div>
+      <div className="min-w-0 flex-1"><p className="text-lg font-bold">新增患者并进行认知初筛</p><p className="mt-1 text-sm text-muted-foreground">填写基本信息后，完成 AD-8（认知功能初筛量表）评估，快速识别认知风险</p></div>
+      <ClipboardCheck className="absolute right-48 top-1/2 h-20 w-20 -translate-y-1/2 rotate-12 text-success/20" />
+      <Button className="relative h-11 bg-gradient-community px-6 text-base shadow-soft" onClick={() => setAdding(true)}><Plus className="mr-1 h-5 w-5" />新增并初筛</Button>
+    </div>
+    <NewPatientScreening open={adding} onClose={() => setAdding(false)} />
     <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground"><span>{riskOnly ? "中高风险患者 · " : ""}共 {list.length} 位患者</span><Button variant="ghost" size="sm" onClick={reset}>重置筛选</Button></div>
     <div className="divide-y divide-border rounded-lg bg-card shadow-sm ring-1 ring-border/60">
       {(isLoading || loadingReferrals) && <p className="p-6 text-center text-sm text-muted-foreground">加载中…</p>}
