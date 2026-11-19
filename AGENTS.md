@@ -18,8 +18,8 @@
 - Stroke-era columns (nihss, mrs, limb_power, stroke_type) are deprecated, not dropped, (avoid breaking migrations).
 - AI calls run only in the `cognitive-advice` backend function via @lovable.dev/ai-gateway with strict JSON schema; the client never calls models directly, keeping keys and prompts server-side.
 - Screening-center records live in `screenings` (separate from patients; optional patient_id link) so intake data can later sync from the physical-exam system.
-- Model-generated rehab plans are saved to patients.ai_plan by the cognitive-advice function so doctor, community and family ends show the same plan.
-- Training sessions live in `training_records` (one row per session) so all ends share history; doctor confirmation of model plans is stored on patients (ai_plan_confirmed_at/by).
+- Model-generated rehab plans are saved to patients.ai_plan by the cognitive-advice function so all ends show the same plan.
+- Training sessions live in `training_records` (one row per session) so ends share history; doctor confirmation of model plans is stored on patients (ai_plan_confirmed_at/by).
 - Plan history lives in `treatment_plans` (one row per generation); PlanView/PlanReview are the single plan renderers and history opens read-only in an in-frame ActionSheet so detail and review stay identical. Exam photos go to private bucket `patient-docs` + `patient_documents`.
 - Doctor edits save an atomic new treatment-plan revision through save_treatment_revision; retain old versions and clear confirmation to prevent unreviewed edits reaching community/family. Show item-level self-assessment concerns using shared scoring direction, not invented diagnostic thresholds.
 - Generate and confirm doctor treatment plans only in the plan-review screen; patient files use history-only PlanReview so review actions are not duplicated. Shared treatment service parameters live in functions/_shared/treatment.ts for generator and review consistency.
