@@ -4,7 +4,6 @@ import { MonitorDot, Stethoscope, HeartPulse, Building2, Smartphone, ChevronDown
 
 const roles = [
   { to: "/doctor", label: "医生端", icon: Stethoscope, color: "bg-blue-500" },
-  { to: "/screening", label: "体检筛查", icon: HeartPulse, color: "bg-pink-500" },
   { to: "/community", label: "社区护理康复", icon: Building2, color: "bg-emerald-500" },
   { to: "/screen", label: "区域管理", icon: MonitorDot, color: "bg-sky-600" },
   { to: "/patient", label: "家庭", icon: Smartphone, color: "bg-violet-500" },

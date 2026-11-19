@@ -4,12 +4,6 @@ import { Button } from "@/components/ui/button";
 
 const ENDS = [
   {
-    to: "/screening", icon: ClipboardCheck, grad: "bg-gradient-nurse", dot: "bg-accent",
-    title: "体检中心筛查端", sub: "体检中心筛查人员",
-    desc: "核对初筛结果，登记转介和预约",
-    items: ["核对 AD-8 初筛结果", "阳性登记转介（训练站 / 记忆门诊）", "登记预约时间"],
-  },
-  {
     to: "/doctor", icon: Stethoscope, grad: "bg-gradient-doctor", dot: "bg-primary",
     title: "医生端", sub: "鼓楼医院记忆门诊 / 评估医生",
     desc: "查看量表与智能体初步风险等级，确认分级、转诊与方案",

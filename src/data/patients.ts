@@ -567,7 +567,7 @@ export function useCreateUpload() {
       if (error) throw error;
       const { error: e2 } = await supabase
         .from("patients")
-        .update({ community_stage: "待复评", last_visit: "刚刚上传鼓楼" })
+        .update({ community_stage: "干预中", last_visit: "刚刚上传鼓楼" })
         .eq("id", input.patientId);
       if (e2) throw e2;
       return data as Upload;

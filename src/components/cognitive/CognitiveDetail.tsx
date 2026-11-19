@@ -222,14 +222,13 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   };
 
   const advice = p.ai_plan as Advice | null;
-  const latestVisit = visitDocs[0];
   const recent = [
     ...trainings.map((t) => ({ at: `${t.trained_on}`, text: `${t.domain} · ${t.activity}（${t.duration_min} 分钟）` })),
     ...myRefs.map((r) => ({ at: r.created_at?.slice(0, 10) ?? "", text: `${r.direction}：${r.from_hospital} → ${r.to_community}（${r.approval_status ?? r.status}）` })),
     ...docs.map((d) => ({ at: d.created_at.slice(0, 10), text: `上传${d.kind}` })),
   ].filter((x) => x.at).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 4);
   const tags = [...p.risk_tags, ...p.lifestyle_warnings].slice(0, 3);
-  const TABS = [["overview", "概览", LayoutGrid], ["info", "基本信息", User], ["visit", "诊断记录", FileText], ["scale", "量表评估", BarChart3], ["plan", "方案记录", ClipboardCheck], ["training", "训练记录", Dumbbell], ["referral", "转诊记录", Repeat]] as const;
+  const TABS = [["overview", "概览", LayoutGrid], ["info", "基本信息", User], ["scale", "量表评估", BarChart3], ["plan", "方案记录", ClipboardCheck], ["training", "训练记录", Dumbbell], ["referral", "转诊记录", Repeat]] as const;
   const Head = ({ icon: Icon, title, action }: { icon: typeof User; title: string; action?: ReactNode }) => (
     <div className="mb-3 flex items-center justify-between border-b pb-2"><p className="flex items-center gap-2 whitespace-nowrap text-base font-semibold"><Icon className="h-5 w-5 shrink-0 text-primary" />{title}</p>{action}</div>
   );
@@ -237,7 +236,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     <button type="button" onClick={() => setTab(to)} className="flex items-center text-sm text-primary">{label}<ChevronRight className="h-4 w-4" /></button>
   );
   const Rows = ({ rows }: { rows: [string, string | null | undefined][] }) => (
-    <dl className="space-y-2 text-sm">{rows.map(([k, v]) => <div key={k} className="flex gap-3"><dt className="w-20 shrink-0 text-muted-foreground">{k}</dt><dd className="min-w-0 break-words font-medium">{v || "未登记"}</dd></div>)}</dl>
+    <dl className="space-y-2 text-sm">{rows.map(([k, v]) => <div key={k} className="flex gap-3"><dt className="w-24 shrink-0 text-muted-foreground">{k}</dt><dd className="min-w-0 break-words font-medium">{v || "未登记"}</dd></div>)}</dl>
   );
 
   const infoCard = (
@@ -379,23 +378,36 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </Card>
 
         {tab === "overview" && (
-          <div className="grid gap-3 lg:grid-cols-[1fr_1.4fr_1fr]">
-            <div className="space-y-3">{infoCard}{healthCard}</div>
+          <div className="grid gap-3 lg:grid-cols-[1fr_1.3fr_1fr]">
             <div className="space-y-3">
-              {(role === "doctor" || role === "community") && <Card className="p-4 shadow-soft">
-                <Head icon={FileText} title="最新诊断记录" action={<More to="visit" />} />
-                {latestVisit?.url ? <div className="flex gap-3"><img src={latestVisit.url} alt="诊疗记录" className="h-24 w-32 rounded border object-cover" /><Rows rows={[["上传日期", new Date(latestVisit.created_at).toLocaleDateString("zh-CN")], ["来源", latestVisit.uploaded_by], ["认知诊断", role !== "community" ? p.cognitive_diagnosis : null]]} /></div>
-                  : <p className="text-sm text-muted-foreground">暂无诊断记录{role === "doctor" ? "，可点击右上「拍照存档」上传" : ""}</p>}
-              </Card>}
               <Card className="p-4 shadow-soft">
-                <Head icon={ClipboardCheck} title="当前诊疗方案" action={<More to="plan" label="查看详情" />} />
+                <Head icon={User} title="患者概况" />
+                <Rows rows={[["年龄/性别", `${p.age}岁 / ${p.gender}`], ["联系方式", p.phone], ["来源渠道", p.source], ["照护者", p.caregiver]]} />
+              </Card>
+              <Card className="p-4 shadow-soft">
+                <Head icon={ClipboardCheck} title="主要诊断与病情" />
+                <dl className="divide-y text-sm">{([...(role !== "community" ? [["主要诊断", p.cognitive_diagnosis ?? "待评估"]] : []), ["合并疾病", p.risk_tags.join("、") || null], ["当前分级", p.cognitive_risk], ["病情摘要", (p.ai_risk as { summary?: string } | null)?.summary ?? null]] as [string, string | null][]).map(([k, v]) => <div key={k} className="flex gap-3 py-2"><dt className="w-24 shrink-0 text-muted-foreground">{k}</dt><dd className="min-w-0 break-words font-medium">{v || "未登记"}</dd></div>)}</dl>
+              </Card>
+            </div>
+            <div className="space-y-3">
+              <Card className="p-4 shadow-soft">
+                <Head icon={BarChart3} title="最近评估结果" action={<More to="scale" />} />
+                <div className="grid grid-cols-2 gap-2">{([["MMSE", "mmse", p.mmse, 30], ["MoCA", "moca", p.moca, 30], ["AD-8", "ad8", p.ad8, 8], ["SCD-Q9", "scd_q9", p.scd_q9, 9]] as const).map(([label, kind, v, max]) => { const r = scalePresentation(kind, v); const tone = { neutral: "text-foreground", low: "text-success", medium: "text-warning", high: "text-destructive" }[r.tone]; const bg = { neutral: "bg-muted", low: "bg-success/10", medium: "bg-warning/10", high: "bg-destructive/10" }[r.tone]; return (
+                  <button key={kind} type="button" onClick={() => setScaleOpen(kind)} className="rounded-xl border bg-card p-3 text-left hover:bg-muted/40">
+                    <p className="text-sm text-muted-foreground">{label}</p>
+                    <p className={`text-2xl font-bold ${tone}`}>{v ?? "—"}<span className="text-sm font-normal text-muted-foreground"> /{max}</span></p>
+                    <span className={`mt-1 inline-block rounded px-1.5 text-sm ${bg} ${tone}`}>{r.label}</span>
+                  </button>); })}</div>
+              </Card>
+              <Card className="p-4 shadow-soft">
+                <Head icon={ClipboardCheck} title="当前干预方案" action={<More to="plan" label="查看详情" />} />
                 {advice?.summary ? <>
                   <span className={`mb-2 inline-block rounded-full px-2.5 py-0.5 text-sm ${planConfirmed(p) ? "bg-success/15 text-success" : "bg-warning/15 text-warning"}`}>{planConfirmed(p) ? "医生已确认" : "待医生审核"}</span>
                   <Rows rows={[["干预目标", advice.summary], ["干预措施", (advice.training ?? []).map((t) => t.domain).filter((v, i, a) => a.indexOf(v) === i).join("、")]]} />
                 </> : <p className="text-sm text-muted-foreground">尚未生成非药物干预类治疗方案</p>}
               </Card>
               <Card className="p-4 shadow-soft">
-                <Head icon={Clock} title="近期记录" />
+                <Head icon={Clock} title="近期动态" action={<More to="training" />} />
                 {recent.length === 0 ? <p className="text-sm text-muted-foreground">暂无记录</p> : <ol className="space-y-2 border-l-2 border-primary/20 pl-4 text-sm">
                   {recent.map((r, i) => <li key={i} className="relative"><span className="absolute -left-[1.4rem] top-1.5 h-2.5 w-2.5 rounded-full bg-primary" /><span className="mr-3 text-muted-foreground">{r.at}</span>{r.text}</li>)}
                 </ol>}
@@ -410,9 +422,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             </Card>
           </div>
         )}
-        {tab === "info" && <div className="grid gap-3 lg:grid-cols-2">{fullInfoCard}{healthCard}</div>}
-        {tab === "visit" && visitCard}
-        {tab === "scale" && <>{scaleCard}{(role === "doctor" || role === "community") && <SelfAssessmentResults patientId={p.id} readOnly assist={role === "doctor"} />}</>}
+        {tab === "info" && <><div className="grid gap-3 lg:grid-cols-2">{fullInfoCard}{healthCard}</div>{visitCard}</>}
+                {tab === "scale" && <>{scaleCard}{(role === "doctor" || role === "community") && <SelfAssessmentResults patientId={p.id} readOnly assist={role === "doctor"} />}</>}
         {tab === "plan" && (role === "doctor" || role === "community") && <PlanReview p={p} historyOnly confirmedOnly={role === "community"} />}
         {tab === "training" && trainingCard}
         {tab === "referral" && referralCard}
