@@ -1,11 +1,20 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, ChevronRight } from "lucide-react";
-import { usePatients, sourceLabel, type Patient } from "@/data/patients";
+import { usePatients, useReferrals, sourceLabel, type Patient } from "@/data/patients";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
+import { pendingDoctorReferral, useDoctorReception } from "@/data/doctorReception";
 
 const DoctorPatients = () => {
   const [q, setQ] = useState("");
   const { data: patients = [], isLoading } = usePatients("all");
+  const { data: referrals = [], isLoading: loadingReferrals } = useReferrals();
+  const reception = useDoctorReception();
+  const receive = (referralId: string) => reception.mutate(referralId, {
+    onSuccess: () => toast({ title: "已接收患者" }),
+    onError: error => toast({ title: "接收失败", description: error.message }),
+  });
 
   const list = patients.filter((p) => !q || p.name.includes(q) || (p.stroke_type ?? "").includes(q) || p.diagnosis.includes(q));
 
@@ -25,18 +34,22 @@ const DoctorPatients = () => {
         {isLoading && <p className="p-6 text-center text-sm text-muted-foreground">加载中…</p>}
         {!isLoading && list.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">无匹配患者</p>}
         {list.map((p, i) => (
-          <PatientRow key={p.id} p={p} first={i === 0} />
+          <PatientRow key={p.id} p={p} first={i === 0}
+            pendingId={pendingDoctorReferral(referrals, p.id)?.id}
+            received={!loadingReferrals && referrals.some(r => r.patient_id === p.id && r.direction === "上转" && r.status === "已接收")}
+            saving={reception.isPending} onReceive={receive} />
         ))}
       </div>
     </div>
   );
 };
 
-function PatientRow({ p, first }: { p: Patient; first: boolean }) {
+function PatientRow({ p, first, pendingId, received, saving, onReceive }: { p: Patient; first: boolean; pendingId?: string; received: boolean; saving: boolean; onReceive: (id: string) => void }) {
   return (
+    <div className={first ? "" : "border-t border-border"}>
     <Link
       to={`/doctor/patients/${p.id}`}
-      className={`flex items-center gap-3 p-4 ${first ? "" : "border-t border-border"}`}
+      className="flex items-center gap-3 p-4"
     >
       <div
         className={`flex h-12 w-12 items-center justify-center rounded-full text-base font-semibold ${
@@ -62,6 +75,11 @@ function PatientRow({ p, first }: { p: Patient; first: boolean }) {
       </div>
       <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
     </Link>
+    {(pendingId || received) && <div className="flex justify-end px-4 pb-3">
+      {pendingId ? <Button size="sm" variant="outline" disabled={saving} onClick={() => onReceive(pendingId)}>确认接收</Button>
+        : <span className="text-xs text-success">已接收</span>}
+    </div>}
+    </div>
   );
 }
 

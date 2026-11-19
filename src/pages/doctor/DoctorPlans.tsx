@@ -47,8 +47,8 @@ const DoctorPlans = () => {
                     <span className={`ml-auto rounded-md px-1.5 py-0.5 text-[11px] ${ok ? "bg-success/15 text-success" : "bg-primary/10 text-primary"}`}>{ok ? "已确认" : p.ai_plan ? "待确认" : "待生成"}</span>
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">{p.cognitive_diagnosis ?? "待确诊"}{p.ai_plan_at ? ` · ${new Date(p.ai_plan_at).toLocaleDateString("zh-CN")}` : ""}</p>
-                  <p className="mt-2 line-clamp-2 text-sm text-foreground/90">{a?.summary ?? "尚无 AI 治疗方案"}</p>
-                  <div className="mt-2 flex flex-wrap gap-1">{a?.training?.slice(0, 4).map((t, i) => <span key={i} className="rounded bg-accent/10 px-1.5 py-0.5 text-[11px] text-accent">{t.domain}</span>)}</div>
+                  {a?.summary && <p className="mt-2 line-clamp-2 text-sm text-foreground/90">{a.summary}</p>}
+                  {!!a?.training?.length && <div className="mt-2 flex flex-wrap gap-1">{a.training.slice(0, 4).map((t, i) => <span key={i} className="rounded bg-accent/10 px-1.5 py-0.5 text-[11px] text-accent">{t.domain}</span>)}</div>}
                 </Link>
               </li>
             );
