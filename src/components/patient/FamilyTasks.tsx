@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import PatientActionSheet from "@/components/patient/PatientActionSheet";
 import { useCurrentPatient } from "@/data/patients";
-import { familyPlanTasks, familyPlanVersion, useFamilyCheckins, useSaveFamilyCheckin, type FamilyTask } from "@/data/familyTasks";
+import { familyPlanTasks, familyVisibleTasks, familyTaskLabel, prescribedBedtime, familyPlanVersion, useFamilyCheckins, useSaveFamilyCheckin, type FamilyTask } from "@/data/familyTasks";
 import { toast } from "@/hooks/use-toast";
 
 export default function FamilyTasks({ compact = false }: { compact?: boolean }) {
@@ -17,8 +17,11 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
   const [note, setNote] = useState("");
   const [minutes, setMinutes] = useState(20);
   const [by, setBy] = useState("本人");
+  const [sleepTime, setSleepTime] = useState("");
   const [day, setDay] = useState(new Date().toLocaleDateString("sv-SE"));
-  const tasks = familyPlanTasks(p);
+  const planTasks = familyPlanTasks(p);
+  const tasks = familyVisibleTasks(planTasks);
+  const bedtime = prescribedBedtime(planTasks);
   const version = p ? familyPlanVersion(p) : "";
   const done = (key: string) => checks.find(c => c.plan_version === version && c.task_key === key && c.recorded_on === day);
   const completed = tasks.filter(t => done(t.key)).length;
@@ -26,7 +29,7 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
     if (!p || !active) return;
     if (!familyPlanTasks(p).some(t => t.key === active.key && t.title === active.title)) return toast({ title: "方案已更新，请重新选择任务" });
     try {
-      await save.mutateAsync({ patient: p, task: active, date: day, minutes: active.category === "训练" ? minutes : undefined, note, by });
+      await save.mutateAsync({ patient: p, task: active, date: day, minutes: active.category === "训练" ? minutes : undefined, note: active.category === "睡眠" && sleepTime ? `入睡时间 ${sleepTime}${note ? ` · ${note}` : ""}` : note, by });
       setActive(null); toast({ title: "打卡已保存" });
     } catch (e) { toast({ title: "打卡失败", description: e instanceof Error ? e.message : String(e), variant: "destructive" }); }
   };
@@ -39,18 +42,20 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
       if (!group.length) return null;
       const Icon = category === "营养" ? Utensils : category === "睡眠" ? Moon : Brain;
       return <section key={category} className="space-y-2">
-        <h3 className="flex items-center gap-2 text-sm font-semibold"><Icon className="h-4 w-4 text-primary" />{category}任务</h3>
+        <h3 className="flex items-center gap-2 text-sm font-semibold"><Icon className="h-4 w-4 text-primary" />{category === "营养" ? "饮食" : category === "睡眠" ? "睡眠" : "训练任务"}</h3>
         {group.map(t => { const record = done(t.key); return <div key={t.key} className="rounded-lg border bg-card p-3">
-          <div className="flex items-start gap-2"><div className="min-w-0 flex-1"><p className="break-words text-sm font-medium">{t.title}</p><p className="mt-1 text-xs text-muted-foreground">{[t.frequency, t.duration].filter(Boolean).join(" · ")}</p></div>
-          <Button size="sm" variant={record ? "ghost" : "outline"} className="shrink-0 text-xs" onClick={() => { setActive(t); setNote(record?.note ?? ""); setMinutes(record?.duration_min ?? 20); setBy(record?.recorded_by ?? "本人"); }}>{record ? <><CheckCircle2 className="mr-1 h-3 w-3" />已打卡</> : "打卡"}</Button></div>
-          {record && <p className="mt-2 text-xs text-muted-foreground">{record.recorded_on} · {record.recorded_by}{record.duration_min ? ` · ${record.duration_min} 分钟` : ""}{record.note ? ` · ${record.note}` : ""}</p>}
+          <div className="flex items-center gap-2"><div className="min-w-0 flex-1"><p className="break-words text-sm font-medium">{familyTaskLabel(t)}</p>{t.category === "睡眠" && <p className="mt-1 text-xs text-muted-foreground">{bedtime ? `${bedtime} 入睡` : "记录今晚入睡时间"}</p>}</div>
+          <Button size="sm" variant={record ? "ghost" : "outline"} className="shrink-0 text-xs" onClick={() => { setActive(t); setSleepTime(""); setNote(record?.note ?? ""); setMinutes(record?.duration_min ?? 20); setBy(record?.recorded_by ?? "本人"); }}>{record ? <><CheckCircle2 className="mr-1 h-3 w-3" />已打卡</> : "打卡"}</Button></div>
+          {record && <p className="mt-2 text-xs text-muted-foreground">打卡时间 {new Date(record.created_at).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}{record.duration_min ? ` · ${record.duration_min} 分钟` : ""}{record.note ? ` · ${record.note}` : ""}</p>}
         </div>; })}
       </section>;
     })}
-    <PatientActionSheet open={!!active} onOpenChange={o => !o && setActive(null)} title={active ? `${active.category}打卡` : "任务打卡"}>
-      {active && <div className="space-y-3"><p className="text-sm font-medium">{active.title}</p><p className="text-xs text-muted-foreground">{active.frequency} · {active.duration}</p>
+    <PatientActionSheet open={!!active} onOpenChange={o => !o && setActive(null)} title={active?.category === "训练" ? "认知训练" : active ? familyTaskLabel(active) : "任务打卡"}>
+      {active && <div className="space-y-3"><p className="text-sm font-medium">{familyTaskLabel(active)}</p>{active.category === "训练" && <p className="text-sm text-muted-foreground">{active.title}</p>}
         <div className="flex gap-2">{["本人", "家属协助"].map(v => <Button key={v} size="sm" disabled={!!done(active.key)} variant={by === v ? "default" : "outline"} onClick={() => setBy(v)}>{v}</Button>)}</div>
         {active.category === "训练" && <div><p className="mb-2 text-sm">实际训练时长</p><div className="flex gap-2">{[20,30].map(v => <Button key={v} disabled={!!done(active.key)} variant={minutes === v ? "default" : "outline"} onClick={() => setMinutes(v)}>{v} 分钟</Button>)}</div></div>}
+        {active.category === "睡眠" && !done(active.key) && <label className="block text-sm">入睡时间<Input type="time" className="mt-1" value={sleepTime} onChange={e => setSleepTime(e.target.value)} /></label>}
+        {done(active.key) && <p className="text-xs text-muted-foreground">打卡时间：{new Date(done(active.key)?.created_at ?? "").toLocaleString("zh-CN")}</p>}
         <label className="block text-sm">备注<Textarea className="mt-1" value={note} readOnly={!!done(active.key)} maxLength={1000} onChange={e => setNote(e.target.value)} placeholder="记录执行情况或需要反馈的问题" /></label>
         {done(active.key) ? <p className="text-sm text-success">本日任务已打卡</p> : <Button className="w-full" disabled={save.isPending || !day} onClick={submit}>{save.isPending ? "保存中…" : "确认打卡"}</Button>}
       </div>}

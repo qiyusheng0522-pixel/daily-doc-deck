@@ -35,6 +35,22 @@ export function familyPlanVersion(p: { ai_plan_at: string | null }): string {
   // PostgreSQL timestamptz textual form; normalize so SQL and client versions match.
   return p.ai_plan_at ? new Date(p.ai_plan_at).toISOString().replace("T", " ").replace(/\.000Z$/, "+00").replace(/Z$/, "+00") : "initial";
 }
+export function familyVisibleTasks(tasks: FamilyTask[]): FamilyTask[] {
+  return tasks.filter((task, index) => task.category === "训练" || tasks.findIndex(t => t.category === task.category) === index);
+}
+export function familyTaskLabel(task: FamilyTask): string {
+  if (task.category === "营养") return "饮食打卡";
+  if (task.category === "睡眠") return "入睡提醒";
+  const activities = task.title.match(/从(.+?)中选/);
+  return activities?.[1] ?? task.title.replace(/^家庭作业[^：:]*[：:]\s*/, "").split(/[；;]/)[0].trim();
+}
+export function prescribedBedtime(tasks: FamilyTask[]): string | null {
+  for (const task of tasks.filter(t => t.category === "睡眠")) {
+    const match = task.title.match(/(?:晚上|晚间|每晚)?\s*(2[0-3]|[01]?\d)\s*(?:[:：](\d{2})|点(?:(\d{1,2})分?)?)\s*(?:前)?\s*(?:入睡|睡觉|上床|就寝)/);
+    if (match) return `${match[1].padStart(2, "0")}:${(match[2] ?? match[3] ?? "00").padStart(2, "0")}`;
+  }
+  return null;
+}
 export function useFamilyCheckins(patientId?: string) {
   return useQuery({ queryKey: ["family-checkins", patientId], enabled: !!patientId, queryFn: async () => {
     const { data, error } = await supabase.from("family_task_checkins").select("*").eq("patient_id", patientId ?? "").order("created_at", { ascending: false });
