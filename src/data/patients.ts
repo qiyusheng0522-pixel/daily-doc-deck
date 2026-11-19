@@ -597,10 +597,13 @@ export function useCompleteTask() {
 export function usePushEducation() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { patientId: string; itemId: string }) => {
+    mutationFn: async (input: { patientId?: string; patientIds?: string[]; itemId: string }) => {
+      const ids = input.patientIds ?? (input.patientId ? [input.patientId] : []);
+      if (!ids.length) throw new Error("请选择推送对象");
+      const now = new Date().toISOString();
       const { error } = await supabase
         .from("patient_education")
-        .upsert({ patient_id: input.patientId, education_item_id: input.itemId, status: "未读", pushed_at: new Date().toISOString() }, { onConflict: "patient_id,education_item_id" });
+        .upsert(ids.map((id) => ({ patient_id: id, education_item_id: input.itemId, status: "未读", pushed_at: now })), { onConflict: "patient_id,education_item_id" });
       if (error) throw error;
     },
     onSuccess: () => {
