@@ -37,19 +37,20 @@ describe("社区患者接收与筛选", () => {
     expect(communityScreeningAbnormal({ ad8: 1 })).toBe(false);
     expect(communityScreeningAbnormal({ ad8: null })).toBe(false);
   });
-  it("仅已保存的中高风险进入风险名单与转诊条件，不用AD-8阳性推断风险", () => {
+  it("风险患者名单按 AD-8 ≥ 2 分筛查阳性判定，初筛名单包含所有已初筛对象", () => {
     expect(communityRiskPatient({ cognitive_risk: "中风险" })).toBe(true);
     expect(communityRiskPatient({ cognitive_risk: "高风险" })).toBe(true);
     expect(communityRiskPatient({ cognitive_risk: "低风险" })).toBe(false);
-    expect(communityRiskPatient({ cognitive_risk: "普通" })).toBe(false);
     expect(communityRiskPatient({ cognitive_risk: null })).toBe(false);
     const sample = [
       { ...patients[1], id: "low", ad8: 3, abnormal: true },
       { ...patients[1], id: "medium", cognitive_risk: "中风险" as const, ad8: 2 },
       { ...patients[1], id: "high", cognitive_risk: "高风险" as const, ad8: 1 },
       { ...patients[1], id: "unknown", cognitive_risk: null, ad8: 4 },
+      { ...patients[1], id: "unscreened", ad8: null },
     ];
-    expect(filterCommunityPatients(sample, [], { ...defaults, riskOnly: true }).map(p => p.id)).toEqual(["medium", "high"]);
+    expect(filterCommunityPatients(sample, [], { ...defaults, riskOnly: true }).map(p => p.id)).toEqual(["low", "medium", "unknown"]);
+    expect(filterCommunityPatients(sample, [], { ...defaults, screened: true }).map(p => p.id)).toEqual(["low", "medium", "high", "unknown"]);
     expect(filterCommunityPatients(sample, [], { ...defaults, abnormal: true }).map(p => p.id)).toEqual(["low", "medium", "unknown"]);
   });
 });

@@ -3,7 +3,7 @@ import { Users, BookOpen, AlertTriangle, Bell, Stethoscope, CalendarClock } from
 import { Button } from "@/components/ui/button";
 import { HeroCard } from "@/pages/doctor/DoctorHome";
 import { usePatients, useFollowups, useReferrals, useEducationItems, useMyProfile, useTrainingRecords } from "@/data/patients";
-import { communityRiskPatient, communityScreeningAbnormal, filterCommunityPatients, pendingCommunityReferral } from "@/data/communityReception";
+import { communityScreeningAbnormal, filterCommunityPatients, pendingCommunityReferral } from "@/data/communityReception";
 
 const CommunityHome = () => {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ const CommunityHome = () => {
   const ids = new Set(community.map(p => p.id));
   const pendingFollowups = followups.filter(f => ids.has(f.patient_id) && f.status !== "已完成");
   const abnormal = community.filter(communityScreeningAbnormal);
-  const riskPatients = community.filter(communityRiskPatient);
+  const riskPatients = community.filter(communityScreeningAbnormal);
   const today = new Date().toLocaleDateString("sv-SE");
   const tasks = [
     ...community.flatMap(p => { const r = pendingCommunityReferral(referrals, p.id); return r ? [{ id: `receive-${p.id}`, type: "接收", title: `${p.name} · 下转待接收`, time: r.created_at.slice(0, 10), to: "/community/patients?tab=new" }] : []; }),
@@ -29,7 +29,7 @@ const CommunityHome = () => {
     { label: "全部患者", desc: "在管患者名单与档案", count: community.length, icon: Users, tone: "text-primary", bg: "bg-primary/10", to: "/community/patients" },
     { label: "患者宣教", desc: "认知健康宣教内容推送", count: eduItems.length, icon: BookOpen, tone: "text-warning", bg: "bg-warning/15", to: "/community/education" },
     { label: "智能随访", desc: "随访计划与执行记录", count: pendingFollowups.length, icon: Stethoscope, tone: "text-success", bg: "bg-success/10", to: "/community/followup" },
-    { label: "风险患者", desc: "评估确定的中高风险患者", count: riskPatients.length, icon: AlertTriangle, tone: "text-destructive", bg: "bg-destructive/10", to: "/community/patients?tab=risk" },
+    { label: "风险患者", desc: "AD-8 筛查阳性（≥ 2 分）", count: riskPatients.length, icon: AlertTriangle, tone: "text-destructive", bg: "bg-destructive/10", to: "/community/patients?tab=risk" },
   ];
   const heroTone = ["primary", "warning", "success", "destructive"] as const;
   return <div className="space-y-5 px-6 py-2">

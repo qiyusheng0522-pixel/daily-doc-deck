@@ -15,7 +15,7 @@ export function pendingCommunityReferral<T extends Pick<Referral, "id" | "patien
   return referrals.find(r => r.patient_id === patientId && r.direction === "下转" && r.status === "待接收");
 }
 
-export function filterCommunityPatients<T extends Pick<Patient, "id" | "name" | "community_stage" | "cognitive_risk" | "source" | "gender"> & { ad8?: number | null }>(patients: T[], referrals: Referral[], filters: DoctorPatientFilters & { abnormal?: boolean; riskOnly?: boolean }): T[] {
+export function filterCommunityPatients<T extends Pick<Patient, "id" | "name" | "community_stage" | "cognitive_risk" | "source" | "gender"> & { ad8?: number | null }>(patients: T[], referrals: Referral[], filters: DoctorPatientFilters & { abnormal?: boolean; riskOnly?: boolean; screened?: boolean }): T[] {
   return patients.filter(p => {
     const pending = !!pendingCommunityReferral(referrals, p.id);
     const managed = !!p.community_stage && !pending;
@@ -23,8 +23,9 @@ export function filterCommunityPatients<T extends Pick<Patient, "id" | "name" | 
       && (filters.risk === "全部" || p.cognitive_risk === filters.risk)
       && (filters.source === "全部" || p.source === filters.source)
       && (filters.gender === "全部" || p.gender === filters.gender)
+      && (!filters.screened || p.ad8 != null)
       && (!filters.abnormal || communityScreeningAbnormal(p))
-      && (!filters.riskOnly || communityRiskPatient(p))
+      && (!filters.riskOnly || communityScreeningAbnormal(p))
       && (!filters.query.trim() || p.name.includes(filters.query.trim()));
   });
 }

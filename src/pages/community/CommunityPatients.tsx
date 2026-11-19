@@ -19,16 +19,20 @@ const CommunityPatients = () => {
   const receptionFilter = params.get("tab") === "new" ? "待接收" : params.get("tab") === "managed" ? "在管患者" : "全部患者";
   const abnormal = params.get("tab") === "abnormal";
   const riskOnly = params.get("tab") === "risk";
+  const screened = !riskOnly && !abnormal;
   const { data: patients = [], isLoading } = usePatients("all");
   const { data: referrals = [], isLoading: loadingReferrals } = useReferrals();
   const receive = useReceiveReferral();
-  const list = filterCommunityPatients(patients, referrals, { ...filters, query, reception: receptionFilter, abnormal, riskOnly });
+  const list = filterCommunityPatients(patients, referrals, { ...filters, query, reception: receptionFilter, abnormal, riskOnly, screened });
   const reset = () => { setQuery(""); setFilters({ risk: "全部", source: "全部", gender: "全部" }); setParams(riskOnly ? { tab: "risk" } : abnormal ? { tab: "abnormal" } : {}); };
   return <div className="px-4 py-3">
+    <div className="mb-3 grid grid-cols-2 gap-2">
+      {[{ key: "screen", label: "初筛", desc: "所有完成 AD-8 初筛的目标用户" }, { key: "risk", label: "风险患者", desc: "AD-8 筛查阳性（≥ 2 分）" }].map(t => <button key={t.key} onClick={() => setParams(t.key === "risk" ? { tab: "risk" } : {})} className={`rounded-xl border px-4 py-3 text-left shadow-sm transition ${riskOnly === (t.key === "risk") ? t.key === "risk" ? "border-destructive/40 bg-destructive/5 ring-1 ring-destructive/30" : "border-success/40 bg-success/5 ring-1 ring-success/30" : "border-border/60 bg-card"}`}><p className={`text-base font-bold ${riskOnly === (t.key === "risk") ? t.key === "risk" ? "text-destructive" : "text-success" : ""}`}>{t.label}</p><p className="mt-0.5 text-xs text-muted-foreground">{t.desc}</p></button>)}
+    </div>
     <div className="relative mb-3"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={query} onChange={e => setQuery(e.target.value)} placeholder="搜索患者姓名" className="rounded-full bg-card pl-9 text-sm" /></div>
     <div className="mb-3 grid grid-cols-2 gap-2">
       <FilterSelect label="接收筛选" value={receptionFilter} options={riskOnly ? ["全部患者"] : ["全部患者", "在管患者", "待接收"]} onChange={v => setParams(v === "待接收" ? { tab: "new" } : v === "在管患者" ? { tab: "managed" } : riskOnly ? { tab: "risk" } : abnormal ? { tab: "abnormal" } : {})} />
-      <FilterSelect label="风险等级" value={filters.risk} options={riskOnly ? ["全部", "中风险", "高风险"] : ["全部", "低风险", "中风险", "高风险"]} allLabel="全部风险" onChange={v => setFilters(f => ({ ...f, risk: v }))} />
+      <FilterSelect label="风险等级" value={filters.risk} options={["全部", "低风险", "中风险", "高风险"]} allLabel="全部风险" onChange={v => setFilters(f => ({ ...f, risk: v }))} />
       <FilterSelect label="来源渠道" value={filters.source} options={["全部", "南京市鼓楼医院", "小市社区"]} allLabel="全部来源" onChange={v => setFilters(f => ({ ...f, source: v }))} />
       <FilterSelect label="性别" value={filters.gender} options={["全部", "男", "女"]} allLabel="全部性别" onChange={v => setFilters(f => ({ ...f, gender: v }))} />
     </div>
@@ -39,7 +43,7 @@ const CommunityPatients = () => {
       <Button className="relative h-11 bg-gradient-community px-6 text-base shadow-soft" onClick={() => setAdding(true)}><Plus className="mr-1 h-5 w-5" />新增并初筛</Button>
     </div>
     <NewPatientScreening open={adding} onClose={() => setAdding(false)} />
-    <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground"><span>{riskOnly ? "中高风险患者 · " : ""}共 {list.length} 位患者</span><Button variant="ghost" size="sm" onClick={reset}>重置筛选</Button></div>
+    <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground"><span>{riskOnly ? "AD-8 筛查阳性 · " : "已完成初筛 · "}共 {list.length} 位患者</span><Button variant="ghost" size="sm" onClick={reset}>重置筛选</Button></div>
     <div className="divide-y divide-border rounded-lg bg-card shadow-sm ring-1 ring-border/60">
       {(isLoading || loadingReferrals) && <p className="p-6 text-center text-sm text-muted-foreground">加载中…</p>}
       {!isLoading && !loadingReferrals && !list.length && <p className="p-6 text-center text-sm text-muted-foreground">无匹配患者</p>}
