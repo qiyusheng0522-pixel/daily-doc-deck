@@ -18,6 +18,7 @@ import { communityRiskPatient, pendingCommunityReferral } from "@/data/community
 import { acceptDoctorPatient, pendingDoctorReferral } from "@/data/doctorReception";
 import { Camera, FileText, Cpu, HandHeart, LayoutGrid, User, Target, Layers, BarChart3, ClipboardCheck, Dumbbell, Repeat, ChevronRight, Pencil, ShieldPlus, ShieldCheck, Clock } from "lucide-react";
 import ScaleDetailSheet from "@/components/cognitive/ScaleDetailSheet";
+import ScaleBrowser from "@/components/cognitive/ScaleBrowser";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 import {
   usePatient, usePatientDocuments, useReferrals, usePatientEducation, useTrainingRecords, useCreateReferral, useReceiveReferral, type Patient,
@@ -73,6 +74,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const [accept, setAccept] = useState<null | { rid: string; dept: string; diag: string; feedback: string }>(null);
   const [fu, setFu] = useState<null | { item: string; note: string }>(null);
   const [scaleOpen, setScaleOpen] = useState<string | null>(null);
+  const [scaleFocus, setScaleFocus] = useState<string | null>(null);
   const [visitOpen, setVisitOpen] = useState(false);
   const [tab, setTab] = useState<string>("overview");
   const [edit, setEdit] = useState<null | { kind: "profile" | "assess"; v: Record<string, string> }>(null);
@@ -428,7 +430,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           </div>
         )}
         {tab === "info" && <><div className="grid gap-3 lg:grid-cols-2">{fullInfoCard}{healthCard}</div>{visitCard}</>}
-                {tab === "scale" && <>{scaleCard}{(role === "doctor" || role === "community") && <SelfAssessmentResults patientId={p.id} readOnly assist={role === "doctor"} />}</>}
+                {tab === "scale" && <>{role === "doctor" && <div className="flex justify-end"><Button size="sm" className="h-9" onClick={() => navigate(`/doctor/assess/${p.id}`)}>新增量表评估</Button></div>}{role === "community" && <div className="flex justify-end"><Button size="sm" variant="outline" className="h-9" onClick={() => setAd8(AD8_ITEMS.map(() => false))}>AD-8 初筛评估</Button></div>}<ScaleBrowser patientId={p.id} initialScale={scaleFocus} />{role === "doctor" && <SelfAssessmentResults patientId={p.id} readOnly assist />}</>}
         {tab === "plan" && (role === "doctor" || role === "community") && <PlanReview p={p} historyOnly confirmedOnly={role === "community"} />}
         {tab === "training" && trainingCard}
         {tab === "referral" && referralCard}
@@ -448,7 +450,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </p>
       </div>
 
-      <ScaleDetailSheet patientId={p.id} scale={scaleOpen} onClose={() => setScaleOpen(null)} />
+      <ScaleDetailSheet patientId={p.id} scale={scaleOpen} onClose={() => setScaleOpen(null)} onViewHistory={k => { setScaleFocus(k); setTab("scale"); }} />
       <ActionSheet open={assessmentOpen} onOpenChange={setAssessmentOpen} title="历史量表记录">
         {role === "community" && <div className="mb-3 flex gap-2"><Button size="sm" variant="outline" className="text-xs" onClick={() => { setAssessmentOpen(false); setAd8(AD8_ITEMS.map(() => false)); }}>AD-8 初筛评估</Button>{p.community_stage === "新接收" && <Button size="sm" variant="outline" className="text-xs" onClick={buildFile}>干预建档</Button>}</div>}
         <AssessmentHistory patientId={p.id} />

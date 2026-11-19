@@ -67,3 +67,8 @@ export function scaleTotal(scale: Scale, picks: Record<number, number>): number 
   if (scale.items.some((_, i) => picks[i] == null)) return null;
   return Math.min(scale.max, scale.items.reduce((s, _, i) => s + picks[i], 0));
 }
+
+/** AD-8 由社区初筛使用（文档未收录），不进入医生他评选择列表，仅用于记录详情解析。 */
+export const AD8_SCALE: Scale = { key: "ad8" as ScaleKey, name: "AD-8", max: 8, desc: "AD-8 痴呆筛查问卷，由知情者（家属/照护者）填写，用于早期识别认知障碍风险", criteria: "共 8 个条目，每项“是”计 1 分、“否”计 0 分，总分 0-8 分；0-1 分一般无认知障碍风险，≥2 分提示存在认知障碍风险，建议进一步评估（如 MMSE、MoCA）。", items: [
+  "判断力出现问题（如做决定困难、财务决定错误）", "对活动和嗜好的兴趣降低", "重复相同的问题、故事或陈述", "学习使用工具、电器或小器具有困难", "忘记正确的月份或年份", "处理复杂的财务问题有困难", "记不住约会时间", "每天都有思考和记忆方面的问题",
+].map(yn) };
