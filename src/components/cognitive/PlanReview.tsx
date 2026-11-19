@@ -10,7 +10,6 @@ import { useTreatmentPlans, type Patient } from "@/data/patients";
 import { needsReferral } from "@/data/cognitive";
 import { TREATMENT_PROTOCOL } from "../../../supabase/functions/_shared/treatment";
 import PlanEditor from "./PlanEditor";
-import { Pencil } from "lucide-react";
 import { planEditError, treatmentCategories } from "@/data/treatmentPlan";
 import ActionSheet from "@/components/nurse/ActionSheet";
 
@@ -52,11 +51,13 @@ export default function PlanReview({ p, showCurrent = true, historyOnly = false 
             <p className="text-sm font-semibold">认知治疗方案 · {p.cognitive_risk ?? "待分级"}</p>
             {p.ai_plan_at && <span className="text-[11px] text-muted-foreground">生成于 {fmt(p.ai_plan_at)}</span>}
           </div>
-          <Button className="my-3 w-full" size="sm" variant="outline" onClick={() => setEditing(true)}><Pencil className="mr-1 h-3.5 w-3.5" />编辑各类型方案与训练内容</Button>
-          {p.ai_plan ? <>
-            {treatmentCategories(p.cognitive_risk).filter(c => !(p.ai_plan as Advice).interventions?.some(x => x.category === c)).map(c => <section key={c} className="mb-2 border-b pb-2 text-xs"><h4 className="font-semibold text-primary">{c}</h4><p className="mt-1 text-warning">此旧版本未生成该类型内容，请重新生成或由医生编辑补全。</p></section>)}
-            <PlanView advice={p.ai_plan as Advice} /></>
-            : <><TypeDetails p={p} /><p className="mt-2 text-xs text-muted-foreground">尚未生成个性化方案，以上仅为服务标准，不是患者训练内容。请结合医生他评与患者自评生成。</p></>}
+          <div role="button" tabIndex={0} aria-label="点击编辑治疗方案" className="mt-3 cursor-pointer rounded-lg transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setEditing(true)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setEditing(true); } }}>
+            <p className="mb-1 text-[11px] text-muted-foreground">点击此处编辑方案与训练内容</p>
+            {p.ai_plan ? <>
+              {treatmentCategories(p.cognitive_risk).filter(c => !(p.ai_plan as Advice).interventions?.some(x => x.category === c)).map(c => <section key={c} className="mb-2 border-b pb-2 text-xs"><h4 className="font-semibold text-primary">{c}</h4><p className="mt-1 text-warning">此旧版本未生成该类型内容，请重新生成或由医生编辑补全。</p></section>)}
+              <PlanView advice={p.ai_plan as Advice} /></>
+              : <><TypeDetails p={p} /><p className="mt-2 text-xs text-muted-foreground">尚未生成个性化方案，以上仅为服务标准，不是患者训练内容。请结合医生他评与患者自评生成。</p></>}
+          </div>
         </Card>
       )}
       {p.ai_plan && !historyOnly && (
