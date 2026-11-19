@@ -120,7 +120,7 @@ function Tag({
     slate: "bg-muted text-muted-foreground",
   }[color];
   return (
-    <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium ${cls}`}>
+    <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[15.4px] font-medium ${cls}`}>
       {icon}
       {children}
     </span>

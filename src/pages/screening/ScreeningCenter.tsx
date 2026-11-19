@@ -108,13 +108,13 @@ export default function ScreeningCenter() {
             <header className="flex items-center gap-2 border-b bg-card px-4 py-3">
               <Link to="/" aria-label="返回首页" className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></Link>
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground"><Stethoscope className="h-4 w-4" /></div>
-              <div className="min-w-0 flex-1"><h1 className="text-base font-semibold">体检中心筛查端</h1><p className="text-[11px] text-muted-foreground">筛出异常 · 电话沟通 · 预约到训练站</p></div>
+              <div className="min-w-0 flex-1"><h1 className="text-base font-semibold">体检中心筛查端</h1><p className="text-[15.4px] text-muted-foreground">筛出异常 · 电话沟通 · 预约到训练站</p></div>
               <Button variant="ghost" size="icon" disabled title="体检系统接口尚未接入" aria-label="从体检系统同步（未接入）"><RefreshCw className="h-4 w-4" /></Button>
             </header>
             <main className="flex-1 space-y-3 overflow-y-auto bg-muted/30 p-3">
               <div className="grid grid-cols-3 gap-2">
                 {[["初筛总数", rows.length], ["AD-8阳性", positive], ["待核对", count("待核对")]].map(([k, v]) => (
-                  <Card key={k as string} className="p-2.5 text-center"><p className="text-[11px] text-muted-foreground">{k}</p><p className="text-xl font-bold">{v}</p></Card>
+                  <Card key={k as string} className="p-2.5 text-center"><p className="text-[15.4px] text-muted-foreground">{k}</p><p className="text-xl font-bold">{v}</p></Card>
                 ))}
               </div>
               <div className="flex gap-1.5 overflow-x-auto pb-1">
@@ -129,11 +129,11 @@ export default function ScreeningCenter() {
                   const pos = ad8Positive(r.ad8);
                   return (
                     <Card key={r.id} className="space-y-2 p-3">
-                      <div className="flex items-center gap-2"><b>{r.name}</b><span className="text-xs text-muted-foreground">{r.gender} · {r.age}岁</span><span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] ${tone[r.status] ?? ""}`}>{r.status}</span></div>
+                      <div className="flex items-center gap-2"><b>{r.name}</b><span className="text-xs text-muted-foreground">{r.gender} · {r.age}岁</span><span className={`ml-auto rounded-full px-2 py-0.5 text-[15.4px] ${tone[r.status] ?? ""}`}>{r.status}</span></div>
                       <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
                         <span>体检：{r.exam_date}</span><span>电话：{r.phone}</span>
                         <span>AD-8：<b className={pos ? "text-destructive" : "text-foreground"}>{r.ad8}</b> {pos ? "阳性" : "阴性"}</span>
-                        <span className="truncate">训练站：{r.refer_to ?? "—"}</span>
+                        <span>训练站：{r.refer_to ?? "—"}</span>
                         {r.appointment_at && <span className="col-span-2">预约：{new Date(r.appointment_at).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>}
                       </div>
                       <div className="flex justify-end">
@@ -146,7 +146,7 @@ export default function ScreeningCenter() {
                     </Card>
                   );
                 })}
-              <p className="flex gap-1 text-[11px] leading-4 text-muted-foreground"><ClipboardList className="h-3.5 w-3.5 shrink-0" />AD-8 ≥2 分为异常，电话沟通后预约到小市社区认知训练站进一步评估；&lt;2 分纳入宣教与年度复查。</p>
+              <p className="flex gap-1 text-[15.4px] leading-[1.4rem] text-muted-foreground"><ClipboardList className="h-3.5 w-3.5 shrink-0" />AD-8 ≥2 分为异常，电话沟通后预约到小市社区认知训练站进一步评估；&lt;2 分纳入宣教与年度复查。</p>
             </main>
             {act && (
               <div className="absolute inset-0 z-30 flex items-end bg-foreground/40" onClick={() => setAct(null)}>

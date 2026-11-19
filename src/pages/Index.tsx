@@ -76,7 +76,7 @@ const Index = () => (
               <p className="text-sm text-primary">{sub}</p>
               <p className="mt-2 text-sm text-muted-foreground">{desc}</p>
               <ul className="mt-4 flex-1 space-y-2 text-sm text-muted-foreground">
-                {items.map((t) => <li key={t} className="flex items-center gap-2"><span className={`h-1.5 w-1.5 rounded-full ${dot}`} />{t}</li>)}
+                {items.map((t) => <li key={t} className="flex items-start gap-2"><span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} /><span className="min-w-0">{t}</span></li>)}
               </ul>
               <Button className={`mt-6 w-full ${grad} hover:opacity-90`}>进入 <ArrowRight className="ml-1 h-4 w-4" /></Button>
             </div>

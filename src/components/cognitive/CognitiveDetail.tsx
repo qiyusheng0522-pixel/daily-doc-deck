@@ -33,11 +33,11 @@ const Scale = ({ label, value, max, kind, onOpen }: { label: string; value: numb
   const result = scalePresentation(kind, value);
   const tone = { neutral: "text-foreground", low: "text-success", medium: "text-warning", high: "text-destructive" }[result.tone];
   return <button type="button" onClick={onOpen} className="min-w-0 rounded-lg border bg-card p-2.5 text-left transition-colors hover:bg-muted/50">
-    <p className="text-[11px] text-muted-foreground">{label}</p>
+    <p className="text-[15.4px] text-muted-foreground">{label}</p>
     <p className={`mt-0.5 text-lg font-bold ${tone}`}>
-      {value ?? "—"}<span className="text-[11px] font-normal text-muted-foreground"> / {max}</span>
+      {value ?? "—"}<span className="text-[15.4px] font-normal text-muted-foreground"> / {max}</span>
     </p>
-    <p className={`break-words text-[10px] ${tone}`}>{result.label}</p>
+    <p className={`break-words text-[14px] ${tone}`}>{result.label}</p>
   </button>;
 };
 
@@ -235,8 +235,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             <div className="flex-1">
               <p className="font-bold">{p.name} <span className="text-xs font-normal text-muted-foreground">{p.gender} · {p.age}岁</span></p>
               {role !== "community" && <p className="text-xs text-muted-foreground">{p.cognitive_diagnosis ?? "待评估"}</p>}
-              <p className="mt-0.5 text-[11px] text-muted-foreground">来源：{p.source} · 照护者：{p.caregiver ?? "未登记"}</p>
-              <p className="mt-1 flex flex-wrap gap-1 text-[10px]"><span className="rounded bg-success/10 px-1.5 py-0.5 text-success">已关联电子健康档案</span><span className="rounded bg-primary/10 px-1.5 py-0.5 text-primary">卫生健康云</span></p>
+              <p className="mt-0.5 text-[15.4px] text-muted-foreground">来源：{p.source} · 照护者：{p.caregiver ?? "未登记"}</p>
+              <p className="mt-1 flex flex-wrap gap-1 text-[14px]"><span className="rounded bg-success/10 px-1.5 py-0.5 text-success">已关联电子健康档案</span><span className="rounded bg-primary/10 px-1.5 py-0.5 text-primary">卫生健康云</span></p>
             </div>
             {p.cognitive_risk && <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${riskTone(p.cognitive_risk)}`}>{p.cognitive_risk}</span>}
           </div>
@@ -258,7 +258,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           <div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold">患者基本信息</p>{role === "doctor" && <Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => openEdit("profile")}>编辑</Button>}</div>
           <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
             {([["姓名", p.name], ["性别", p.gender], ["年龄", `${p.age} 岁`], ["联系电话", p.phone], ["照护者", p.caregiver], ["来源渠道", p.source], ["过敏史", p.allergy], ["身份证号", p.id_no ? p.id_no.replace(/^(.{6}).+(.{4})$/, "$1********$2") : null]] as [string, string | null][]).map(([k, v]) => (
-              <div key={k} className="min-w-0"><dt className="text-[11px] text-muted-foreground">{k}</dt><dd className="mt-0.5 break-words font-medium">{v || "未登记"}</dd></div>
+              <div key={k} className="min-w-0"><dt className="text-[15.4px] text-muted-foreground">{k}</dt><dd className="mt-0.5 break-words font-medium">{v || "未登记"}</dd></div>
             ))}
           </dl>
         </Card>
@@ -266,8 +266,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         {(role === "doctor" || role === "community") && <Card className="p-4 shadow-soft">
           <div className="mb-2 flex items-center justify-between"><p className="flex items-center gap-1 text-sm font-semibold"><FileText className="h-4 w-4 text-primary" />诊疗记录 <span className="text-xs font-normal text-muted-foreground">({visitDocs.length})</span></p>{role === "doctor" && <Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => setVisitOpen(true)}><Camera className="mr-1 h-3.5 w-3.5" />拍照上传</Button>}</div>
           {visitDocs.length === 0 ? <p className="text-xs text-muted-foreground">{role === "doctor" ? "可拍照上传院内就诊单、门诊病历、检查报告等，社区端同步查看" : "暂无医生上传的诊疗记录"}</p>
-            : <div className="grid grid-cols-4 gap-1">{visitDocs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer" className="block"><img src={d.url} alt="诊疗记录" className="h-16 w-full rounded object-cover" /><p className="mt-0.5 truncate text-[10px] text-muted-foreground">{new Date(d.created_at).toLocaleDateString("zh-CN")}</p></a>)}</div>}
-          {role === "community" && visitDocs.length > 0 && <p className="mt-2 text-[10px] text-muted-foreground">由上级医院医生上传，社区端只读</p>}
+            : <div className="grid grid-cols-4 gap-1">{visitDocs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer" className="block"><img src={d.url} alt="诊疗记录" className="h-16 w-full rounded object-cover" /><p className="mt-0.5 truncate text-[14px] text-muted-foreground">{new Date(d.created_at).toLocaleDateString("zh-CN")}</p></a>)}</div>}
+          {role === "community" && visitDocs.length > 0 && <p className="mt-2 text-[14px] text-muted-foreground">由上级医院医生上传，社区端只读</p>}
         </Card>}
 
         {role === "doctor" && pendingApproval && <ReferralApproval key={pendingApproval.id} referral={pendingApproval} />}
@@ -284,7 +284,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           <Card className="p-4 shadow-soft">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold">医生训练方案 · 按方案执行</p>
-              {p.ai_plan_confirmed_at && <span className="text-[11px] text-success">✓ 医生已确认 {new Date(p.ai_plan_confirmed_at).toLocaleDateString("zh-CN")}</span>}
+              {p.ai_plan_confirmed_at && <span className="text-[15.4px] text-success">✓ 医生已确认 {new Date(p.ai_plan_confirmed_at).toLocaleDateString("zh-CN")}</span>}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">{(p.ai_plan as Advice).summary}</p>
             <ul className="mt-2 space-y-1.5">
@@ -293,9 +293,9 @@ export default function CognitiveDetail({ role }: { role: Role }) {
                 const open = () => openTask(i);
                 return (
                   <li key={i} className="rounded-lg border p-2.5 text-xs">
-                    <div className="flex items-center justify-between"><span className="font-medium">{t.domain}</span><span className="text-[11px] text-muted-foreground">{setting}</span></div>
+                    <div className="flex items-center justify-between"><span className="font-medium">{t.domain}</span><span className="text-[15.4px] text-muted-foreground">{setting}</span></div>
                     <p className="mt-0.5">{t.activity}</p>
-                    <p className="text-[11px] text-muted-foreground">{t.frequency} · {t.duration}</p>
+                    <p className="text-[15.4px] text-muted-foreground">{t.frequency} · {t.duration}</p>
                     <div className="mt-1.5">
                       <Button size="sm" className="h-7 w-full text-xs" onClick={open}>选择并记录</Button>
                     </div>
@@ -316,11 +316,11 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             <Scale onOpen={() => setScaleOpen("scd_q9")} label="SCD-Q9" kind="scd_q9" value={p.scd_q9} max={9} />
             <Scale onOpen={() => setScaleOpen("adl")} label="ADL(Barthel)" kind="adl" value={p.adl} max={100} />
             <div className="rounded-lg border bg-card p-2.5">
-              <p className="text-[11px] text-muted-foreground">下次复评</p>
+              <p className="text-[15.4px] text-muted-foreground">下次复评</p>
               <p className="mt-1 text-sm font-semibold">{p.next_reassess ?? "—"}</p>
             </div>
           </div>
-          <p className="mt-2 text-[10px] text-muted-foreground">量表分值参考，不等同综合风险或诊断；MMSE需结合教育程度，MoCA需结合教育校正。</p>
+          <p className="mt-2 text-[14px] text-muted-foreground">量表分值参考，不等同综合风险或诊断；MMSE需结合教育程度，MoCA需结合教育校正。</p>
           <div className="mt-3 flex items-center justify-between rounded-lg bg-primary/5 p-2.5">
             <div className="text-xs">
               <p className="text-muted-foreground">{p.ai_risk ? "模型分析风险等级" : "智能体初步风险等级"}</p>
@@ -329,10 +329,10 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           </div>
           {(p.risk_tags.length > 0 || p.lifestyle_warnings.length > 0) && (
             <div className="mt-3">
-              <p className="mb-1 text-[11px] text-muted-foreground">可改变危险因素</p>
+              <p className="mb-1 text-[15.4px] text-muted-foreground">可改变危险因素</p>
               <div className="flex flex-wrap gap-1">
                 {[...p.risk_tags, ...p.lifestyle_warnings].map((t) => (
-                  <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-[11px]">{t}</span>
+                  <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-[15.4px]">{t}</span>
                 ))}
               </div>
             </div>
@@ -369,7 +369,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           {([["设备训练记录", Cpu, deviceTrainings, "暂无认知训练设备同步的记录"], ["非设备干预记录", HandHeart, otherTrainings, "暂无非设备干预记录"]] as const).map(([title, Icon, rows, empty]) => (
             <section key={title} className="mb-2 rounded-lg border p-2.5 last:mb-0">
               <p className="mb-1 flex items-center gap-1 text-xs font-semibold text-primary"><Icon className="h-3.5 w-3.5" />{title} <span className="font-normal text-muted-foreground">({rows.length})</span></p>
-              {rows.length === 0 ? <p className="text-[11px] text-muted-foreground">{empty}</p> : rows.map((t) => (
+              {rows.length === 0 ? <p className="text-[15.4px] text-muted-foreground">{empty}</p> : rows.map((t) => (
                 <div key={t.id} className="border-b py-1.5 text-xs last:border-0">
                   <p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on}{t.training_time ? ` ${t.training_time.slice(0, 5)}` : ""} · {t.duration_min} 分钟 · {t.setting}</p>{t.feedback && <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">{title === "设备训练记录" ? "设备结果" : "备注"}：{t.feedback}</p>}
                 </div>
@@ -389,7 +389,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           ))}
         </Card>}
 
-        <p className="flex items-center gap-1 px-1 text-[11px] text-muted-foreground">
+        <p className="flex items-center gap-1 px-1 text-[15.4px] text-muted-foreground">
           <AlertTriangle className="h-3 w-3" />出现急性意识障碍或卒中样症状，立即启动急救。
         </p>
       </div>

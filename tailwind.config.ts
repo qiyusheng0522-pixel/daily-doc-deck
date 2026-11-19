@@ -13,6 +13,21 @@ export default {
       },
     },
     extend: {
+      fontSize: {
+        xs: ["1.05rem", "1.4rem"],
+        sm: ["1.225rem", "1.75rem"],
+        base: ["1.4rem", "2.1rem"],
+        lg: ["1.575rem", "2.45rem"],
+        xl: ["1.75rem", "2.45rem"],
+        "2xl": ["2.1rem", "2.8rem"],
+        "3xl": ["2.625rem", "3.15rem"],
+        "4xl": ["3.15rem", "3.5rem"],
+        "5xl": ["4.2rem", "1"],
+        "6xl": ["5.25rem", "1"],
+        "7xl": ["6.3rem", "1"],
+        "8xl": ["8.4rem", "1"],
+        "9xl": ["11.2rem", "1"],
+      },
       colors: {
         scr: {
           bg: "hsl(var(--scr-bg))",

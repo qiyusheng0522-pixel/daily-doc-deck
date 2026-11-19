@@ -86,7 +86,7 @@ export default function DoctorAssess() {
             {SCALES.map((s) => { const on = chosen.includes(s.key); return (
               <button key={s.key} onClick={() => setChosen(on ? chosen.filter((k) => k !== s.key) : [...chosen, s.key])}
                 className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left ${on ? "border-primary bg-primary/10" : "bg-card"}`}>
-                <span><span className="text-sm font-medium">{s.name}</span><br /><span className="text-[11px] text-muted-foreground">{s.desc} · 满分 {s.max} · {s.items.length} 项</span></span>
+                <span><span className="text-sm font-medium">{s.name}</span><br /><span className="text-[15.4px] text-muted-foreground">{s.desc} · 满分 {s.max} · {s.items.length} 项</span></span>
                 <span className={`flex h-5 w-5 items-center justify-center rounded border ${on ? "border-primary bg-primary text-primary-foreground" : ""}`}>{on && <Check className="h-3 w-3" />}</span>
               </button>); })}
             <Button className="w-full" disabled={chosen.length === 0} onClick={() => { const first = SCALES.find((s) => chosen.includes(s.key)); if (first) { setLibOpen(false); setActive(first.key); } }}>开始评估（{chosen.length}）</Button>
@@ -98,16 +98,16 @@ export default function DoctorAssess() {
           {SCALES.filter((s) => chosen.includes(s.key)).map((s) => (
             <button key={s.key} onClick={() => setActive(s.key)}
               className={`rounded-lg border px-1 py-2 text-center ${active === s.key ? "border-primary bg-primary/10 text-primary" : "bg-card"}`}>
-              <p className="text-[11px] font-semibold">{s.name.replace("（Barthel）", "")}</p>
-              <p className="text-[10px] text-muted-foreground">{done[s.key] != null ? <span className="text-success">✓ {done[s.key]}</span> : p[s.key] != null ? `上次 ${p[s.key]}` : "未评"}</p>
+              <p className="text-[15.4px] font-semibold">{s.name.replace("（Barthel）", "")}</p>
+              <p className="text-[14px] text-muted-foreground">{done[s.key] != null ? <span className="text-success">✓ {done[s.key]}</span> : p[s.key] != null ? `上次 ${p[s.key]}` : "未评"}</p>
             </button>
           ))}
         </div>
 
         <Card className="p-3 shadow-soft">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm font-semibold">{scale.name}</p><p className="text-[11px] text-muted-foreground">{scale.desc}</p></div>
-            <p className="text-right"><span className="text-xl font-bold text-primary">{total ?? "—"}</span><span className="text-xs text-muted-foreground"> / {scale.max}</span><br /><span className="text-[10px] text-muted-foreground">{answered}/{scale.items.length} 项</span></p>
+            <div><p className="text-sm font-semibold">{scale.name}</p><p className="text-[15.4px] text-muted-foreground">{scale.desc}</p></div>
+            <p className="text-right"><span className="text-xl font-bold text-primary">{total ?? "—"}</span><span className="text-xs text-muted-foreground"> / {scale.max}</span><br /><span className="text-[14px] text-muted-foreground">{answered}/{scale.items.length} 项</span></p>
           </div>
           <div className="mt-3 space-y-2.5">
             {scale.items.map((it, i) => (
@@ -128,7 +128,7 @@ export default function DoctorAssess() {
 
         <Card className="p-3 shadow-soft">
           <p className="text-sm font-semibold">模型风险分析</p>
-          <p className="mb-2 text-[11px] text-muted-foreground">完成量表后，由模型结合各项得分自动分析风险等级，风险等级自动更新到档案（已完成 {Object.keys(done).length}/{chosen.length || "-"}）</p>
+          <p className="mb-2 text-[15.4px] text-muted-foreground">完成量表后，由模型结合各项得分自动分析风险等级，风险等级自动更新到档案（已完成 {Object.keys(done).length}/{chosen.length || "-"}）</p>
           <Button className="w-full" variant="secondary" disabled={analyzing || Object.keys(done).length === 0} onClick={analyze}>
             {analyzing ? <><Loader2 className="mr-1 h-4 w-4 animate-spin" />分析中…</> : <><Sparkles className="mr-1 h-4 w-4" />完成评估并智能分析</>}
           </Button>
@@ -141,7 +141,7 @@ export default function DoctorAssess() {
             <div key={h.id} className="flex items-center justify-between gap-2 border-b py-3 last:border-0">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">{h.name} <span className="ml-1 text-primary">{h.total}{h.max ? ` / ${h.max}` : ""} 分</span></p>
-                <p className="mt-1 break-words text-[11px] text-muted-foreground">{new Date(h.created_at).toLocaleString("zh-CN")} · {h.assessed_by ?? "评估人未记录"}</p>
+                <p className="mt-1 break-words text-[15.4px] text-muted-foreground">{new Date(h.created_at).toLocaleString("zh-CN")} · {h.assessed_by ?? "评估人未记录"}</p>
               </div>
               <Button variant="ghost" size="sm" className="shrink-0 text-primary" onClick={() => setOpenH(h.id)}>查看详情</Button>
             </div>

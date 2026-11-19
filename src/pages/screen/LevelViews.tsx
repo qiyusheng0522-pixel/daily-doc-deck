@@ -33,7 +33,7 @@ function Bar100({ label, v, target, suffix = "%" }: { label: string; v: number; 
 }
 
 const Badge = ({ ok, children }: { ok: boolean; children: ReactNode }) => (
-  <span className={`rounded px-1.5 py-0.5 text-[11px] ${ok ? "bg-scr-green/20 text-scr-green" : "bg-scr-red/20 text-scr-red"}`}>{children}</span>
+  <span className={`rounded px-1.5 py-0.5 text-[15.4px] ${ok ? "bg-scr-green/20 text-scr-green" : "bg-scr-red/20 text-scr-red"}`}>{children}</span>
 );
 
 /* ===================== 市级：市卫健委 / 市级指导中心 ===================== */
@@ -74,12 +74,12 @@ export function CityView({ map, area }: { map: ReactNode; area: string }) {
       ]} />
       <div className="grid grid-cols-[1fr_1.6fr_1fr] gap-3">
         <div className="flex flex-col gap-3">
-          <Panel title="巡回指导完成情况" sub="(本月驻点次数)" className="h-64">
+          <Panel title="巡回指导完成情况" sub="(本月驻点次数)" className="h-72">
             <div className="flex h-full flex-col">
               <Legend items={[{ k: "计划", c: C.blue }, { k: "完成", c: C.green }]} />
               <div className="min-h-0 flex-1"><ResponsiveContainer>
                 <BarChart data={TOUR} margin={{ top: 6, right: 4, left: -24, bottom: 0 }}>
-                  <CartesianGrid stroke={C.grid} vertical={false} /><XAxis dataKey="d" {...axis} interval={0} /><YAxis {...axis} /><Tooltip {...tip} />
+                  <CartesianGrid stroke={C.grid} vertical={false} /><XAxis dataKey="d" {...axis} interval={0} angle={-45} textAnchor="end" height={58} /><YAxis {...axis} /><Tooltip {...tip} />
                   <Bar dataKey="plan" name="计划" fill={C.blue} barSize={8} /><Bar dataKey="done" name="完成" fill={C.green} barSize={8} />
                 </BarChart>
               </ResponsiveContainer></div>
@@ -150,7 +150,7 @@ export function CityView({ map, area }: { map: ReactNode; area: string }) {
               return (
                 <tr key={q.d} className={`border-b border-scr-line/15 ${q.d === area ? "bg-scr-gold/15" : ""}`}>
                   <td className="py-1">{i + 1}</td><td>{q.d}</td>
-                  {(["initialScreeningRate", "positiveGuidanceRate", "suspectedVisitRate"] as const).map(key => { const result = indicatorResult(counts, key); return <td key={key}>{result.value}%<span className="block text-[11px] text-scr-dim">{result.numerator.toLocaleString()} / {result.denominator.toLocaleString()} 人</span></td>; })}
+                  {(["initialScreeningRate", "positiveGuidanceRate", "suspectedVisitRate"] as const).map(key => { const result = indicatorResult(counts, key); return <td key={key}>{result.value}%<span className="block text-[15.4px] text-scr-dim">{result.numerator.toLocaleString()} / {result.denominator.toLocaleString()} 人</span></td>; })}
                   <td className={q.cert < 100 ? "text-scr-gold" : ""}>{q.cert}%</td>
                   <td className="text-xs text-scr-dim">按人去重 · 演示</td>
                 </tr>
@@ -200,7 +200,7 @@ export function CountyView({ map, area }: { map: ReactNode; area: string }) {
               {SCHEDULE.map((r) => (
                 <li key={r.st + r.time} className="grid grid-cols-[3.5rem_6.5rem_1fr_3rem] items-center gap-2 py-1.5">
                   <span className="text-scr-cyan">{r.st}</span><span className="text-xs tabular-nums text-scr-dim">{r.time}</span>
-                  <span><b className="text-[13px]">{r.g}</b><span className="block text-[11px] text-scr-dim">{r.dom}</span></span>
+                  <span><b className="text-[18.2px]">{r.g}</b><span className="block text-[15.4px] text-scr-dim">{r.dom}</span></span>
                   <span className={`text-right text-xs ${r.n >= 6 && r.n <= 12 ? "text-scr-green" : "text-scr-red"}`}>{r.n}/12</span>
                 </li>
               ))}
@@ -214,8 +214,8 @@ export function CountyView({ map, area }: { map: ReactNode; area: string }) {
                   return (
                     <li key={p.id} className="flex items-center gap-2 py-1.5">
                       <AlertTriangle className={`h-4 w-4 ${p.cognitive_risk === "高风险" ? "text-scr-red" : p.cognitive_risk === "中风险" ? "text-scr-gold" : "text-scr-cyan"}`} />
-                      <span className="w-14">{p.name}</span><span className="flex-1 truncate text-xs text-scr-dim">{p.cognitive_diagnosis}</span>
-                      <span className="text-xs">{p.cognitive_risk}</span><span className={`w-14 text-right text-xs ${d <= 3 ? "text-scr-red" : "text-scr-dim"}`}>{d} 天内</span>
+                      <span className="w-16 shrink-0 whitespace-nowrap">{p.name}</span><span className="flex-1 truncate text-xs text-scr-dim">{p.cognitive_diagnosis}</span>
+                      <span className="text-xs">{p.cognitive_risk}</span><span className={`w-16 shrink-0 whitespace-nowrap text-right text-xs ${d <= 3 ? "text-scr-red" : "text-scr-dim"}`}>{d} 天内</span>
                     </li>
                   );
                 })}
@@ -241,7 +241,7 @@ export function CountyView({ map, area }: { map: ReactNode; area: string }) {
                 <BarChart data={WORK} layout="vertical" margin={{ top: 4, right: 24, left: 8, bottom: 0 }}>
                   <XAxis type="number" {...axis} /><YAxis type="category" dataKey="s" {...axis} width={56} interval={0} /><Tooltip {...tip} />
                   <Bar dataKey="筛查" stackId="a" fill={C.cyan} /><Bar dataKey="评估" stackId="a" fill={C.gold} />
-                  <Bar dataKey="训练" stackId="a" fill={C.green}><LabelList position="right" fill="hsl(var(--scr-text))" fontSize={10} formatter={() => ""} /></Bar>
+                  <Bar dataKey="训练" stackId="a" fill={C.green}><LabelList position="right" fill="hsl(var(--scr-text))" fontSize={14} formatter={() => ""} /></Bar>
                 </BarChart>
               </ResponsiveContainer></div>
             </div>
@@ -270,7 +270,7 @@ export function CountyView({ map, area }: { map: ReactNode; area: string }) {
         <div>
           <h4 className="mb-2 text-sm font-bold">本月核心指标 <span className="font-normal text-scr-dim">（对照建设标准）</span></h4>
           <div className="space-y-2.5">
-            <p className="text-xs leading-5 text-scr-dim">三项核心监管指标及分子、分母见顶部，随所选训练站更新；疑似人群仅取基层医生综合评估结果，转诊或咨询不等于正式就诊。</p>
+            <p className="text-xs leading-[1.75rem] text-scr-dim">三项核心监管指标及分子、分母见顶部，随所选训练站更新；疑似人群仅取基层医生综合评估结果，转诊或咨询不等于正式就诊。</p>
             <Bar100 label="月度随访完成率" v={75.0} target={90} />
           </div>
         </div>

@@ -67,7 +67,7 @@ const PatientDataEntry = () => {
 
         {/* 今日待录入卡 */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 to-primary p-5 text-primary-foreground shadow-md">
-          <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-white/25 px-2.5 py-0.5 text-[11px]">
+          <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-white/25 px-2.5 py-0.5 text-[15.4px]">
             今日待录入
           </div>
           <p className="text-xl font-bold">午餐前血糖 · 晚餐后血压</p>
@@ -98,13 +98,13 @@ const PatientDataEntry = () => {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-2">
                         <p className="text-sm text-muted-foreground">{m.label}</p>
-                        <p className="text-[11px] text-muted-foreground">{m.time}</p>
+                        <p className="text-[15.4px] text-muted-foreground">{m.time}</p>
                       </div>
                       <p className="mt-0.5 text-2xl font-bold leading-tight">
                         {m.value}
                         <span className="ml-1 text-xs font-medium text-muted-foreground">{m.unit}</span>
                       </p>
-                      <p className="mt-0.5 flex items-center gap-1 text-[11px] text-emerald-600">
+                      <p className="mt-0.5 flex items-center gap-1 text-[15.4px] text-emerald-600">
                         <Sparkles className="h-3 w-3" /> {m.trend}
                       </p>
                     </div>
@@ -146,10 +146,10 @@ const PatientDataEntry = () => {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold">{d.name}</p>
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">{d.model}</p>
-                      <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{d.info}</p>
+                      <p className="mt-0.5 truncate text-[15.4px] text-muted-foreground">{d.info}</p>
                     </div>
                     <span
-                      className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                      className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-[15.4px] font-medium ${
                         d.tone === "connected"
                           ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40"
                           : d.tone === "syncing"
@@ -173,7 +173,7 @@ const PatientDataEntry = () => {
             >
               <Plus className="h-4 w-4" /> 添加新设备
             </button>
-            <p className="text-center text-[11px] text-muted-foreground">
+            <p className="text-center text-[15.4px] text-muted-foreground">
               支持鱼跃 / 欧姆龙 / 三诺 / 华为 / 小米 等常见血糖仪、血压计、体脂秤
             </p>
           </>
@@ -191,7 +191,7 @@ const PatientDataEntry = () => {
                 </div>
                 <div>
                   <p className="text-base font-semibold">录入 {openMetric.label}</p>
-                  <p className="text-[11px] text-muted-foreground">请填写本次实测数据</p>
+                  <p className="text-[15.4px] text-muted-foreground">请填写本次实测数据</p>
                 </div>
               </div>
               <button onClick={() => setOpenMetric(null)} className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
@@ -245,7 +245,7 @@ const PatientDataEntry = () => {
               </div>
             </div>
 
-            <div className="mt-3 flex items-center gap-1 rounded-lg bg-primary/5 p-2 text-[11px] text-primary">
+            <div className="mt-3 flex items-center gap-1 rounded-lg bg-primary/5 p-2 text-[15.4px] text-primary">
               <Clock className="h-3 w-3" /> 记录时间 {new Date().toLocaleString("zh-CN", { hour12: false }).slice(5, 16)}
             </div>
 

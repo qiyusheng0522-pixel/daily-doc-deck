@@ -38,12 +38,12 @@ const DoctorPlans = () => {
                 <Link to={`/doctor/plans/${p.id}`} className="block rounded-2xl bg-card p-4 shadow-sm ring-1 ring-border/60">
                   <div className="flex items-center gap-2">
                     <span className="text-base font-semibold">{p.name}</span>
-                    <span className={`rounded-md px-1.5 py-0.5 text-[11px] ${p.cognitive_risk === "高风险" ? "bg-destructive/15 text-destructive" : "bg-warning/15 text-warning"}`}>{p.cognitive_risk}</span>
-                    <span className="ml-auto rounded-md bg-primary/10 px-1.5 py-0.5 text-[11px] text-primary">待审核</span>
+                    <span className={`rounded-md px-1.5 py-0.5 text-[15.4px] ${p.cognitive_risk === "高风险" ? "bg-destructive/15 text-destructive" : "bg-warning/15 text-warning"}`}>{p.cognitive_risk}</span>
+                    <span className="ml-auto rounded-md bg-primary/10 px-1.5 py-0.5 text-[15.4px] text-primary">待审核</span>
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">{p.cognitive_diagnosis ?? "待确诊"}{p.ai_plan_at ? ` · ${new Date(p.ai_plan_at).toLocaleDateString("zh-CN")}` : ""}</p>
                   {a?.summary && <p className="mt-2 line-clamp-2 text-sm text-foreground/90">{a.summary}</p>}
-                  {!!a?.training?.length && <div className="mt-2 flex flex-wrap gap-1">{a.training.slice(0, 4).map((t, i) => <span key={i} className="rounded bg-accent/10 px-1.5 py-0.5 text-[11px] text-accent">{t.domain}</span>)}</div>}
+                  {!!a?.training?.length && <div className="mt-2 flex flex-wrap gap-1">{a.training.slice(0, 4).map((t, i) => <span key={i} className="rounded bg-accent/10 px-1.5 py-0.5 text-[15.4px] text-accent">{t.domain}</span>)}</div>}
                 </Link>
               </li>
             );

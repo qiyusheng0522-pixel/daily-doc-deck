@@ -90,8 +90,8 @@ function AreaMap({ level, city, onPick }: { level: Level; city: string; onPick: 
           return (
             <g key={st.name} className="cursor-pointer" onClick={() => onPick(st.name)} textAnchor="middle">
               <circle cx={st.x} cy={st.y} r={sel ? 14 : 9} fill={sel ? "hsl(var(--scr-gold))" : "hsl(var(--scr-cyan))"} stroke="hsl(var(--scr-text))" strokeWidth={2} />
-              <text x={st.x} y={st.y - 20} fontSize={18} fontWeight={700} fill="hsl(var(--scr-text))">{st.name}</text>
-              <text x={st.x} y={st.y + 34} fontSize={18} fontWeight={800} fill="hsl(var(--scr-gold))">{cfg.areas[st.name]?.stations}</text>
+              <text x={st.x} y={st.y - 20} fontSize={25.2} fontWeight={700} fill="hsl(var(--scr-text))">{st.name}</text>
+              <text x={st.x} y={st.y + 34} fontSize={25.2} fontWeight={800} fill="hsl(var(--scr-gold))">{cfg.areas[st.name]?.stations}</text>
             </g>
           );
         })}
@@ -100,11 +100,18 @@ function AreaMap({ level, city, onPick }: { level: Level; city: string; onPick: 
   }
   const areas = level === "city" ? NJ_AREAS : JS_CITIES;
   const vb = level === "city" ? NJ_VIEWBOX : JS_VIEWBOX;
-  const fs = level === "city" ? 24 : 15;
-  return <PolyMap areas={areas} vb={vb} fs={fs} city={city} onPick={onPick} values={cfg.areas} />;
+  const fs = level === "city" ? 33.6 : 21;
+  const labelPos = level === "city" ? NJ_LABEL : undefined;
+  return <PolyMap areas={areas} vb={vb} fs={fs} city={city} onPick={onPick} values={cfg.areas} labelPos={labelPos} />;
 }
 
-function PolyMap({ areas, vb, fs, city, onPick, values }: { areas: { name: string; d: string; cx: number; cy: number }[]; vb: string; fs: number; city: string; onPick: (c: string) => void; values: Record<string, CityStat> }) {
+// 南京主城区密集，标签适当外移以免互相遮挡
+const NJ_LABEL: Record<string, [number, number]> = {
+  鼓楼区: [248, 398], 玄武区: [400, 398], 秦淮区: [332, 502], 建邺区: [196, 502],
+  雨花台区: [168, 566], 栖霞区: [432, 336], 浦口区: [108, 428],
+};
+
+function PolyMap({ areas, vb, fs, city, onPick, values, labelPos }: { areas: { name: string; d: string; cx: number; cy: number }[]; vb: string; fs: number; city: string; onPick: (c: string) => void; values: Record<string, CityStat>; labelPos?: Record<string, [number, number]> }) {
   const JS_CITIES = areas, JS_VIEWBOX = vb, CITY = values;
   return (
     <svg viewBox={JS_VIEWBOX} className="h-full w-full" style={{ filter: "drop-shadow(0 0 18px hsl(var(--scr-cyan) / 0.45))" }}>
@@ -121,12 +128,15 @@ function PolyMap({ areas, vb, fs, city, onPick, values }: { areas: { name: strin
           stroke="hsl(190 100% 75%)" strokeWidth={c.name === city ? 2 : 0.8}
           className="cursor-pointer transition-opacity hover:opacity-80" onClick={() => onPick(c.name)} />
       ))}
-      {JS_CITIES.map((c) => (
+      {JS_CITIES.map((c) => {
+        const [lx, ly] = labelPos?.[c.name] ?? [c.cx, c.cy];
+        return (
         <g key={c.name + "l"} className="pointer-events-none" textAnchor="middle">
-          <text x={c.cx} y={c.cy - 4} fontSize={fs} fontWeight={700} fill="hsl(var(--scr-text))">{c.name}</text>
-          <text x={c.cx} y={c.cy + fs * 1.1} fontSize={fs * 1.2} fontWeight={800} fill="hsl(var(--scr-gold))">{CITY[c.name]?.stations ?? "-"}</text>
+          <text x={lx} y={ly - 4} fontSize={fs} fontWeight={700} fill="hsl(var(--scr-text))">{c.name}</text>
+          <text x={lx} y={ly + fs * 1.1} fontSize={fs * 1.2} fontWeight={800} fill="hsl(var(--scr-gold))">{CITY[c.name]?.stations ?? "-"}</text>
         </g>
-      ))}
+        );
+      })}
     </svg>
   );
 }
@@ -180,7 +190,7 @@ export default function ProvinceScreen() {
       {/* Header */}
       <header className="province-header grid items-center gap-2 px-4 py-3 xl:grid-cols-[1fr_2.6fr_1fr]">
         <Link to="/" className="flex items-center gap-2 text-sm font-bold"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-scr-red text-scr-gold">★</span>{cfg.org}</Link>
-        <h1 className="scr-glow pb-2 text-center text-xl font-black xl:text-[25px]">{cfg.title}</h1>
+        <h1 className="scr-glow pb-2 text-center text-xl font-black xl:text-[35px]">{cfg.title}</h1>
         <div className="flex items-center justify-end gap-2 text-xs text-scr-dim"><CalendarCheck className="h-4 w-4" /><span className="tabular-nums">{clock}</span></div>
       </header>
 

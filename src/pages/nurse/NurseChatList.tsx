@@ -39,7 +39,7 @@ const NurseChatList = () => {
                   {s.kind === "doctor" ? <Stethoscope className="h-4 w-4" /> : <User className="h-4 w-4" />}
                 </div>
                 {s.unread > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground">
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[14px] font-semibold text-destructive-foreground">
                     {s.unread}
                   </span>
                 )}
@@ -49,12 +49,12 @@ const NurseChatList = () => {
                   <div className="flex min-w-0 items-center gap-1.5">
                     <span className="truncate text-sm font-semibold">{s.name}</span>
                     {s.abnormal && (
-                      <span className="shrink-0 rounded bg-destructive/15 px-1.5 py-0.5 text-[10px] font-bold text-destructive">异常</span>
+                      <span className="shrink-0 rounded bg-destructive/15 px-1.5 py-0.5 text-[14px] font-bold text-destructive">异常</span>
                     )}
                   </div>
-                  <span className="shrink-0 text-[10px] text-muted-foreground">{s.time}</span>
+                  <span className="shrink-0 text-[14px] text-muted-foreground">{s.time}</span>
                 </div>
-                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{s.sub}</p>
+                <p className="mt-0.5 truncate text-[15.4px] text-muted-foreground">{s.sub}</p>
                 <p className="mt-0.5 truncate text-xs text-foreground/80">{s.last}</p>
               </div>
             </button>

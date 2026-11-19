@@ -61,7 +61,7 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
           <p className="mt-0.5 truncate text-xs text-muted-foreground">{record?.note && record.note !== `${meal.name}：已用餐` ? record.note.replace(/^.*：/, "") : "记录菜品 / 用餐情况"}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <span className={`rounded-full px-2 py-0.5 text-[11px] ${record ? "bg-success/10 text-success" : "bg-warning/15 text-warning"}`}>{record ? "已完成" : "待完成"}</span>
+          <span className={`rounded-full px-2 py-0.5 text-[15.4px] ${record ? "bg-success/10 text-success" : "bg-warning/15 text-warning"}`}>{record ? "已完成" : "待完成"}</span>
           <Button size="sm" variant={record ? "ghost" : "default"} className="h-7 rounded-full px-3 text-xs" onClick={() => openCheckin(nutritionTask, i)}>{record ? "查看" : "确认"}</Button>
         </div>
       </div>; })}

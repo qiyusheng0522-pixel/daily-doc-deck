@@ -9,7 +9,7 @@ export default function RiskAnalysisCard({ a, at, current, onAdopt }: { a: RiskA
     <div className="rounded-lg border bg-primary/5 p-3 text-xs">
       <div className="flex items-center justify-between">
         <span className={`rounded-full px-2 py-0.5 text-sm font-semibold ${tone(a.risk)}`}>{a.risk}</span>
-        <span className="text-[10px] text-muted-foreground">{a.refer ? "需转诊确诊 · " : ""}{at ? new Date(at).toLocaleString("zh-CN") : ""}</span>
+        <span className="text-[14px] text-muted-foreground">{a.refer ? "需转诊确诊 · " : ""}{at ? new Date(at).toLocaleString("zh-CN") : ""}</span>
       </div>
       <p className="mt-2 leading-relaxed">{a.summary}</p>
       <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-muted-foreground">{a.basis.map((b) => <li key={b}>{b}</li>)}</ul>
@@ -18,7 +18,7 @@ export default function RiskAnalysisCard({ a, at, current, onAdopt }: { a: RiskA
       {onAdopt && (current === a.risk
         ? <p className="mt-2 text-success">✓ 已确认为{a.risk}</p>
         : <Button size="sm" className="mt-2 w-full" onClick={() => onAdopt(a.risk)}>采纳为风险等级</Button>)}
-      <p className="mt-1.5 text-[10px] text-muted-foreground">模型根据量表自动分级，结果已同步到档案</p>
+      <p className="mt-1.5 text-[14px] text-muted-foreground">模型根据量表自动分级，结果已同步到档案</p>
     </div>
   );
 }

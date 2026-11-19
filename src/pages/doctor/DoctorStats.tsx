@@ -51,22 +51,22 @@ const DoctorStats = () => {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-base font-semibold">{doctor.name}</p>
-            <p className="mt-0.5 whitespace-nowrap text-[11px] opacity-90">评估医生 · 记忆门诊</p>
-            <p className="mt-0.5 text-[11px] opacity-80">南京市鼓楼医院 · 演示账号</p>
+            <p className="mt-0.5 whitespace-nowrap text-[15.4px] opacity-90">评估医生 · 记忆门诊</p>
+            <p className="mt-0.5 text-[15.4px] opacity-80">南京市鼓楼医院 · 演示账号</p>
           </div>
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 border-t border-primary-foreground/20 pt-3 text-center">
           <div>
-            <p className="text-[10px] opacity-80">在管患者</p>
+            <p className="text-[14px] opacity-80">在管患者</p>
             <p className="mt-0.5 text-base font-bold">{ready ? stats.managedCount : "—"}</p>
           </div>
           <div>
-            <p className="text-[10px] opacity-80">转诊率</p>
+            <p className="text-[14px] opacity-80">转诊率</p>
             <p className="mt-0.5 text-base font-bold">{ready && stats.referralRate !== null ? `${stats.referralRate}%` : "—"}</p>
           </div>
         </div>
-        <p className="mt-2 text-[10px] opacity-70">统计口径：有下转记录的在管患者人数 ÷ 在管患者人数，同一患者不重复计算。</p>
-        {(patients.isError || referrals.isError) && <p className="mt-1 text-[10px]">统计读取失败，请稍后重试</p>}
+        <p className="mt-2 text-[14px] opacity-70">统计口径：有下转记录的在管患者人数 ÷ 在管患者人数，同一患者不重复计算。</p>
+        {(patients.isError || referrals.isError) && <p className="mt-1 text-[14px]">统计读取失败，请稍后重试</p>}
       </section>
 
       {/* 工作量 */}
@@ -88,7 +88,7 @@ const DoctorStats = () => {
           {bars.map((v, i) => (
             <div key={i} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
               <div className="w-full rounded-t-md bg-primary/80" style={{ height: `${(v / 30) * 100}%` }} />
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-[14px] text-muted-foreground">
                 {["一", "二", "三", "四", "五", "六", "日"][i]}
               </span>
             </div>
@@ -105,7 +105,7 @@ const DoctorStats = () => {
                 <span className="text-foreground">{o.label}</span>
                 <span className="flex items-center gap-2">
                   <span className="font-semibold text-foreground">{o.value}%</span>
-                  <span className="inline-flex items-center gap-0.5 whitespace-nowrap rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] text-emerald-700 dark:text-emerald-400">
+                  <span className="inline-flex items-center gap-0.5 whitespace-nowrap rounded bg-emerald-500/15 px-1.5 py-0.5 text-[14px] text-emerald-700 dark:text-emerald-400">
                     {o.invert ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
                     {o.delta}
                   </span>

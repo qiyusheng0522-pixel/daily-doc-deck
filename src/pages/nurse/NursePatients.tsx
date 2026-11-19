@@ -63,7 +63,7 @@ const NursePatients = () => {
               }`}
             >
               {t}
-              <span className={`rounded-full px-1.5 text-[10px] ${active ? "bg-white/20" : "bg-muted text-muted-foreground"}`}>
+              <span className={`rounded-full px-1.5 text-[14px] ${active ? "bg-white/20" : "bg-muted text-muted-foreground"}`}>
                 {count}
               </span>
             </button>
@@ -78,7 +78,7 @@ const NursePatients = () => {
             <button
               key={c}
               onClick={() => setConditionFilter(c)}
-              className={`shrink-0 rounded-full border px-3 py-1 text-[11px] transition-colors ${
+              className={`shrink-0 rounded-full border px-3 py-1 text-[15.4px] transition-colors ${
                 active ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
               }`}
             >
@@ -110,32 +110,32 @@ const NursePatients = () => {
                 >
                   {p.name[0]}
                 </div>
-                <div className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-warning text-[8px] text-white">
+                <div className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-warning text-[11.2px] text-white">
                   <UsersIcon className="h-2.5 w-2.5" />
                 </div>
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-semibold">{p.name}</span>
-                  {p.vip && <Badge className="h-4 bg-amber-500/15 px-1 text-[9px] text-amber-700">VIP</Badge>}
-                  <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-medium text-primary">我负责</span>
-                  {p.abnormal && <Badge variant="destructive" className="h-4 px-1 text-[9px]">异常</Badge>}
+                  {p.vip && <Badge className="h-4 bg-amber-500/15 px-1 text-[12.6px] text-amber-700">VIP</Badge>}
+                  <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[12.6px] font-medium text-primary">我负责</span>
+                  {p.abnormal && <Badge variant="destructive" className="h-4 px-1 text-[12.6px]">异常</Badge>}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-1">
                   <span
-                    className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                    className={`rounded px-1.5 py-0.5 text-[14px] font-medium ${
                       p.source === "南京市鼓楼医院" ? "bg-primary/10 text-primary" : "bg-accent/10 text-accent"
                     }`}
                   >
                     {sourceLabel(p.source)}
                   </span>
-                  <span className="rounded bg-destructive/10 px-1.5 py-0.5 text-[10px] text-destructive">{p.condition_category}</span>
-                  <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{p.hospital_stage}</span>
+                  <span className="rounded bg-destructive/10 px-1.5 py-0.5 text-[14px] text-destructive">{p.condition_category}</span>
+                  <span className="rounded bg-muted px-1.5 py-0.5 text-[14px] text-muted-foreground">{p.hospital_stage}</span>
                   {p.bed_number && (
-                    <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">床 {p.bed_number}</span>
+                    <span className="rounded bg-muted px-1.5 py-0.5 text-[14px] text-muted-foreground">床 {p.bed_number}</span>
                   )}
                 </div>
-                <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground">
+                <div className="mt-1 flex flex-wrap items-center gap-1 text-[14px] text-muted-foreground">
                   <span className="rounded bg-muted/70 px-1.5 py-0.5">血压 {p.bp}</span>
                   <span className="rounded bg-muted/70 px-1.5 py-0.5">MMSE {p.nihss}</span>
                   <span className="rounded bg-muted/70 px-1.5 py-0.5">MoCA {p.mrs}</span>
@@ -146,12 +146,12 @@ const NursePatients = () => {
                       e.stopPropagation();
                       navigate(`/nurse/chat/patient/${p.id}`);
                     }}
-                    className="flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] text-primary"
+                    className="flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-2 py-0.5 text-[14px] text-primary"
                   >
                     <MessageSquare className="h-3 w-3" />
                     沟通
                   </span>
-                  <span className="flex items-center gap-1 rounded-full border border-warning/30 bg-warning/5 px-2 py-0.5 text-[10px] text-warning">
+                  <span className="flex items-center gap-1 rounded-full border border-warning/30 bg-warning/5 px-2 py-0.5 text-[14px] text-warning">
                     <UsersIcon className="h-3 w-3" />
                     会诊
                   </span>

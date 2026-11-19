@@ -59,12 +59,12 @@ export default function AiAdvicePanel({ patientId, name, saved, savedAt, compact
           <h3 className="flex items-center gap-1.5 font-semibold"><Sparkles className="h-4 w-4 text-primary" />{compact ? "AI 治疗方案" : "模型生成 · 康复训练方案"}</h3>
           <Button size="sm" disabled={reading} onClick={() => setOpen(true)}>{!complete ? "协助完成自评" : advice ? "重新生成" : "生成方案"}</Button>
         </div>
-        {advice && savedAt && <p className="mt-1 text-[11px] text-muted-foreground">生成于 {new Date(savedAt).toLocaleString("zh-CN")} · 医生确认后下发</p>}
+        {advice && savedAt && <p className="mt-1 text-[15.4px] text-muted-foreground">生成于 {new Date(savedAt).toLocaleString("zh-CN")} · 医生确认后下发</p>}
         {!advice && <p className="mt-2 text-xs text-muted-foreground">{name} · 尚无治疗方案</p>}
         {advice && !compact && (
           <div className="mt-3 space-y-3 text-sm">
             <PlanView advice={advice} />
-            <p className="text-[10px] text-muted-foreground">AI 生成内容仅供参考，须经评估师/治疗管理师审核后执行。</p>
+            <p className="text-[14px] text-muted-foreground">AI 生成内容仅供参考，须经评估师/治疗管理师审核后执行。</p>
           </div>
         )}
       </Card>

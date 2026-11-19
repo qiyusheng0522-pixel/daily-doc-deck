@@ -74,7 +74,7 @@ const NurseEducation = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold">宣教待办</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">按住院阶段自动推送</p>
+                <p className="mt-0.5 text-[15.4px] text-muted-foreground">按住院阶段自动推送</p>
               </div>
               <Badge variant="destructive" className="h-5">3 待办</Badge>
             </div>
@@ -95,21 +95,21 @@ const NurseEducation = () => {
             <Card key={s.stage} className="overflow-hidden">
               <div className={`flex items-center justify-between border-b px-4 py-2 ${s.color.split(" ").slice(0, 2).join(" ")}`}>
                 <span className="text-xs font-semibold">{s.stage}</span>
-                <Badge variant="outline" className="h-4 border-current text-[10px]">{s.count} 项</Badge>
+                <Badge variant="outline" className="h-4 border-current text-[14px]">{s.count} 项</Badge>
               </div>
               <div className="divide-y">
                 {s.todos.map((t, i) => (
                   <div key={i} className="px-4 py-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">{t.title}</p>
-                        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{t.patient}</p>
-                        <p className="mt-1 truncate text-[11px] text-foreground/70">📖 {t.content}</p>
+                        <p className="text-sm font-medium">{t.title}</p>
+                        <p className="mt-0.5 text-[15.4px] text-muted-foreground">{t.patient}</p>
+                        <p className="mt-1 text-[15.4px] text-foreground/70">📖 {t.content}</p>
                       </div>
-                      <Badge variant="secondary" className="h-4 shrink-0 text-[10px]">{t.mode}</Badge>
+                      <Badge variant="secondary" className="h-4 shrink-0 text-[14px]">{t.mode}</Badge>
                     </div>
                     <div className="mt-2 flex items-center justify-between">
-                      <span className="text-[10px] text-muted-foreground">截止 {t.due}</span>
+                      <span className="text-[14px] text-muted-foreground">截止 {t.due}</span>
                       <Button size="sm" className="h-7 bg-gradient-nurse text-xs" onClick={() => toast({ title: "已推送", description: t.title })}>
                         <Send className="mr-1 h-3 w-3" />立即推送
                       </Button>
@@ -143,7 +143,7 @@ const NurseEducation = () => {
               >
                 <Users className="mb-2 h-5 w-5 text-accent" />
                 <p className="text-sm font-semibold">批量推送</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">按科室/标签</p>
+                <p className="mt-0.5 text-[15.4px] text-muted-foreground">按科室/标签</p>
               </button>
               <button
                 onClick={() => setPushModeSheet("single")}
@@ -151,7 +151,7 @@ const NurseEducation = () => {
               >
                 <User className="mb-2 h-5 w-5 text-primary" />
                 <p className="text-sm font-semibold">单患者推送</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">个性化推荐</p>
+                <p className="mt-0.5 text-[15.4px] text-muted-foreground">个性化推荐</p>
               </button>
             </div>
           </Card>
@@ -173,11 +173,11 @@ const NurseEducation = () => {
                 >
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium">{r.title}</p>
-                    <span className="text-[11px] text-muted-foreground">{r.time}</span>
+                    <span className="text-[15.4px] text-muted-foreground">{r.time}</span>
                   </div>
                   <div className="mt-1 flex items-center justify-between">
-                    <p className="text-[11px] text-muted-foreground">{r.target}</p>
-                    <Badge variant="secondary" className="h-4 text-[10px]">已读 {r.read}</Badge>
+                    <p className="text-[15.4px] text-muted-foreground">{r.target}</p>
+                    <Badge variant="secondary" className="h-4 text-[14px]">已读 {r.read}</Badge>
                   </div>
                 </button>
               ))}
@@ -193,17 +193,17 @@ const NurseEducation = () => {
             <Card className="p-3 text-center">
               <TrendingUp className="mx-auto h-4 w-4 text-success" />
               <p className="mt-1 text-lg font-semibold">68%</p>
-              <p className="text-[11px] text-muted-foreground">完成率</p>
+              <p className="text-[15.4px] text-muted-foreground">完成率</p>
             </Card>
             <Card className="p-3 text-center">
               <Users className="mx-auto h-4 w-4 text-primary" />
               <p className="mt-1 text-lg font-semibold">42</p>
-              <p className="text-[11px] text-muted-foreground">参与人数</p>
+              <p className="text-[15.4px] text-muted-foreground">参与人数</p>
             </Card>
             <Card className="p-3 text-center">
               <Bell className="mx-auto h-4 w-4 text-warning" />
               <p className="mt-1 text-lg font-semibold">8</p>
-              <p className="text-[11px] text-muted-foreground">未读</p>
+              <p className="text-[15.4px] text-muted-foreground">未读</p>
             </Card>
           </div>
 
@@ -225,8 +225,8 @@ const NurseEducation = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{l.name}</span>
-                      <span className="text-[11px] text-muted-foreground">床 {l.bed}</span>
-                      {l.unread && <Badge variant="destructive" className="h-4 px-1 text-[9px]">未读</Badge>}
+                      <span className="text-[15.4px] text-muted-foreground">床 {l.bed}</span>
+                      {l.unread && <Badge variant="destructive" className="h-4 px-1 text-[12.6px]">未读</Badge>}
                     </div>
                     <span className="text-xs text-muted-foreground">{l.status}</span>
                   </div>
@@ -239,7 +239,7 @@ const NurseEducation = () => {
                         style={{ width: `${l.progress}%` }}
                       />
                     </div>
-                    <span className="w-9 text-right text-[11px] font-medium">{l.progress}%</span>
+                    <span className="w-9 text-right text-[15.4px] font-medium">{l.progress}%</span>
                   </div>
                 </button>
               ))}
@@ -328,7 +328,7 @@ const NurseEducation = () => {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{c.title}</p>
-                <p className="text-[11px] text-muted-foreground">{c.category} · {c.duration}</p>
+                <p className="text-[15.4px] text-muted-foreground">{c.category} · {c.duration}</p>
               </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </button>
@@ -372,7 +372,7 @@ const NurseEducation = () => {
                 <div key={l.id} className="flex items-center gap-2 rounded-lg bg-muted/30 px-3 py-2">
                   <CheckCircle2 className={`h-3.5 w-3.5 ${i === 0 ? "text-success" : "text-muted-foreground/40"}`} />
                   <span className="flex-1">{l.title}</span>
-                  <span className="text-[10px] text-muted-foreground">{i === 0 ? "已完成" : "未完成"}</span>
+                  <span className="text-[14px] text-muted-foreground">{i === 0 ? "已完成" : "未完成"}</span>
                 </div>
               ))}
             </div>
@@ -403,9 +403,9 @@ const NurseEducation = () => {
               <input type="checkbox" defaultChecked className="h-4 w-4 accent-accent" />
               <div className="flex-1">
                 <p className="font-medium">{l.name} · 床 {l.bed}</p>
-                <p className="text-[10px] text-muted-foreground">进度 {l.progress}%</p>
+                <p className="text-[14px] text-muted-foreground">进度 {l.progress}%</p>
               </div>
-              {l.unread && <Badge variant="destructive" className="h-4 px-1 text-[9px]">未读</Badge>}
+              {l.unread && <Badge variant="destructive" className="h-4 px-1 text-[12.6px]">未读</Badge>}
             </label>
           ))}
         </div>

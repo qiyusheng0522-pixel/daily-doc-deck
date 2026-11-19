@@ -50,10 +50,10 @@ export default function PlanReview({ p, showCurrent = true, historyOnly = false,
         <Card className="p-4 shadow-soft">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold">非药物干预类治疗方案 · {p.cognitive_risk ?? "待分级"}</p>
-            {p.ai_plan_at && <span className="text-[11px] text-muted-foreground">生成于 {fmt(p.ai_plan_at)}</span>}
+            {p.ai_plan_at && <span className="text-[15.4px] text-muted-foreground">生成于 {fmt(p.ai_plan_at)}</span>}
           </div>
           <div role="button" tabIndex={0} aria-label="点击编辑治疗方案" className="mt-3 cursor-pointer rounded-lg transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setEditing(true)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setEditing(true); } }}>
-            <p className="mb-1 text-[11px] text-muted-foreground">点击此处编辑方案与训练内容</p>
+            <p className="mb-1 text-[15.4px] text-muted-foreground">点击此处编辑方案与训练内容</p>
             {p.ai_plan ? <>
               {treatmentCategories(p.cognitive_risk).filter(c => !(p.ai_plan as Advice).interventions?.some(x => x.category === c)).map(c => <section key={c} className="mb-2 border-b pb-2 text-xs"><h4 className="font-semibold text-primary">{c}</h4><p className="mt-1 text-warning">此旧版本未生成该类型内容，请重新生成或由医生编辑补全。</p></section>)}
               <PlanView advice={p.ai_plan as Advice} /></>
@@ -102,10 +102,10 @@ function TypeDetails({ p }: { p: Patient }) {
           <div key={c} className="rounded-lg border p-2.5">
             <div className="flex items-center justify-between">
               <span className="rounded bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{c}</span>
-              <span className="text-[11px] text-muted-foreground">{m ? "AI生成" : "标准内容"}</span>
+              <span className="text-[15.4px] text-muted-foreground">{m ? "AI生成" : "标准内容"}</span>
             </div>
             <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs">{(m ? m.actions : STANDARD[c] ?? []).map((a, i) => <li key={i}>{a}</li>)}</ul>
-            {m && <p className="mt-1 text-[11px] text-muted-foreground">{m.frequency} · {m.duration}</p>}
+            {m && <p className="mt-1 text-[15.4px] text-muted-foreground">{m.frequency} · {m.duration}</p>}
           </div>
         );
       })}</div>)}

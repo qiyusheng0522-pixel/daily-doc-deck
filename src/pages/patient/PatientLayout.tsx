@@ -30,7 +30,7 @@ const PatientLayout = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100 px-4 py-6 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900">
       <RoleSwitcher />
-      <div className="mx-auto text-[15px] leading-relaxed" style={{ width: 408 }}>
+      <div className="mx-auto text-[21px] leading-relaxed" style={{ width: 408 }}>
         <div className="phone-shell">
           <span className="phone-side-left" />
           <div data-patient-frame className="phone-screen relative flex flex-col" style={{ height: 820 }}>
@@ -72,7 +72,7 @@ const PatientLayout = () => {
                     to={t.to}
                     end={t.end}
                     className={({ isActive }) =>
-                      `flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] transition-colors ${
+                      `flex flex-col items-center justify-center gap-0.5 py-2.5 text-[14px] transition-colors ${
                         t.center ? "-mt-6" : ""
                       } ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`
                     }

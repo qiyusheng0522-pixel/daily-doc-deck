@@ -98,7 +98,7 @@ const ChatScreen = ({
           </div>
           <div className="leading-tight">
             <p className="text-sm font-semibold">{peer.name}</p>
-            <p className="text-[11px] opacity-80">{peer.sub}</p>
+            <p className="text-[15.4px] opacity-80">{peer.sub}</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -119,11 +119,11 @@ const ChatScreen = ({
         <div className="border-b bg-card px-4 py-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">主诉</span>
-            {peer.abnormal && <Badge variant="destructive" className="h-4 px-1 text-[10px]">异常</Badge>}
+            {peer.abnormal && <Badge variant="destructive" className="h-4 px-1 text-[14px]">异常</Badge>}
           </div>
           <p className="mt-1 text-xs">{peer.diagnosis}</p>
           {peer.vitals && (
-            <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+            <div className="mt-2 grid grid-cols-3 gap-2 text-[15.4px]">
               {peer.vitals.map((v) => (
                 <div key={v.label} className={`rounded px-2 py-1 text-center ${v.abnormal ? "bg-destructive/10" : "bg-muted"}`}>
                   <p className="text-muted-foreground">{v.label}</p>
@@ -137,7 +137,7 @@ const ChatScreen = ({
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-3 py-3">
-        <p className="text-center text-[10px] text-muted-foreground">今日 {messages[0]?.time}</p>
+        <p className="text-center text-[14px] text-muted-foreground">今日 {messages[0]?.time}</p>
         {messages.map((m) => (
           <div key={m.id} className={`flex items-end gap-2 ${m.from === "me" ? "justify-end" : "justify-start"}`}>
             {m.from === "them" && (
@@ -148,9 +148,9 @@ const ChatScreen = ({
             <div className={`max-w-[75%] flex flex-col ${m.from === "me" ? "items-end" : "items-start"}`}>
               {m.type === "vitals" ? (
                 <div className="rounded-2xl border bg-card p-3 text-xs shadow-soft">
-                  <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-accent">体征快照</p>
+                  <p className="mb-1 text-[14px] font-medium uppercase tracking-wide text-accent">体征快照</p>
                   <p className="font-medium">{m.text}</p>
-                  {m.meta && <p className="mt-1 text-[10px] text-muted-foreground">{m.meta}</p>}
+                  {m.meta && <p className="mt-1 text-[14px] text-muted-foreground">{m.meta}</p>}
                 </div>
               ) : (
                 <div
@@ -161,7 +161,7 @@ const ChatScreen = ({
                   {m.text}
                 </div>
               )}
-              <span className="mt-1 text-[10px] text-muted-foreground">{m.time}</span>
+              <span className="mt-1 text-[14px] text-muted-foreground">{m.time}</span>
             </div>
             {m.from === "me" && (
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
@@ -207,7 +207,7 @@ const ChatScreen = ({
               >
                 <FileText className="h-3.5 w-3.5" />方案
                 {planUnread > 0 && (
-                  <span className="ml-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                  <span className="ml-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[14px] font-bold text-destructive-foreground">
                     {planUnread}
                   </span>
                 )}

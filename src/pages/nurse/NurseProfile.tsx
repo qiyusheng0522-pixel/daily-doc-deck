@@ -21,7 +21,7 @@ const NurseProfile = () => {
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 text-xl font-bold">李</div>
           <div className="flex-1">
             <p className="text-base font-semibold">李评估师</p>
-            <p className="mt-0.5 text-[11px] opacity-90">心内科 · 主管护师 · 工号 N0312</p>
+            <p className="mt-0.5 text-[15.4px] opacity-90">心内科 · 主管护师 · 工号 N0312</p>
           </div>
           <button onClick={() => toast({ title: "设置" })} className="rounded-full p-1.5 hover:bg-white/10">
             <Settings className="h-4 w-4" />
@@ -29,15 +29,15 @@ const NurseProfile = () => {
         </div>
         <div className="mt-3 grid grid-cols-3 gap-2 border-t border-white/20 pt-3 text-center">
           <div>
-            <p className="text-[10px] opacity-80">服务患者</p>
+            <p className="text-[14px] opacity-80">服务患者</p>
             <p className="mt-0.5 text-base font-bold">42</p>
           </div>
           <div>
-            <p className="text-[10px] opacity-80">本月工时</p>
+            <p className="text-[14px] opacity-80">本月工时</p>
             <p className="mt-0.5 text-base font-bold">168h</p>
           </div>
           <div>
-            <p className="text-[10px] opacity-80">好评率</p>
+            <p className="text-[14px] opacity-80">好评率</p>
             <p className="mt-0.5 text-base font-bold">98%</p>
           </div>
         </div>
@@ -50,19 +50,19 @@ const NurseProfile = () => {
             <Wallet className="h-4 w-4 text-accent" />
             <h3 className="text-sm font-semibold">本月收益</h3>
           </div>
-          <button onClick={() => toast({ title: "收益明细" })} className="flex items-center text-[11px] text-muted-foreground">
+          <button onClick={() => toast({ title: "收益明细" })} className="flex items-center text-[15.4px] text-muted-foreground">
             明细 <ChevronRight className="h-3 w-3" />
           </button>
         </div>
         <p className="text-3xl font-bold">¥ 8,640.00</p>
-        <p className="mt-1 text-[11px] text-success">+12% 较上月</p>
+        <p className="mt-1 text-[15.4px] text-success">+12% 较上月</p>
         <div className="mt-3 grid grid-cols-2 gap-2 border-t pt-3 text-center">
           <div>
-            <p className="text-[10px] text-muted-foreground">完成单数</p>
+            <p className="text-[14px] text-muted-foreground">完成单数</p>
             <p className="mt-0.5 text-lg font-bold text-primary">86</p>
           </div>
           <div>
-            <p className="text-[10px] text-muted-foreground">待结算</p>
+            <p className="text-[14px] text-muted-foreground">待结算</p>
             <p className="mt-0.5 text-lg font-bold text-warning">¥ 1,280</p>
           </div>
         </div>
@@ -75,7 +75,7 @@ const NurseProfile = () => {
             <TrendingUp className="h-4 w-4 text-primary" />
             <h3 className="text-sm font-semibold">本周工作量</h3>
           </div>
-          <span className="text-[11px] text-muted-foreground">护理任务 / 天</span>
+          <span className="text-[15.4px] text-muted-foreground">护理任务 / 天</span>
         </div>
         <div className="flex h-28 items-end gap-2">
           {weekly.map((w) => (
@@ -87,7 +87,7 @@ const NurseProfile = () => {
                   title={`${w.v} 单`}
                 />
               </div>
-              <span className="text-[9px] text-muted-foreground">{w.d}</span>
+              <span className="text-[12.6px] text-muted-foreground">{w.d}</span>
             </div>
           ))}
         </div>
@@ -99,7 +99,7 @@ const NurseProfile = () => {
           ].map((s) => (
             <div key={s.label}>
               <p className={`text-base font-bold ${s.color}`}>{s.value}</p>
-              <p className="text-[10px] text-muted-foreground">{s.label}</p>
+              <p className="text-[14px] text-muted-foreground">{s.label}</p>
             </div>
           ))}
         </div>
@@ -119,7 +119,7 @@ const NurseProfile = () => {
             { label: "出院交接", v: 12, color: "bg-success" },
           ].map((it) => (
             <div key={it.label}>
-              <div className="mb-1 flex items-center justify-between text-[11px]">
+              <div className="mb-1 flex items-center justify-between text-[15.4px]">
                 <span>{it.label}</span>
                 <span className="font-semibold">{it.v}%</span>
               </div>
@@ -147,7 +147,7 @@ const NurseProfile = () => {
             >
               <m.icon className="h-4 w-4 text-muted-foreground" />
               <span className="flex-1 text-sm">{m.label}</span>
-              {m.badge && <Badge variant="secondary" className="h-4 text-[10px]">{m.badge}</Badge>}
+              {m.badge && <Badge variant="secondary" className="h-4 text-[14px]">{m.badge}</Badge>}
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </button>
           ))}

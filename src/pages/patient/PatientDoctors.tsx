@@ -96,26 +96,26 @@ const PatientDoctors = () => {
                   <div className="flex flex-wrap items-center gap-1.5">
                     <p className="text-sm font-semibold">{p.name}</p>
                     {p.isAssistant && (
-                      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-950/40">
+                      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[14px] font-medium text-amber-700 dark:bg-amber-950/40">
                         助理医生
                       </span>
                     )}
                     <span
-                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+                      className={`rounded-full px-1.5 py-0.5 text-[14px] font-medium ${
                         p.online ? "bg-emerald-50 text-emerald-600" : "bg-muted text-muted-foreground"
                       }`}
                     >
                       {p.online ? "在线" : "离线"}
                     </span>
                   </div>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  <p className="mt-0.5 text-[15.4px] text-muted-foreground">
                     {p.title} · {p.dept}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">{p.hospital}</p>
+                  <p className="mt-0.5 text-[15.4px] text-muted-foreground">{p.hospital}</p>
                 </div>
               </div>
 
-              <div className="mt-2 grid grid-cols-2 gap-1.5 rounded-xl bg-muted/40 p-2 text-[11px]">
+              <div className="mt-2 grid grid-cols-2 gap-1.5 rounded-xl bg-muted/40 p-2 text-[15.4px]">
                 <div className="flex items-center gap-1 text-muted-foreground">
                   <Award className="h-3 w-3 text-primary" /> 擅长:<span className="text-foreground">{p.specialty}</span>
                 </div>
@@ -178,7 +178,7 @@ const PatientDoctors = () => {
             <p className="mt-2 text-xs text-muted-foreground">
               使用<b className="text-foreground">企业微信</b>扫一扫,添加 {qrPerson.name} 的 1v1 咨询
             </p>
-            <div className="mt-2 flex items-center justify-center gap-1 text-[11px] text-primary">
+            <div className="mt-2 flex items-center justify-center gap-1 text-[15.4px] text-primary">
               <HeartPulse className="h-3 w-3" /> {qrPerson.hospital} · {qrPerson.dept}
             </div>
           </div>

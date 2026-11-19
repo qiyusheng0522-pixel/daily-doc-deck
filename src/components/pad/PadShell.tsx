@@ -24,7 +24,7 @@ export default function PadShell({ tabs, name, dept, initial, caption, frameAttr
               <nav className="space-y-2">
                 {tabs.map(t => (
                   <NavLink key={t.to} to={t.to} end={t.end}
-                    className={({ isActive }) => `flex items-center gap-3 rounded-2xl px-4 py-3 text-[15px] font-semibold transition-colors ${isActive ? `${active} text-primary-foreground shadow-elegant` : "text-foreground/80 hover:bg-card/70"}`}>
+                    className={({ isActive }) => `flex items-center gap-3 rounded-2xl px-4 py-3 text-[21px] font-semibold transition-colors ${isActive ? `${active} text-primary-foreground shadow-elegant` : "text-foreground/80 hover:bg-card/70"}`}>
                     <t.icon className="h-5 w-5" />{t.label}
                   </NavLink>
                 ))}

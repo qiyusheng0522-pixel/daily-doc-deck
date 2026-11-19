@@ -67,7 +67,7 @@ const NurseHome = () => {
     <div className="space-y-3 p-4">
       <Card className="bg-gradient-nurse p-4 text-primary-foreground shadow-soft">
         <h2 className="text-base font-semibold">{profile?.full_name ?? "评估师"}，早上好 👋</h2>
-        <p className="mt-0.5 text-[11px] opacity-90">
+        <p className="mt-0.5 text-[15.4px] opacity-90">
           {profile?.department ?? "记忆门诊"} · 今日 {pendingTotal} 项待处理
         </p>
       </Card>
@@ -90,12 +90,12 @@ const NurseHome = () => {
               <div className={`mb-2 flex h-10 w-10 items-center justify-center rounded-xl ${t.bg}`}>
                 <t.icon className={`h-5 w-5 ${t.color}`} />
               </div>
-              <p className="text-[13px] font-medium text-foreground">{t.label}</p>
-              <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{t.sub}</p>
+              <p className="text-[18.2px] font-medium text-foreground">{t.label}</p>
+              <p className="mt-0.5 text-[14px] text-muted-foreground">{t.sub}</p>
             </div>
             <div className="ml-2 flex shrink-0 flex-col items-end">
               <span className={`text-2xl font-bold leading-none ${t.color}`}>{t.count}</span>
-              <span className="mt-1 text-[10px] text-muted-foreground">{t.unit}</span>
+              <span className="mt-1 text-[14px] text-muted-foreground">{t.unit}</span>
             </div>
           </button>
         ))}
@@ -106,7 +106,7 @@ const NurseHome = () => {
           <ClipboardCheck className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold">今日待办清单</h3>
         </div>
-        <span className="text-[10px] text-muted-foreground">共 {pendingTasks.length} 项 · 按优先级</span>
+        <span className="text-[14px] text-muted-foreground">共 {pendingTasks.length} 项 · 按优先级</span>
       </div>
       <Card className="overflow-hidden">
         <div className="divide-y">
@@ -123,19 +123,19 @@ const NurseHome = () => {
                 }}
                 className="flex w-full items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/40"
               >
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-[15.4px] font-semibold text-muted-foreground">
                   {i + 1}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${typeStyle[t.kind] ?? "bg-muted text-muted-foreground"}`}>
+                    <span className={`rounded px-1.5 py-0.5 text-[14px] font-medium ${typeStyle[t.kind] ?? "bg-muted text-muted-foreground"}`}>
                       {t.kind}
                     </span>
-                    <span className="text-[13px] font-semibold">
+                    <span className="text-[18.2px] font-semibold">
                       {bed ? `床 ${bed} ` : ""}{name}
                     </span>
                   </div>
-                  <p className="mt-1 truncate text-[11px] text-muted-foreground">
+                  <p className="mt-1 text-[15.4px] text-muted-foreground">
                     {t.title}{t.due_text ? ` · ${t.due_text}` : ""}
                   </p>
                 </div>
@@ -149,19 +149,19 @@ const NurseHome = () => {
       <Card className="overflow-hidden">
         <div className="flex items-center justify-between border-b px-4 py-3">
           <h3 className="text-sm font-semibold">下转社区进度</h3>
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-[15.4px] text-muted-foreground">
             待接收 {referrals.filter((r) => r.status === "待接收").length} · 已接收 {referrals.filter((r) => r.status === "已接收").length}
           </span>
         </div>
         <div className="divide-y">
           {referrals.slice(0, 3).map((r) => (
             <div key={r.id} className="flex items-center gap-3 px-4 py-3">
-              <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${r.status === "待接收" ? "bg-warning/15 text-warning" : "bg-success/10 text-success"}`}>
+              <span className={`rounded px-1.5 py-0.5 text-[14px] font-medium ${r.status === "待接收" ? "bg-warning/15 text-warning" : "bg-success/10 text-success"}`}>
                 {r.status}
               </span>
-              <span className="text-[13px] font-medium">{r.patients?.name ?? "患者"}</span>
-              <span className="text-[11px] text-muted-foreground">{r.to_community}</span>
-              {r.patients && <span className="ml-auto text-[10px] text-muted-foreground">{sourceLabel(r.patients.source)}</span>}
+              <span className="text-[18.2px] font-medium">{r.patients?.name ?? "患者"}</span>
+              <span className="text-[15.4px] text-muted-foreground">{r.to_community}</span>
+              {r.patients && <span className="ml-auto text-[14px] text-muted-foreground">{sourceLabel(r.patients.source)}</span>}
             </div>
           ))}
         </div>

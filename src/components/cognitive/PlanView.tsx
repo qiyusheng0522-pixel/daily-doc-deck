@@ -25,9 +25,9 @@ export default function PlanView({ advice }: { advice: Advice }) {
               <ul className="space-y-1.5">
                 {advice.training.map((t, i) => (
                   <li key={i} className="rounded-lg border p-2">
-                    <div className="flex items-center justify-between"><span className="font-medium">{t.domain}</span><span className="text-[11px] text-muted-foreground">{t.setting}</span></div>
+                    <div className="flex items-center justify-between"><span className="font-medium">{t.domain}</span><span className="text-[15.4px] text-muted-foreground">{t.setting}</span></div>
                     <p className="mt-1 whitespace-pre-line text-xs leading-relaxed">{t.activity}</p>
-                    <p className="text-[11px] text-muted-foreground">{t.frequency} · {t.duration}</p>
+                    <p className="text-[15.4px] text-muted-foreground">{t.frequency} · {t.duration}</p>
                   </li>
                 ))}
               </ul>

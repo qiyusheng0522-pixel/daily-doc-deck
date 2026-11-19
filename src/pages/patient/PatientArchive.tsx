@@ -68,7 +68,7 @@ const PatientArchive = () => {
                 >
                   <Icon className={`mx-auto h-5 w-5 ${c.color}`} />
                   <p className="mt-1 text-xs font-medium">{c.label}</p>
-                  <p className={`mt-0.5 text-[10px] ${c.done ? "text-emerald-600" : "text-muted-foreground"}`}>{c.status}</p>
+                  <p className={`mt-0.5 text-[14px] ${c.done ? "text-emerald-600" : "text-muted-foreground"}`}>{c.status}</p>
                 </div>
               );
             })}
@@ -99,14 +99,14 @@ const PatientArchive = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="mb-0.5 flex items-center gap-1.5">
-                    <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{h.type}</span>
-                    <span className="inline-flex items-center gap-0.5 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] text-emerald-600 dark:bg-emerald-950/40">
+                    <span className="rounded bg-muted px-1.5 py-0.5 text-[14px] text-muted-foreground">{h.type}</span>
+                    <span className="inline-flex items-center gap-0.5 rounded bg-emerald-50 px-1.5 py-0.5 text-[14px] text-emerald-600 dark:bg-emerald-950/40">
                       <CheckCircle2 className="h-2.5 w-2.5" /> 已识别
                     </span>
                   </div>
                   <p className="truncate text-sm font-semibold">{h.title}</p>
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">{h.detail}</p>
-                  <p className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <p className="mt-1 flex items-center gap-1 text-[14px] text-muted-foreground">
                     <Clock className="h-2.5 w-2.5" /> {h.ago}
                   </p>
                 </div>

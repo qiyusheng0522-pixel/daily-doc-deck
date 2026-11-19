@@ -44,7 +44,7 @@ const PatientRisk = () => {
                 <h2 className="text-base font-semibold">风险内容 · {riskOverview.level}</h2>
               </div>
               <p className="text-sm leading-relaxed opacity-95">{riskSummaryText}</p>
-              <div className="mt-3 flex flex-wrap gap-3 text-[12px] opacity-95">
+              <div className="mt-3 flex flex-wrap gap-3 text-[16.8px] opacity-95">
                 <span>MMSE（评估师测评） <b>24 分</b></span>
                 <span>1 年内复发风险 <b>{riskOverview.recurrenceRisk}</b></span>
                 <span>优先干预：<b>{riskOverview.priority.join(" / ")}</b></span>
@@ -133,7 +133,7 @@ function UnfilledGuide({
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold">补充个人档案</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">病史、用药、体检报告、家族史等</p>
+          <p className="mt-0.5 text-[15.4px] text-muted-foreground">病史、用药、体检报告、家族史等</p>
         </div>
         <ArrowRight className="h-4 w-4 text-muted-foreground" />
       </button>
@@ -147,14 +147,14 @@ function UnfilledGuide({
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold">填写评估问卷</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">训练站测评 MMSE / MoCA · 自评 睡眠 / 营养 / 跌倒 / 心理</p>
+          <p className="mt-0.5 text-[15.4px] text-muted-foreground">训练站测评 MMSE / MoCA · 自评 睡眠 / 营养 / 跌倒 / 心理</p>
         </div>
         <ArrowRight className="h-4 w-4 text-muted-foreground" />
       </button>
 
       <button
         onClick={onMock}
-        className="w-full rounded-xl border border-dashed border-primary/40 py-2 text-[11px] text-primary"
+        className="w-full rounded-xl border border-dashed border-primary/40 py-2 text-[15.4px] text-primary"
       >
         （演示）标记为已补充资料，查看示例风险评估
       </button>

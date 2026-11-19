@@ -71,7 +71,7 @@ const PatientAI = () => {
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-gradient-to-b from-violet-100 via-indigo-50 to-white dark:from-violet-950/40 dark:via-indigo-950/20 dark:to-background">
       {/* 顶部装饰大字水印 */}
-      <div className="pointer-events-none absolute inset-x-0 top-24 select-none text-center text-[80px] font-black uppercase tracking-widest text-violet-300/30 dark:text-violet-800/20">
+      <div className="pointer-events-none absolute inset-x-0 top-24 select-none text-center text-[112px] font-black uppercase tracking-widest text-violet-300/30 dark:text-violet-800/20">
         HEALTH
       </div>
 
@@ -83,7 +83,7 @@ const PatientAI = () => {
           </button>
           <div>
             <p className="text-lg font-bold leading-none">{ASSISTANT_NAME}</p>
-            <p className="mt-0.5 text-[10px] text-muted-foreground">{ASSISTANT_TAG}</p>
+            <p className="mt-0.5 text-[14px] text-muted-foreground">{ASSISTANT_TAG}</p>
           </div>
         </div>
         <div className="relative flex items-center gap-1.5">
@@ -166,7 +166,7 @@ const PatientAI = () => {
                     <span className="h-4 w-1 rounded-full bg-violet-500" />
                     <p className="text-sm font-bold">我的健康 · 首次引导</p>
                   </div>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-[14px] text-muted-foreground">
                     {[onboard.archive, onboard.survey, onboard.plan].filter(Boolean).length}/3
                   </span>
                 </div>
@@ -188,7 +188,7 @@ const PatientAI = () => {
                           <p className={`truncate text-sm font-semibold ${it.done ? "text-muted-foreground line-through" : "text-violet-700 dark:text-violet-300"}`}>
                             {it.label}
                           </p>
-                          <p className="truncate text-[11px] text-muted-foreground">{it.desc}</p>
+                          <p className="truncate text-[15.4px] text-muted-foreground">{it.desc}</p>
                         </div>
                       </div>
                       {!it.done && (
@@ -223,14 +223,14 @@ const PatientAI = () => {
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-300">
                       <Icon className="h-4 w-4" />
                     </div>
-                    <span className="min-w-0 flex-1 truncate">{s.text}</span>
+                    <span className="min-w-0 flex-1">{s.text}</span>
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/60" />
                   </button>
                 );
               })}
             </div>
 
-            <div className="mt-4 flex items-center justify-center gap-1 text-[11px] text-muted-foreground">
+            <div className="mt-4 flex items-center justify-center gap-1 text-[15.4px] text-muted-foreground">
               <Shield className="h-3 w-3 text-emerald-500" /> AI 建议仅供参考,不能替代医生诊断
             </div>
           </>
@@ -280,13 +280,13 @@ const PatientAI = () => {
         <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-violet-100 dark:bg-card dark:ring-violet-900/30">
           <Mic className="h-4 w-4 text-violet-500" />
         </button>
-        <div className="flex flex-1 items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm ring-1 ring-violet-100 dark:bg-card dark:ring-violet-900/30">
+        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm ring-1 ring-violet-100 dark:bg-card dark:ring-violet-900/30">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send(input)}
             placeholder="对话内容已开启隐私保护"
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
+            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
           />
           <button className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-100 text-violet-600 dark:bg-violet-900/40">
             <Plus className="h-3.5 w-3.5" />
@@ -325,12 +325,12 @@ const PatientAI = () => {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <p className="text-sm font-semibold">{d.name}</p>
-                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${d.online ? "bg-emerald-100 text-emerald-600" : "bg-muted text-muted-foreground"}`}>
+                          <span className={`rounded-full px-1.5 py-0.5 text-[14px] ${d.online ? "bg-emerald-100 text-emerald-600" : "bg-muted text-muted-foreground"}`}>
                             {d.online ? "在线" : "离线"}
                           </span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground">{d.title}</p>
-                        <p className="text-[11px] text-muted-foreground">{d.dept}</p>
+                        <p className="text-[15.4px] text-muted-foreground">{d.title}</p>
+                        <p className="text-[15.4px] text-muted-foreground">{d.dept}</p>
                       </div>
                     </div>
                     <div className="mt-2 flex gap-2">
@@ -367,7 +367,7 @@ const PatientAI = () => {
                     </button>
                   </div>
                 </div>
-                <div className="rounded-xl bg-muted/40 p-3 text-[11px] text-muted-foreground">
+                <div className="rounded-xl bg-muted/40 p-3 text-[15.4px] text-muted-foreground">
                   <p className="mb-1 font-semibold text-foreground">{ASSISTANT_NAME} 可解读:</p>
                   · 认知相关检查(同型半胱氨酸 / 血脂 / 血糖 / 凝血)<br />
                   · 头颅 CT / MR / 颈动脉超声报告<br />
@@ -412,10 +412,10 @@ const PatientAI = () => {
                         <PackageOpen className="h-5 w-5 text-rose-500" />
                         <p className="text-sm font-bold">{p.name}</p>
                       </div>
-                      <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-medium text-white">{p.badge}</span>
+                      <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[14px] font-medium text-white">{p.badge}</span>
                     </div>
                     <p className="mt-1 text-sm font-semibold text-rose-600">{p.price}</p>
-                    <ul className="mt-1.5 space-y-0.5 text-[11px] text-muted-foreground">
+                    <ul className="mt-1.5 space-y-0.5 text-[15.4px] text-muted-foreground">
                       {p.items.map((it) => (
                         <li key={it} className="flex items-center gap-1">
                           <BadgeCheck className="h-3 w-3 text-emerald-500" /> {it}
@@ -451,7 +451,7 @@ const PatientAI = () => {
             <p className="mt-2 text-xs text-muted-foreground">
               使用 <b className="text-foreground">企业微信</b> 扫一扫,添加 {qrDoctor.name} 的助理进行 1v1 咨询
             </p>
-            <div className="mt-1 flex items-center justify-center gap-1 text-[11px] text-primary">
+            <div className="mt-1 flex items-center justify-center gap-1 text-[15.4px] text-primary">
               <Clock className="h-3 w-3" /> 工作时间 08:00 - 20:00
             </div>
           </div>

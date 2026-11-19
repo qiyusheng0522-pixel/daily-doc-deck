@@ -102,7 +102,7 @@ const PatientHome = () => {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold">咨询医生</p>
-            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">医生 / 健康管理师 1v1</p>
+            <p className="mt-0.5 text-[15.4px] text-muted-foreground">医生 / 健康管理师 1v1</p>
           </div>
         </button>
         <button
@@ -111,13 +111,13 @@ const PatientHome = () => {
         >
           <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300">
             <Bell className="h-5 w-5" />
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[12.6px] font-bold text-destructive-foreground">
               3
             </span>
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold">消息</p>
-            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">3 条未读 · 随访 / 提醒</p>
+            <p className="mt-0.5 text-[15.4px] text-muted-foreground">3 条未读 · 随访 / 提醒</p>
           </div>
         </button>
       </div>
@@ -131,14 +131,14 @@ const PatientHome = () => {
           <p className="mt-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
             128<span className="ml-0.5 text-sm font-medium text-muted-foreground">/82</span>
           </p>
-          <p className="text-[11px] text-muted-foreground">mmHg · 达标</p>
+          <p className="text-[15.4px] text-muted-foreground">mmHg · 达标</p>
         </div>
         <div className="rounded-xl border bg-card p-3">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Droplet className="h-3.5 w-3.5" /> 空腹血糖
           </div>
           <p className="mt-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">5.6</p>
-          <p className="text-[11px] text-muted-foreground">mmol/L · 平稳</p>
+          <p className="text-[15.4px] text-muted-foreground">mmol/L · 平稳</p>
         </div>
 
       </div>
@@ -184,9 +184,9 @@ const PatientHome = () => {
             <Brain className="h-6 w-6 text-primary" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <p className="truncate text-base font-semibold">老年综合评估自评</p>
-              <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="min-w-0 text-base font-semibold">老年综合评估自评</p>
+              <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[15.4px] font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
                 已填写
               </span>
             </div>
@@ -240,7 +240,7 @@ const PatientHome = () => {
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4" />
                 <p className="text-sm font-semibold">使用引导</p>
-                <span className="rounded-full bg-white/25 px-2 py-0.5 text-[10px]">
+                <span className="rounded-full bg-white/25 px-2 py-0.5 text-[14px]">
                   {step}/{guideSteps.length}
                 </span>
               </div>
@@ -260,7 +260,7 @@ const PatientHome = () => {
                           type="button"
                           aria-label={`步骤 ${i + 1}`}
                           onClick={() => setStep(i)}
-                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${
+                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[15.4px] font-semibold ${
                             isDone
                               ? "bg-emerald-500 text-white"
                               : isCurrent
@@ -284,7 +284,7 @@ const PatientHome = () => {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{current.title}</p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">{current.desc}</p>
+                    <p className="mt-0.5 text-[15.4px] text-muted-foreground">{current.desc}</p>
                   </div>
                 </div>
 

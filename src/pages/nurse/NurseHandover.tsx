@@ -123,7 +123,7 @@ const NurseHandover = () => {
                 ].map((r) => (
                   <div key={r.label} className="rounded-lg border bg-card p-3 text-left">
                     <p className="text-xs font-semibold">{r.label}</p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">{r.desc}</p>
+                    <p className="mt-0.5 text-[14px] text-muted-foreground">{r.desc}</p>
                   </div>
                 ))}
               </div>
@@ -162,15 +162,15 @@ const NurseHandover = () => {
       <div className="grid grid-cols-3 gap-2">
         <Card className="p-3 text-center">
           <p className="text-xl font-semibold text-primary">{dischargeList.length}</p>
-          <p className="text-[11px] text-muted-foreground">待出院</p>
+          <p className="text-[15.4px] text-muted-foreground">待出院</p>
         </Card>
         <Card className="p-3 text-center">
           <p className="text-xl font-semibold text-warning">{referrals.filter((r) => r.status === "待接收").length}</p>
-          <p className="text-[11px] text-muted-foreground">待社区接收</p>
+          <p className="text-[15.4px] text-muted-foreground">待社区接收</p>
         </Card>
         <Card className="p-3 text-center">
           <p className="text-xl font-semibold text-success">{handoverHistory.length}</p>
-          <p className="text-[11px] text-muted-foreground">社区已接收</p>
+          <p className="text-[15.4px] text-muted-foreground">社区已接收</p>
         </Card>
       </div>
 
@@ -199,11 +199,11 @@ const NurseHandover = () => {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm font-medium">{p.name}</span>
-                    <Badge variant={p.abnormal ? "destructive" : "secondary"} className="h-4 px-1 text-[9px]">
+                    <Badge variant={p.abnormal ? "destructive" : "secondary"} className="h-4 px-1 text-[12.6px]">
                       {p.abnormal ? "异常" : "平稳"}
                     </Badge>
                   </div>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  <p className="mt-0.5 text-[15.4px] text-muted-foreground">
                     {p.diagnosis} · {p.source}
                   </p>
                 </div>
@@ -229,14 +229,14 @@ const NurseHandover = () => {
                     <p className="text-sm font-medium">
                       {h.patients?.name ?? "患者"} · {h.to_community}
                     </p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">下转医生：{h.doctor_name ?? "—"}</p>
+                    <p className="mt-0.5 text-[15.4px] text-muted-foreground">下转医生：{h.doctor_name ?? "—"}</p>
                   </div>
-                  <Badge variant="outline" className="h-5 border-success text-[10px] text-success">
+                  <Badge variant="outline" className="h-5 border-success text-[14px] text-success">
                     <CheckCircle2 className="mr-0.5 h-2.5 w-2.5" />
                     {h.status}
                   </Badge>
                 </div>
-                <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+                <p className="mt-1 flex items-center gap-1 text-[15.4px] text-muted-foreground">
                   <Clock className="h-3 w-3" />
                   {h.received_at?.slice(0, 16).replace("T", " ") ?? h.created_at.slice(0, 16).replace("T", " ")}
                 </p>

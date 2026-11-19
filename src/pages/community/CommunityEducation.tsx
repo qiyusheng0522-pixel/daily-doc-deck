@@ -54,7 +54,7 @@ const CommunityEducation = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold">宣教待办</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">按随访阶段自动推送</p>
+                <p className="mt-0.5 text-[15.4px] text-muted-foreground">按随访阶段自动推送</p>
               </div>
               <Badge variant="destructive" className="h-5">{todos.length} 待办</Badge>
             </div>
@@ -64,16 +64,16 @@ const CommunityEducation = () => {
             <Card key={s.stage} className="overflow-hidden">
               <div className={`flex items-center justify-between border-b px-4 py-2 ${s.color.split(" ").slice(0, 2).join(" ")}`}>
                 <span className="text-xs font-semibold">{s.stage}</span>
-                <Badge variant="outline" className="h-4 border-current text-[10px]">{s.todos.length} 项</Badge>
+                <Badge variant="outline" className="h-4 border-current text-[14px]">{s.todos.length} 项</Badge>
               </div>
               <div className="divide-y">
                 {s.todos.map((t, i) => (
                   <div key={i} className="px-4 py-3">
                     <p className="truncate text-sm font-medium">{t.title}</p>
-                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{t.patient}</p>
-                    <p className="mt-1 truncate text-[11px] text-foreground/70">📖 {t.content}</p>
+                    <p className="mt-0.5 truncate text-[15.4px] text-muted-foreground">{t.patient}</p>
+                    <p className="mt-1 truncate text-[15.4px] text-foreground/70">📖 {t.content}</p>
                     <div className="mt-2 flex items-center justify-between">
-                      <span className="text-[10px] text-muted-foreground">截止 {t.due}</span>
+                      <span className="text-[14px] text-muted-foreground">截止 {t.due}</span>
                       <Button size="sm" className="h-7 bg-gradient-community text-xs" onClick={() => toast({ title: "已推送", description: t.title })}>
                         <Send className="mr-1 h-3 w-3" />立即推送
                       </Button>
@@ -109,7 +109,7 @@ const CommunityEducation = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm">{c.title}</p>
-                  <p className="text-[11px] text-muted-foreground">{c.category} · {c.duration}</p>
+                  <p className="text-[15.4px] text-muted-foreground">{c.category} · {c.duration}</p>
                 </div>
                 <Button size="sm" variant="ghost" className="h-7 text-xs text-accent" onClick={() => setTarget(c)}>
                   推送

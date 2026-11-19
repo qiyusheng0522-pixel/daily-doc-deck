@@ -37,3 +37,4 @@ Roles: doctor=上级指导中心(鼓楼记忆门诊), nurse=评估师/治疗管�
 
 ## Deferred
 - Separate per-role accounts.
+- [x] Global display type scale raised 1.4x: Tailwind fontSize steps, arbitrary text-[Npx] classes, fixed leading-4/5/6, chart/axis/SVG label sizes and phone statusbar all scaled together; cockpit panels, city bars, risk legend, county rows, map labels and index/patient/nurse/education cards re-fitted so no text is clipped (18 files, browser-verified across 30 routes, 108 tests pass).

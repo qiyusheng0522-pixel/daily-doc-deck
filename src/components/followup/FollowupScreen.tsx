@@ -38,13 +38,13 @@ const FollowupScreen = ({ chatBase, gradientClass = "bg-gradient-nurse", accentT
           <Sparkles className="h-3.5 w-3.5" />
           打开 AI 随访清单
         </button>
-        <p className="mt-3 text-[11px] opacity-90">智能识别需随访患者 · 按出院后天数与风险排序</p>
+        <p className="mt-3 text-[15.4px] opacity-90">智能识别需随访患者 · 按出院后天数与风险排序</p>
       </Card>
 
       <Card className="p-3">
         <div className="flex items-center justify-between px-1 pb-2">
           <h3 className="text-sm font-semibold">随访进度</h3>
-          <span className="text-[11px] text-muted-foreground">共 {stats.total} 例</span>
+          <span className="text-[15.4px] text-muted-foreground">共 {stats.total} 例</span>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {[
@@ -54,7 +54,7 @@ const FollowupScreen = ({ chatBase, gradientClass = "bg-gradient-nurse", accentT
           ].map((s) => (
             <div key={s.label} className="rounded-xl bg-muted/50 py-3 text-center">
               <div className={`text-xl font-bold ${s.color}`}>{s.value}</div>
-              <div className="mt-1 text-[11px] text-muted-foreground">{s.label}</div>
+              <div className="mt-1 text-[15.4px] text-muted-foreground">{s.label}</div>
             </div>
           ))}
         </div>
@@ -63,7 +63,7 @@ const FollowupScreen = ({ chatBase, gradientClass = "bg-gradient-nurse", accentT
       <Card className="overflow-hidden">
         <div className="flex items-center justify-between border-b px-4 py-3">
           <h3 className="text-sm font-semibold">随访患者</h3>
-          <span className="text-[11px] text-muted-foreground">按出院后天数</span>
+          <span className="text-[15.4px] text-muted-foreground">按出院后天数</span>
         </div>
         <div className="divide-y">
           {isLoading && <p className="px-4 py-8 text-center text-sm text-muted-foreground">加载中…</p>}
@@ -84,18 +84,18 @@ const FollowupScreen = ({ chatBase, gradientClass = "bg-gradient-nurse", accentT
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm font-semibold">{name}</span>
-                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${statusStyle[f.status]}`}>{f.status}</span>
+                    <span className={`rounded px-1.5 py-0.5 text-[14px] font-medium ${statusStyle[f.status]}`}>{f.status}</span>
                     {f.patients && (
-                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-[14px] text-muted-foreground">
                         {sourceLabel(f.patients.source)}
                       </span>
                     )}
                     {f.post_discharge_day != null && (
-                      <span className="text-[10px] text-muted-foreground">出院 {f.post_discharge_day} 天</span>
+                      <span className="text-[14px] text-muted-foreground">出院 {f.post_discharge_day} 天</span>
                     )}
                   </div>
-                  <p className="mt-1 truncate text-[11px] text-muted-foreground">{f.item}</p>
-                  {f.note && <p className="mt-0.5 truncate text-[10px] text-destructive">{f.note}</p>}
+                  <p className="mt-1 truncate text-[15.4px] text-muted-foreground">{f.item}</p>
+                  {f.note && <p className="mt-0.5 truncate text-[14px] text-destructive">{f.note}</p>}
                 </div>
                 <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
               </button>
