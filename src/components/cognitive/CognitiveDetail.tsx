@@ -226,7 +226,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     ...trainings.map((t) => ({ at: `${t.trained_on}`, text: `${t.domain} · ${t.activity}（${t.duration_min} 分钟）` })),
     ...myRefs.map((r) => ({ at: r.created_at?.slice(0, 10) ?? "", text: `${r.direction}：${r.from_hospital} → ${r.to_community}（${r.approval_status ?? r.status}）` })),
     ...docs.map((d) => ({ at: d.created_at.slice(0, 10), text: `上传${d.kind}` })),
-  ].filter((x) => x.at).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 4);
+  ].filter((x) => x.at).sort((a, b) => b.at.localeCompare(a.at)).filter((x, _i, arr) => (new Date(arr[0].at).getTime() - new Date(x.at).getTime()) <= 864e5).slice(0, 4);
   const tags = [...p.risk_tags, ...p.lifestyle_warnings].slice(0, 3);
   const TABS = [["overview", "概览", LayoutGrid], ["info", "基本信息", User], ["scale", "量表评估", BarChart3], ["plan", "方案记录", ClipboardCheck], ["training", "训练记录", Dumbbell], ["referral", "转诊记录", Repeat]] as const;
   const Head = ({ icon: Icon, title, action, badge }: { icon: typeof User; title: string; action?: ReactNode; badge?: ReactNode }) => (
@@ -380,8 +380,9 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           ))}
         </Card>
 
+        <div style={{ zoom: 0.7 }} className="space-y-4">
         {tab === "overview" && (
-          <div className="grid gap-4 lg:grid-cols-[1fr_1.45fr_1fr] [&_.rounded-lg.border-card]:rounded-2xl" style={{ zoom: 0.7 }}>
+          <div className="grid gap-4 lg:grid-cols-[1fr_1.45fr_1fr] [&_.rounded-lg.border-card]:rounded-2xl">
             <div className="space-y-3">
               <Card className="rounded-2xl border-0 p-5 shadow-soft">
                 <Head icon={User} title="患者概况" />
@@ -409,9 +410,9 @@ export default function CognitiveDetail({ role }: { role: Role }) {
                 </dl> : <p className="text-sm text-muted-foreground">尚未生成非药物干预类治疗方案</p>}
               </Card>
               <Card className="rounded-2xl border-0 p-5 shadow-soft">
-                <Head icon={Clock} title="近期动态" action={<More to="training" />} />
+                <Head icon={Clock} title="近期动态" badge={<span className="ml-2 text-sm font-normal text-muted-foreground">最近2天</span>} action={<More to="training" />} />
                 {recent.length === 0 ? <p className="text-sm text-muted-foreground">暂无记录</p> : <ol className="text-sm">
-                  {recent.map((r, i) => <li key={i} className="relative flex gap-4 pb-3 pl-6 last:pb-0">{i < recent.length - 1 && <span className="absolute left-[5px] top-3 h-full w-0.5 bg-primary/15" />}<span className={`absolute left-0 top-1.5 h-3 w-3 rounded-full ${i === 0 ? "bg-primary" : "bg-primary/30"}`} /><span className="w-28 shrink-0 tabular-nums">{r.at}</span><span className="min-w-0 break-words">{r.text}</span></li>)}
+                  {recent.map((r, i) => <li key={i} className="relative flex gap-4 pb-3 pl-6 last:pb-0">{i < recent.length - 1 && <span className="absolute left-[5px] top-3 h-full w-0.5 bg-primary/15" />}<span className={`absolute left-0 top-1.5 h-3 w-3 rounded-full ${i === 0 ? "bg-primary" : "bg-primary/30"}`} /><span className="w-28 shrink-0 tabular-nums">{r.at}</span><span className="min-w-0 truncate">{r.text}</span></li>)}
                 </ol>}
               </Card>
             </div>
@@ -430,6 +431,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         {tab === "training" && trainingCard}
         {tab === "referral" && referralCard}
 
+        </div>
         {role === "nurse" && <Card className="p-4 shadow-soft">
           <p className="mb-2 text-sm font-semibold">已推送宣教</p>
           {edu.length === 0 ? <p className="text-sm text-muted-foreground">暂无</p> : edu.map((e) => (
