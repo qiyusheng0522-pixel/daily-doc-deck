@@ -59,10 +59,10 @@ const DoctorHome = () => {
 export function HeroCard({ tone, icon: Icon, title, desc, onClick }: { tone: "primary" | "success" | "warning" | "destructive"; icon: React.ElementType; title: string; desc: string; onClick: () => void }) {
   const t = { primary: ["from-primary/15 to-accent/5", "bg-primary/15 text-primary"], success: ["from-success/15 to-accent/10", "bg-success/15 text-success"], warning: ["from-warning/15 to-warning/5", "bg-warning/20 text-warning"], destructive: ["from-destructive/10 to-destructive/5", "bg-destructive/15 text-destructive"] }[tone];
   return (
-    <button onClick={onClick} className={`group relative flex items-center gap-6 overflow-hidden rounded-3xl bg-gradient-to-br ${t[0]} p-7 text-left shadow-card ring-1 ring-border/60 transition-transform hover:-translate-y-0.5`}>
-      <div className={`flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl ${t[1]}`}><Icon className="h-12 w-12" /></div>
-      <div className="min-w-0 flex-1 pr-12"><p className="text-3xl font-bold">{title}</p><p className="mt-2 text-sm text-muted-foreground">{desc}</p></div>
-      <span className="absolute bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-card text-primary shadow-card"><ArrowRight className="h-5 w-5" /></span>
+    <button onClick={onClick} className={`group relative flex items-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-br ${t[0]} px-4 py-3 text-left shadow-card ring-1 ring-border/60 transition-transform hover:-translate-y-0.5`}>
+      <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${t[1]}`}><Icon className="h-6 w-6" /></div>
+      <div className="min-w-0 flex-1 pr-8"><p className="text-lg font-bold">{title}</p><p className="mt-0.5 truncate text-xs text-muted-foreground">{desc}</p></div>
+      <span className="absolute bottom-1/2 right-3 flex h-7 w-7 translate-y-1/2 items-center justify-center rounded-full bg-card text-primary shadow-card"><ArrowRight className="h-4 w-4" /></span>
     </button>
   );
 }
