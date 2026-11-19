@@ -1,4 +1,5 @@
 <!-- AGENT-MEMORY:BEGIN -->
+- Community screening badges/todos and risk lists/referral controls use separate predicates in communityReception over saved patient fields, so screening positivity cannot be promoted into an assessment risk or referral eligibility.
 - Doctor reception todos use doctorReceptionQueue keyed by patient; both acceptance entry points share acceptDoctorPatient to resolve all pending upward referrals for that person while retaining history, preventing repeated reception tasks.
 - Community concern summaries map saved item answers to non-diagnostic short tags; training sessions persist clock time and feedback in training_records and select activities only from the confirmed shared plan, avoiding invented clinical findings or detached execution logs.
 - Doctor and community patient details share CognitiveDetail section order, concise self-assessment tags, read-only in-frame answer details and training-history rows; assisted assessment remains in doctor assessment/review, and training entry/upward referral remain community actions, preserving clinical role boundaries.

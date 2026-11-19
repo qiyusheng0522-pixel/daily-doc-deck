@@ -12,7 +12,7 @@ import PlanReview from "@/components/cognitive/PlanReview";
 import SelfAssessmentResults from "@/components/cognitive/SelfAssessmentResults";
 import AssessmentHistory from "@/components/cognitive/AssessmentHistory";
 import DoctorBackButton from "@/components/doctor/DoctorBackButton";
-import { pendingCommunityReferral } from "@/data/communityReception";
+import { communityRiskPatient, pendingCommunityReferral } from "@/data/communityReception";
 import { acceptDoctorPatient, pendingDoctorReferral } from "@/data/doctorReception";
 import { Camera } from "lucide-react";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
@@ -187,6 +187,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const pendingDown = pendingCommunityReferral(myRefs, p.id);
 
   const submit = () => {
+    if (role === "community" && !communityRiskPatient(p)) return toast({ title: "仅评估确定的中高风险患者可转诊" });
     const direction = sheet === "up" ? "上转" : "下转";
     const reason = note.trim() || (direction === "上转"
       ? `AD-8 ${p.ad8 ?? "-"}，MMSE ${p.mmse ?? "-"}，MoCA ${p.moca ?? "-"}，${p.cognitive_risk ?? "风险待评估"}，申请${upDept}进一步评估`
@@ -228,7 +229,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             {(role === "doctor" || role === "community") && (
               <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => setDocsOpen(true)}><Camera className="mr-1 h-4 w-4" />录入档案</Button>
             )}
-            {role !== "doctor" && needsReferral(p.cognitive_risk) && (
+            {role !== "doctor" && (role === "community" ? communityRiskPatient(p) : needsReferral(p.cognitive_risk)) && (
               <Button size="sm" className="flex-1 text-xs" onClick={() => setSheet("up")}><Send className="mr-1 h-4 w-4" />{role === "community" ? "上转医院" : "患者上传"}</Button>
             )}
             {role === "doctor" && (
