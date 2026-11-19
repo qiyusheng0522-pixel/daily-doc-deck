@@ -10,6 +10,7 @@
 - Training sessions live in `training_records` (one row per session) so all ends share history; doctor confirmation of model plans is stored on patients (ai_plan_confirmed_at/by).
 - Plan history lives in `treatment_plans` (one row per generation); PlanView/PlanReview are the single plan renderers so patient detail and doctor review stay identical. Exam photos go to private bucket `patient-docs` + `patient_documents`.
 - Generate and confirm doctor treatment plans only in the plan-review screen; patient files use history-only PlanReview so review actions are not duplicated. Shared treatment service parameters live in functions/_shared/treatment.ts for generator and review consistency.
+- Family self-assessments and doctor-assisted questionnaires share SelfAssessmentForm and functions/_shared/selfAssessment.ts; persist item answers as self_* scale_assessments and require all four saved questionnaires before AI generation to avoid treating missing results as normal.
 - Scale items/maxima live in src/data/scales.ts; each completed scale is a `scale_assessments` row and also updates the patient column. Model risk analysis is the `mode: "risk"` branch of cognitive-advice, saved to patients.ai_risk; doctor adoption sets cognitive_risk.
 - DemoSession (mounted in App) auto-signs in the demo account when signed out, so stakeholder demos never hit RLS write failures; all ends share that multi-role account.
 <!-- AGENT-MEMORY:END -->

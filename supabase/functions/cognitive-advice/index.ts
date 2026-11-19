@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { generateResponse, GatewayError } from "npm:@lovable.dev/ai-gateway";
 import { TREATMENT_PROTOCOL } from "../_shared/treatment.ts";
+import { latestSelfAssessments } from "../_shared/selfAssessment.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -9,7 +10,6 @@ const cors = {
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
-const LEVELS = ["正常", "轻度问题", "中度问题", "重度问题"];
 
 const schema = {
   type: "object", additionalProperties: false,
@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
 
   let body: { patientId?: string; self?: Record<string, number>; careNeeds?: string; mode?: string; items?: Record<string, unknown> };
   try { body = await req.json(); } catch { return json({ error: "请求格式错误" }, 400); }
-  const { patientId, self = {}, careNeeds = "" } = body;
+  const { patientId, careNeeds = "" } = body;
   if (!patientId || careNeeds.length > 1000) return json({ error: "参数不完整或照护需求过长" }, 400);
 
   const { data: p, error } = await sb.from("patients")
@@ -104,8 +104,16 @@ Deno.serve(async (req) => {
     }
   }
 
-  const selfText = ["睡眠", "营养", "跌倒风险", "精神心理"]
-    .map((k) => `${k}：${LEVELS[self[k] ?? 0] ?? "未填"}`).join("；");
+  const { data: selfRecords, error: selfError } = await sb.from("scale_assessments").select("scale,items,total,created_at,assessed_by").eq("patient_id", patientId).order("created_at", { ascending: false });
+  if (selfError) return json({ error: "自评记录读取失败" }, 500);
+  const selfAssessments = latestSelfAssessments(selfRecords ?? []);
+  const missing = selfAssessments.filter(x => !x.record);
+  if (missing.length) return json({ error: `请医生协助患者完成：${missing.map(x => x.questionnaire.name).join("、")}` }, 400);
+  const selfText = selfAssessments.map(({ questionnaire: q, record }) => {
+    if (!record) return "";
+    const answers = record.items as Record<string, number>;
+    return `${q.name}（简版，非正式诊断量表）：总分${record.total}，填写人${record.assessed_by}，日期${record.created_at}；` + q.questions.map(item => `${item.text}：${item.options.find(o => o.score === answers[item.id])?.label}（${answers[item.id]}分）`).join("；");
+  }).join("\n");
 
   try {
     const res = await generateResponse({
@@ -127,6 +135,7 @@ Deno.serve(async (req) => {
       ?? (res as any).output?.flatMap((o: any) => o.content ?? []).find((c: any) => c.type === "output_text")?.text;
     if (!out) return json({ error: "模型未返回内容，请稍后重试" }, 502);
     const advice = JSON.parse(out);
+    advice.self_assessments = selfAssessments.map(({ questionnaire: q, record }) => ({ name: q.name, total: record?.total, assessed_at: record?.created_at, assessed_by: record?.assessed_by }));
     await sb.from("patients").update({ ai_plan: advice, ai_plan_at: new Date().toISOString() }).eq("id", patientId);
     await sb.from("treatment_plans").insert({ patient_id: patientId, plan: advice, risk: p.cognitive_risk ?? null });
     return json({ advice });

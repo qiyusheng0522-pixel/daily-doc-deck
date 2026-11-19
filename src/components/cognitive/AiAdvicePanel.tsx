@@ -8,6 +8,9 @@ import ActionSheet from "@/components/nurse/ActionSheet";
 import { supabase } from "@/integrations/supabase/client";
 import PlanView from "@/components/cognitive/PlanView";
 import { useQueryClient } from "@tanstack/react-query";
+import SelfAssessmentForm from "@/components/cognitive/SelfAssessmentForm";
+import { useScaleAssessments } from "@/data/patients";
+import { latestSelfAssessments } from "../../../supabase/functions/_shared/selfAssessment";
 
 export type Advice = {
   summary: string; focus: string[];
@@ -15,22 +18,23 @@ export type Advice = {
   followup: { cycle: string; reassess: string; items: string[] };
   caregiver_tips: string[]; red_flags: string[];
   interventions?: { category: string; actions: string[]; frequency: string; duration: string }[];
+  self_assessments?: { name: string; total: number; assessed_at: string; assessed_by: string }[];
 };
 
-const AREAS = ["睡眠", "营养", "跌倒风险", "精神心理"] as const;
-const LEVELS = ["正常", "轻度", "中度", "重度"];
 
 export default function AiAdvicePanel({ patientId, name, saved, savedAt, compact = false }: { patientId: string; name: string; saved?: unknown; savedAt?: string | null; compact?: boolean }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [self, setSelf] = useState<Record<string, number>>({ 睡眠: 0, 营养: 0, 跌倒风险: 0, 精神心理: 0 });
+  const { data: records = [], isLoading: reading } = useScaleAssessments(patientId);
+  const complete = latestSelfAssessments(records).every(x => x.record);
   const [needs, setNeeds] = useState("");
   const [loading, setLoading] = useState(false);
   const [advice, setAdvice] = useState<Advice | null>((saved as Advice) ?? null);
 
   const run = async () => {
+    if (!complete) return toast({ title: "请先协助患者完成四份自评量表" });
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke("cognitive-advice", { body: { patientId, self, careNeeds: needs.trim() } });
+    const { data, error } = await supabase.functions.invoke("cognitive-advice", { body: { patientId, careNeeds: needs.trim() } });
     setLoading(false);
     if (error || data?.error) {
       let msg = data?.error as string | undefined;
@@ -48,7 +52,7 @@ export default function AiAdvicePanel({ patientId, name, saved, savedAt, compact
       <Card className="p-4 shadow-soft">
         <div className="flex items-center justify-between">
           <h3 className="flex items-center gap-1.5 font-semibold"><Sparkles className="h-4 w-4 text-primary" />{compact ? "AI 治疗方案" : "模型生成 · 康复训练方案"}</h3>
-          <Button size="sm" onClick={() => setOpen(true)}>{advice ? "重新生成" : "录入并生成"}</Button>
+          <Button size="sm" disabled={reading} onClick={() => setOpen(true)}>{!complete ? "协助完成自评" : advice ? "重新生成" : "生成方案"}</Button>
         </div>
         {advice && savedAt && <p className="mt-1 text-[11px] text-muted-foreground">生成于 {new Date(savedAt).toLocaleString("zh-CN")} · 医生确认后下发</p>}
         {!advice && <p className="mt-2 text-xs text-muted-foreground">{name} · 尚无治疗方案</p>}
@@ -60,20 +64,10 @@ export default function AiAdvicePanel({ patientId, name, saved, savedAt, compact
         )}
       </Card>
 
-      <ActionSheet open={open} onOpenChange={setOpen} title="录入自评与照护需求" description={`${name} · 老年综合评估自评结果`}
-        footer={<Button className="w-full" disabled={loading} onClick={run}>{loading ? <><Loader2 className="mr-1 h-4 w-4 animate-spin" />生成中…</> : "生成个性化建议"}</Button>}>
+      <ActionSheet open={open} onOpenChange={setOpen} title="患者自评与照护需求" description={`${name} · ${complete ? "已读取自评结果" : "请医生协助患者完成缺失问卷"}`}
+        footer={<Button className="w-full" disabled={loading || !complete} onClick={run}>{loading ? <><Loader2 className="mr-1 h-4 w-4 animate-spin" />生成中…</> : complete ? "结合自评生成治疗方案" : "完成四份自评后可生成"}</Button>}>
         <div className="space-y-3">
-          {AREAS.map((a) => (
-            <div key={a}>
-              <p className="mb-1 text-sm font-medium">{a}</p>
-              <div className="grid grid-cols-4 gap-1.5">
-                {LEVELS.map((l, i) => (
-                  <button key={l} onClick={() => setSelf({ ...self, [a]: i })}
-                    className={`rounded-md border py-1.5 text-xs ${self[a] === i ? "border-primary bg-primary/10 font-medium text-primary" : "border-border"}`}>{l}</button>
-                ))}
-              </div>
-            </div>
-          ))}
+          <SelfAssessmentForm patientId={patientId} assisted />
           <div>
             <p className="mb-1 text-sm font-medium">照护需求</p>
             <Textarea rows={3} maxLength={1000} value={needs} onChange={(e) => setNeeds(e.target.value)}

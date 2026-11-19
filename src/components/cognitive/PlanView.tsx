@@ -5,6 +5,7 @@ import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 export default function PlanView({ advice }: { advice: Advice }) {
   return (
     <div className="space-y-3 text-sm">
+            {advice.self_assessments && <section className="border-b pb-2"><h4 className="mb-1 text-xs font-semibold">方案依据 · 患者自评</h4>{advice.self_assessments.map(s => <p key={s.name} className="text-xs text-muted-foreground">{s.name} {s.total} 分 · {new Date(s.assessed_at).toLocaleDateString("zh-CN")} · {s.assessed_by}</p>)}</section>}
             <p className="rounded-lg bg-primary/5 p-2.5 leading-relaxed">{advice.summary}</p>
             {advice.focus.length > 0 && (
               <ul className="list-disc space-y-0.5 pl-4 text-xs">{advice.focus.map((f) => <li key={f}>{f}</li>)}</ul>
