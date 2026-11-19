@@ -21,21 +21,24 @@ import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 import {
   usePatient, usePatientDocuments, useReferrals, usePatientEducation, useTrainingRecords, useCreateReferral, useReceiveReferral, type Patient,
 } from "@/data/patients";
-import { RISK_PLAN, scaleLevel, suggestRisk } from "@/data/cognitive";
+import { RISK_PLAN, suggestRisk } from "@/data/cognitive";
+import { scalePresentation, type PresentedScale } from "@/data/scalePresentation";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 type Role = "doctor" | "nurse" | "community";
 
-const Scale = ({ label, value, max, hint }: { label: string; value: number | null; max: number; hint?: string }) => (
-  <div className="rounded-lg border bg-card p-2.5">
+const Scale = ({ label, value, max, kind }: { label: string; value: number | null; max: number; kind: PresentedScale }) => {
+  const result = scalePresentation(kind, value);
+  const tone = { neutral: "text-foreground", low: "text-success", medium: "text-warning", high: "text-destructive" }[result.tone];
+  return <div className="min-w-0 rounded-lg border bg-card p-2.5">
     <p className="text-[11px] text-muted-foreground">{label}</p>
-    <p className="mt-0.5 text-lg font-bold">
+    <p className={`mt-0.5 text-lg font-bold ${tone}`}>
       {value ?? "—"}<span className="text-[11px] font-normal text-muted-foreground"> / {max}</span>
     </p>
-    {hint && <p className="text-[10px] text-muted-foreground">{hint}</p>}
-  </div>
-);
+    <p className={`break-words text-[10px] ${tone}`}>{result.label}</p>
+  </div>;
+};
 
 const riskTone = (r: Patient["cognitive_risk"]) =>
   r === "高风险" ? "bg-destructive/15 text-destructive" : r === "中风险" ? "bg-warning/15 text-warning" : "bg-success/15 text-success";
@@ -235,12 +238,13 @@ export default function CognitiveDetail({ role }: { role: Role }) {
               <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => setDocsOpen(true)}><Camera className="mr-1 h-4 w-4" />录入档案</Button>
             )}
             {role !== "doctor" && (role === "community" ? communityRiskPatient(p) : needsReferral(p.cognitive_risk)) && (
-              <Button size="sm" className="flex-1 text-xs" disabled={role === "community" && transferBusy} onClick={() => setSheet("up")}><Send className="mr-1 h-4 w-4" />{role === "community" ? transferBusy ? transferState : "申请上转" : "患者上传"}</Button>
+              <Button size="sm" className="flex-1 text-xs" disabled={role === "community" && transferBusy} onClick={() => setSheet("up")}><Send className="mr-1 h-4 w-4" />{role === "community" ? "转诊" : "患者上传"}</Button>
             )}
             {role === "doctor" && (
               <Button size="sm" className="flex-1" onClick={() => setSheet("down")}><Send className="mr-1 h-4 w-4" />转诊</Button>
             )}
           </div>
+          {role === "community" && transferState && <p className="mt-2 text-xs text-primary">转诊状态：{transferState}</p>}
         </Card>
 
         {role === "doctor" && pendingApproval && <ReferralApproval key={pendingApproval.id} referral={pendingApproval} />}
@@ -283,16 +287,17 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         <Card className="p-4 shadow-soft">
           <div className="mb-2 flex items-center justify-between"><p className="flex items-center gap-1 text-sm font-semibold"><Brain className="h-4 w-4 text-accent" />认知风险评估</p>{role === "doctor" && <span className="flex gap-1"><Button size="sm" className="h-7 text-xs" onClick={() => navigate(`/doctor/assess/${p.id}`)}>量表评估</Button><Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => openEdit("assess")}>编辑</Button></span>}{role === "community" && <Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => setAssessmentOpen(true)}>量表详情</Button>}</div>
           <div className="grid grid-cols-3 gap-2">
-            <Scale label="AD-8 初筛" value={p.ad8} max={8} hint={p.ad8 != null ? (p.ad8 >= 2 ? "阳性 ≥2" : "阴性") : undefined} />
-            <Scale label="MMSE" value={p.mmse} max={30} hint={scaleLevel("mmse", p.mmse)} />
-            <Scale label="MoCA" value={p.moca} max={30} hint={scaleLevel("moca", p.moca)} />
-            <Scale label="SCD-Q9" value={p.scd_q9} max={9} />
-            <Scale label="ADL(Barthel)" value={p.adl} max={100} hint={scaleLevel("adl", p.adl)} />
+            <Scale label="AD-8 初筛" kind="ad8" value={p.ad8} max={8} />
+            <Scale label="MMSE" kind="mmse" value={p.mmse} max={30} />
+            <Scale label="MoCA" kind="moca" value={p.moca} max={30} />
+            <Scale label="SCD-Q9" kind="scd_q9" value={p.scd_q9} max={9} />
+            <Scale label="ADL(Barthel)" kind="adl" value={p.adl} max={100} />
             <div className="rounded-lg border bg-card p-2.5">
               <p className="text-[11px] text-muted-foreground">下次复评</p>
               <p className="mt-1 text-sm font-semibold">{p.next_reassess ?? "—"}</p>
             </div>
           </div>
+          <p className="mt-2 text-[10px] text-muted-foreground">量表分值参考，不等同综合风险或诊断；MMSE需结合教育程度，MoCA需结合教育校正。</p>
           <div className="mt-3 flex items-center justify-between rounded-lg bg-primary/5 p-2.5">
             <div className="text-xs">
               <p className="text-muted-foreground">{p.ai_risk ? "模型分析风险等级" : "智能体初步风险等级"}</p>
