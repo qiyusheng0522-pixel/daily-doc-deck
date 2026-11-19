@@ -11,7 +11,6 @@ import { planConfirmed, needsReferral, COMMUNITY_STATIONS, DIAG_DEPTS, DEPT_DOCT
 import PlanReview from "@/components/cognitive/PlanReview";
 import { Camera } from "lucide-react";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
-import AiAdvicePanel from "@/components/cognitive/AiAdvicePanel";
 import {
   usePatient, usePatientDocuments, useReferrals, usePatientEducation, useTrainingRecords, useCreateReferral, type Patient,
 } from "@/data/patients";
@@ -226,11 +225,9 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           <Card className="border-warning/40 bg-warning/5 p-3 shadow-soft">
             <p className="text-sm font-semibold">上转待接诊 · 来自{pendingUp.from_hospital}</p>
             <p className="mt-1 text-xs text-muted-foreground">{pendingUp.reason}</p>
-            <Button size="sm" className="mt-2 w-full" onClick={() => setAccept({ rid: pendingUp.id, dept: DIAG_DEPTS[0], diag: p.cognitive_diagnosis ?? "", feedback: "" })}>接诊确认并反馈指导意见</Button>
+            <Button size="sm" className="mt-2 w-full" onClick={() => setAccept({ rid: pendingUp.id, dept: pendingUp.dept ?? DIAG_DEPTS[0], diag: p.cognitive_diagnosis ?? "", feedback: "" })}>确认接收患者</Button>
           </Card>
         )}
-        {role === "doctor" && <AiAdvicePanel key={p.id} patientId={p.id} name={p.name} saved={p.ai_plan} savedAt={p.ai_plan_at} />}
-        {role === "doctor" && <PlanReview p={p} showCurrent={false} />}
         {role === "community" && (planConfirmed(p) ? (
           <Card className="p-4 shadow-soft">
             <div className="flex items-center justify-between">
@@ -321,10 +318,10 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </Card>
 
         <Card className="p-4 shadow-soft">
-          <p className="mb-2 text-sm font-semibold">认知训练记录 <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>
+          <p className="mb-2 text-sm font-semibold">{role === "doctor" ? "下级训练记录" : "认知训练记录"} <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>
           {trainings.length === 0 ? <p className="text-xs text-muted-foreground">暂无训练记录</p> : trainings.map((t) => (
             <div key={t.id} className="flex items-start justify-between border-b py-1.5 text-xs last:border-0">
-              <div><p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on} · {t.setting} · {t.duration_min} 分钟</p></div>
+              <div><p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on} · {t.setting} · {t.duration_min} 分钟{t.operator ? ` · ${t.operator}` : ""}</p></div>
               {t.completion === "待执行" && role === "community" ? (
                 <span className="flex shrink-0 gap-1">{["完成", "部分完成", "未完成"].map((c) => (
                   <button key={c} onClick={() => markExec(t.id, c)} className="rounded border px-1.5 py-0.5 text-[11px] text-primary">{c}</button>))}</span>
@@ -332,6 +329,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             </div>
           ))}
         </Card>
+
+        {role === "doctor" && <PlanReview p={p} historyOnly />}
 
         {role !== "doctor" && <Card className="p-4 shadow-soft">
           <p className="mb-2 text-sm font-semibold">已推送宣教</p>
@@ -404,7 +403,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       </ActionSheet>
 
       <ActionSheet open={!!accept} onOpenChange={(o) => !o && setAccept(null)} title="接诊确认并反馈" description="三级医院确诊后反馈指导意见至社区训练站"
-        footer={<Button className="w-full" disabled={saving} onClick={saveAccept}>确认接诊</Button>}>
+        footer={<Button className="w-full" disabled={saving} onClick={saveAccept}>确认接收</Button>}>
         {accept && (
           <div className="space-y-2">
             <div className="grid grid-cols-3 gap-1">{DIAG_DEPTS.map((d) => (

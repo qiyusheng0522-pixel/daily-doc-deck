@@ -9,6 +9,13 @@ export default function PlanView({ advice }: { advice: Advice }) {
             {advice.focus.length > 0 && (
               <ul className="list-disc space-y-0.5 pl-4 text-xs">{advice.focus.map((f) => <li key={f}>{f}</li>)}</ul>
             )}
+            {advice.interventions?.map((item, i) => (
+              <section key={`${item.category}-${i}`} className="border-b pb-3 last:border-0">
+                <h4 className="mb-1.5 text-sm font-semibold text-primary">{item.category}</h4>
+                <ul className="list-disc space-y-1 pl-4 text-xs">{item.actions.map((action, j) => <li key={j}>{action}</li>)}</ul>
+                <p className="mt-1 text-xs text-muted-foreground">{item.frequency} · {item.duration}</p>
+              </section>
+            ))}
             <section>
               <h4 className="mb-1.5 flex items-center gap-1 text-xs font-semibold text-muted-foreground"><Dumbbell className="h-3.5 w-3.5" />认知训练</h4>
               <ul className="space-y-1.5">

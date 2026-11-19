@@ -14,12 +14,13 @@ export type Advice = {
   training: { domain: string; activity: string; frequency: string; duration: string; setting: string }[];
   followup: { cycle: string; reassess: string; items: string[] };
   caregiver_tips: string[]; red_flags: string[];
+  interventions?: { category: string; actions: string[]; frequency: string; duration: string }[];
 };
 
 const AREAS = ["睡眠", "营养", "跌倒风险", "精神心理"] as const;
 const LEVELS = ["正常", "轻度", "中度", "重度"];
 
-export default function AiAdvicePanel({ patientId, name, saved, savedAt }: { patientId: string; name: string; saved?: unknown; savedAt?: string | null }) {
+export default function AiAdvicePanel({ patientId, name, saved, savedAt, compact = false }: { patientId: string; name: string; saved?: unknown; savedAt?: string | null; compact?: boolean }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [self, setSelf] = useState<Record<string, number>>({ 睡眠: 0, 营养: 0, 跌倒风险: 0, 精神心理: 0 });
@@ -46,12 +47,12 @@ export default function AiAdvicePanel({ patientId, name, saved, savedAt }: { pat
     <>
       <Card className="p-4 shadow-soft">
         <div className="flex items-center justify-between">
-          <h3 className="flex items-center gap-1.5 font-semibold"><Sparkles className="h-4 w-4 text-primary" />模型生成 · 康复训练方案</h3>
+          <h3 className="flex items-center gap-1.5 font-semibold"><Sparkles className="h-4 w-4 text-primary" />{compact ? "AI 治疗方案" : "模型生成 · 康复训练方案"}</h3>
           <Button size="sm" onClick={() => setOpen(true)}>{advice ? "重新生成" : "录入并生成"}</Button>
         </div>
-        {advice && savedAt && <p className="mt-1 text-[11px] text-muted-foreground">已同步家庭端 · 生成于 {new Date(savedAt).toLocaleString("zh-CN")}</p>}
-        {!advice && <p className="mt-2 text-xs text-muted-foreground">录入{name}的老年综合评估自评与照护需求，结合量表结果生成个性化方案，供评估师审核后执行。</p>}
-        {advice && (
+        {advice && savedAt && <p className="mt-1 text-[11px] text-muted-foreground">生成于 {new Date(savedAt).toLocaleString("zh-CN")} · 医生确认后下发</p>}
+        {!advice && <p className="mt-2 text-xs text-muted-foreground">{name} · 尚无治疗方案</p>}
+        {advice && !compact && (
           <div className="mt-3 space-y-3 text-sm">
             <PlanView advice={advice} />
             <p className="text-[10px] text-muted-foreground">AI 生成内容仅供参考，须经评估师/治疗管理师审核后执行。</p>

@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Users, ClipboardCheck, CalendarClock, Bell } from "lucide-react";
+import { planConfirmed, needsReferral } from "@/data/cognitive";
+import { Button } from "@/components/ui/button";
 import {
   usePatients,
-  usePlanReviews,
   useReferrals,
   useMyProfile,
 } from "@/data/patients";
@@ -19,32 +20,28 @@ function hourGreeting() {
 const DoctorHome = () => {
   const navigate = useNavigate();
   const { data: patients = [] } = usePatients("all");
-  const { data: reviews = [] } = usePlanReviews();
+  const reviews = patients.filter((p) => needsReferral(p.cognitive_risk) && !planConfirmed(p));
   const { data: profile } = useMyProfile();
   const { data: referrals = [] } = useReferrals();
   const upQueue = referrals.filter((r) => r.direction === "上转" && r.status === "待接收");
 
-  const pendingReviews = reviews.filter((r) => r.status === "审核中").length;
-  const activePatients = patients.filter((p) => p.hospital_stage !== "历史").length;
+  const pendingReviews = reviews.length;
 
   // 待办直接来自方案审核队列：审核中的每一条都是一件真实的待处理事项。
   const todoList = [
     ...upQueue.map((r) => ({
       id: r.id,
       type: "审核" as const,
-      title: `${r.patients?.name ?? "患者"} · 上转待确诊（${r.from_hospital}）`,
+      title: `${r.patients?.name ?? "患者"} · 转诊待接收（${r.from_hospital}）`,
       time: r.created_at.slice(5, 16).replace("T", " "),
       to: `/doctor/patients/${r.patient_id}`,
     })),
-    ...reviews
-    .filter((r) => r.status === "审核中")
-    .slice(0, 5)
-    .map((r) => ({
-      id: r.id,
+    ...reviews.slice(0, 5).map((p) => ({
+      id: p.id,
       type: "审核" as const,
-      title: `${r.patients?.name ?? "患者"} · ${r.category}审核`,
-      time: r.submitted_at.slice(5, 16).replace("T", " "),
-      to: `/doctor/plans`,
+      title: `${p.name} · ${p.cognitive_risk}治疗方案待确认`,
+      time: p.ai_plan_at ? new Date(p.ai_plan_at).toLocaleDateString("zh-CN") : "待生成 AI 方案",
+      to: `/doctor/plans/${p.id}`,
     })),
   ];
 
@@ -63,19 +60,13 @@ const DoctorHome = () => {
         </p>
       </section>
 
-      <section className="grid grid-cols-3 divide-x divide-border rounded-2xl bg-card py-5 shadow-sm ring-1 ring-border/60">
-        <KpiCell num={patients.length} label="患者" color="text-primary" />
-        <KpiCell num={activePatients} label="在期" color="text-emerald-600" />
-        <KpiCell num={upQueue.length} label="待确诊" color="text-amber-600" />
-      </section>
-
       <section className="grid grid-cols-2 gap-3">
         <TileCard
           to="/doctor/patients"
           icon={<Users className="h-5 w-5 text-primary" />}
           iconBg="bg-primary/10"
           num={patients.length}
-          label={`患者 · 在期 ${activePatients}`}
+          label="患者档案"
           dot
         />
         <TileCard
@@ -83,7 +74,7 @@ const DoctorHome = () => {
           icon={<ClipboardCheck className="h-5 w-5 text-amber-600" />}
           iconBg="bg-amber-500/15"
           num={pendingReviews}
-          label={`方案审核 · 共 ${reviews.length} 条`}
+          label="中高风险治疗方案确认"
           dot
         />
       </section>
@@ -108,12 +99,12 @@ const DoctorHome = () => {
                   {t.time}
                 </p>
               </div>
-              <button
+              <Button size="sm" variant="outline"
                 onClick={() => navigate(t.to)}
                 className="whitespace-nowrap rounded-full border border-primary/40 px-3 py-1 text-xs font-medium text-primary"
               >
                 处理
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
@@ -122,15 +113,6 @@ const DoctorHome = () => {
     </div>
   );
 };
-
-function KpiCell({ num, label, color }: { num: number | string; label: string; color: string }) {
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <span className={`text-3xl font-semibold ${color}`}>{num}</span>
-      <span className="text-xs text-muted-foreground">{label}</span>
-    </div>
-  );
-}
 
 function TileCard({ to, icon, iconBg, num, label, dot }: { to: string; icon: React.ReactNode; iconBg: string; num: number; label: string; dot?: boolean }) {
   return (

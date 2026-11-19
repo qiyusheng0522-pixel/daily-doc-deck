@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { generateResponse, GatewayError } from "npm:@lovable.dev/ai-gateway";
+import { TREATMENT_PROTOCOL } from "../_shared/treatment.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -12,10 +13,17 @@ const LEVELS = ["正常", "轻度问题", "中度问题", "重度问题"];
 
 const schema = {
   type: "object", additionalProperties: false,
-  required: ["summary", "focus", "training", "followup", "caregiver_tips", "red_flags"],
+  required: ["summary", "focus", "training", "followup", "caregiver_tips", "red_flags", "interventions"],
   properties: {
     summary: { type: "string" },
     focus: { type: "array", items: { type: "string" } },
+    interventions: {
+      type: "array", items: {
+        type: "object", additionalProperties: false,
+        required: ["category", "actions", "frequency", "duration"],
+        properties: { category: { type: "string" }, actions: { type: "array", items: { type: "string" } }, frequency: { type: "string" }, duration: { type: "string" } },
+      },
+    },
     training: {
       type: "array",
       items: {
@@ -24,7 +32,7 @@ const schema = {
         properties: {
           domain: { type: "string", enum: ["记忆", "注意力", "执行功能", "定向力", "视空间", "语言", "计算", "逻辑与问题解决"] },
           activity: { type: "string" }, frequency: { type: "string" }, duration: { type: "string" },
-          setting: { type: "string", enum: ["站内小组", "站内个训", "家庭作业"] },
+          setting: { type: "string", enum: ["站内小组", "站内个训", "家庭作业", "家庭病床", "上门康复"] },
         },
       },
     },
@@ -57,7 +65,10 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   const auth = req.headers.get("Authorization");
   if (!auth) return json({ error: "请先登录" }, 401);
-  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: auth } } });
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!url || !key) return json({ error: "服务配置不可用" }, 500);
+  const sb = createClient(url, key, { global: { headers: { Authorization: auth } } });
   const { data: u } = await sb.auth.getUser();
   if (!u.user) return json({ error: "请先登录" }, 401);
 
@@ -102,7 +113,8 @@ Deno.serve(async (req) => {
       instructions:
         "你是江苏省老年认知训练站的认知康复顾问，为训练站评估师/治疗管理师生成可执行建议。遵循《老年认知训练站建设基本标准》：" +
         "风险分层 低风险(认知正常/SCD)→宣教+每年复评；中风险(MCI/轻中度痴呆)→认知训练、家庭作业每周1-2次、危险因素管理、每6个月复评；高风险(重度痴呆)→长期照护/家庭病床/上门评估、每3个月复评；每月随访。" +
-        "小组训练6-12人、每周1-3次、每次20-30分钟。训练覆盖八大领域。结合睡眠、营养、跌倒、心理自评与照护需求个性化调整，用简洁中文，具体到频次时长，不做诊断。",
+        `严格遵循服务参数：${JSON.stringify(TREATMENT_PROTOCOL)}。` +
+        "interventions须逐项包含该风险档位的所有治疗类型，每项给出结合本人量表和照护需求的具体措施、频次、时长。中风险认知训练累计20-36小时/期、6-12人小组，家庭作业每周1-2次、每次20-30分钟，另含非药物干预、风险管理、睡眠、营养、心理。高风险以长期护理、家庭病床准入评估、家庭病床框架内上门评估康复和风险管理为主，不套用中风险小组训练；不得声称未经评估已符合家庭病床准入。结合睡眠、营养、跌倒、心理自评个性化调整，具体到频次时长，不做诊断，待医生确认后执行。",
       input: [{
         role: "user",
         content: `老人：${p.name}，${p.gender}，${p.age}岁；诊断：${p.cognitive_diagnosis ?? "未确诊"}；风险：${p.cognitive_risk ?? "未分级"}；` +
