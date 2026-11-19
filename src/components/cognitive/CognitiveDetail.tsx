@@ -46,6 +46,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const createReferral = useCreateReferral();
   const receiveReferral = useReceiveReferral();
   const [trainingOpen, setTrainingOpen] = useState(false);
+  const [assessmentOpen, setAssessmentOpen] = useState(false);
   const [sheet, setSheet] = useState<null | "up" | "down">(null);
   const [note, setNote] = useState("");
   const qc = useQueryClient();
@@ -211,15 +212,12 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             {p.cognitive_risk && <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${riskTone(p.cognitive_risk)}`}>{p.cognitive_risk}</span>}
           </div>
           <div className="mt-3 flex gap-2">
-            {role === "community" && (
+            {(role === "doctor" || role === "community") && (
               <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => setDocsOpen(true)}><Camera className="mr-1 h-4 w-4" />录入档案</Button>
             )}
             {role === "community" && <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => setTrainingOpen(true)}><Brain className="mr-1 h-4 w-4" />记录训练</Button>}
             {role !== "doctor" && needsReferral(p.cognitive_risk) && (
               <Button size="sm" className="flex-1 text-xs" onClick={() => setSheet("up")}><Send className="mr-1 h-4 w-4" />{role === "community" ? "上转医院" : "患者上传"}</Button>
-            )}
-            {role === "doctor" && (
-              <Button size="sm" variant="outline" className="flex-1" onClick={() => setDocsOpen(true)}><Camera className="mr-1 h-4 w-4" />录入档案</Button>
             )}
             {role === "doctor" && (
               <Button size="sm" className="flex-1" onClick={() => setSheet("down")}><Send className="mr-1 h-4 w-4" />转诊</Button>
@@ -264,11 +262,9 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           </Card>
         ) : <div className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">训练方案待评估医生确认，确认后在此按方案安排训练并记录执行。</div>)}
         </ActionSheet>
-        {role === "community" && !needsReferral(p.cognitive_risk) && p.cognitive_risk && <p className="px-1 text-[11px] text-muted-foreground">低风险无需转诊：与家庭医生联合制定随访评估计划并开展健康宣教。</p>}
 
         <Card className="p-4 shadow-soft">
-          <div className="mb-2 flex items-center justify-between"><p className="flex items-center gap-1 text-sm font-semibold"><Brain className="h-4 w-4 text-accent" />认知风险评估</p>{role === "doctor" && <span className="flex gap-1"><Button size="sm" className="h-7 text-xs" onClick={() => navigate(`/doctor/assess/${p.id}`)}>量表评估</Button><Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => openEdit("assess")}>编辑</Button></span>}</div>
-          {role === "community" && <div className="mb-3 flex gap-2"><Button size="sm" variant="outline" className="text-xs" onClick={() => setAd8(AD8_ITEMS.map(() => false))}>AD-8 初筛评估</Button>{p.community_stage === "新接收" && <Button size="sm" variant="outline" className="text-xs" onClick={buildFile}>干预建档</Button>}</div>}
+          <div className="mb-2 flex items-center justify-between"><p className="flex items-center gap-1 text-sm font-semibold"><Brain className="h-4 w-4 text-accent" />认知风险评估</p>{role === "doctor" && <span className="flex gap-1"><Button size="sm" className="h-7 text-xs" onClick={() => navigate(`/doctor/assess/${p.id}`)}>量表评估</Button><Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => openEdit("assess")}>编辑</Button></span>}{role === "community" && <Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => setAssessmentOpen(true)}>量表详情</Button>}</div>
           <div className="grid grid-cols-3 gap-2">
             <Scale label="AD-8 初筛" value={p.ad8} max={8} hint={p.ad8 != null ? (p.ad8 >= 2 ? "阳性 ≥2" : "阴性") : undefined} />
             <Scale label="MMSE" value={p.mmse} max={30} hint={scaleLevel("mmse", p.mmse)} />
@@ -299,7 +295,10 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </Card>
 
         {(role === "doctor" || role === "community") && <SelfAssessmentResults patientId={p.id} readOnly={role === "community"} />}
-        {role === "community" && <AssessmentHistory patientId={p.id} />}
+        <ActionSheet open={assessmentOpen} onOpenChange={setAssessmentOpen} title="历史量表记录">
+          {role === "community" && <div className="mb-3 flex gap-2"><Button size="sm" variant="outline" className="text-xs" onClick={() => { setAssessmentOpen(false); setAd8(AD8_ITEMS.map(() => false)); }}>AD-8 初筛评估</Button>{p.community_stage === "新接收" && <Button size="sm" variant="outline" className="text-xs" onClick={buildFile}>干预建档</Button>}</div>}
+          <AssessmentHistory patientId={p.id} />
+        </ActionSheet>
 
         {docs.length > 0 && <Card className="p-4 shadow-soft">
           <p className="mb-2 text-sm font-semibold">建档材料 <span className="text-xs font-normal text-muted-foreground">({docs.length})</span></p>
@@ -330,10 +329,9 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           ))}
         </Card>
 
-        {role === "doctor" && <PlanReview p={p} historyOnly />}
-        {role === "community" && <><PlanReview p={p} historyOnly confirmedOnly /><Card className="p-4 shadow-soft"><div className="flex items-center justify-between"><p className="text-sm font-semibold">随访管理</p><Button size="sm" variant="outline" onClick={() => setFu({ item: "月度电话随访", note: "" })}>记录随访</Button></div></Card></>}
+        {(role === "doctor" || role === "community") && <PlanReview p={p} historyOnly confirmedOnly={role === "community"} />}
 
-        {role !== "doctor" && <Card className="p-4 shadow-soft">
+        {role === "nurse" && <Card className="p-4 shadow-soft">
           <p className="mb-2 text-sm font-semibold">已推送宣教</p>
           {edu.length === 0 ? <p className="text-xs text-muted-foreground">暂无</p> : edu.map((e) => (
             <div key={e.id} className="flex justify-between border-b py-1.5 text-xs last:border-0">
@@ -383,7 +381,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         )}
       </ActionSheet>
 
-      <ActionSheet open={docsOpen} onOpenChange={setDocsOpen} title={role === "doctor" ? "录入档案" : "上传档案"} description="拍照上传化验单、检查报告、体检单等，用于建档">
+      <ActionSheet open={docsOpen} onOpenChange={setDocsOpen} title="录入档案" description="拍照上传化验单、检查报告、体检单等，用于建档">
         <div className="space-y-2">
           <label className="flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-dashed py-6 text-sm text-primary">
             <Camera className="h-5 w-5" />{uploading ? "上传中…" : "拍照 / 选择图片上传"}
