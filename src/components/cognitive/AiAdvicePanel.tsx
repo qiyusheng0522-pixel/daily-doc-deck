@@ -10,7 +10,7 @@ import PlanView from "@/components/cognitive/PlanView";
 import { useQueryClient } from "@tanstack/react-query";
 import SelfAssessmentForm from "@/components/cognitive/SelfAssessmentForm";
 import { useScaleAssessments } from "@/data/patients";
-import { latestSelfAssessments, latestDoctorAssessments } from "../../../supabase/functions/_shared/selfAssessment";
+import { latestSelfAssessments } from "../../../supabase/functions/_shared/selfAssessment";
 
 export type Advice = {
   summary: string; focus: string[];
@@ -19,8 +19,6 @@ export type Advice = {
   caregiver_tips: string[]; red_flags: string[];
   interventions?: { category: string; actions: string[]; frequency: string; duration: string }[];
   self_assessments?: { name: string; total: number; assessed_at: string; assessed_by: string }[];
-  doctor_assessments?: { name: string; total: number; assessed_at: string; assessed_by: string; items: unknown }[];
-  edited_at?: string; edited_by?: string;
 };
 
 
@@ -29,14 +27,12 @@ export default function AiAdvicePanel({ patientId, name, saved, savedAt, compact
   const [open, setOpen] = useState(false);
   const { data: records = [], isLoading: reading } = useScaleAssessments(patientId);
   const complete = latestSelfAssessments(records).every(x => x.record);
-  const doctorComplete = latestDoctorAssessments(records).length > 0;
   const [needs, setNeeds] = useState("");
   const [loading, setLoading] = useState(false);
   const [advice, setAdvice] = useState<Advice | null>((saved as Advice) ?? null);
 
   const run = async () => {
     if (!complete) return toast({ title: "请先协助患者完成四份自评量表" });
-    if (!doctorComplete) return toast({ title: "请先在量表库完成医生他评" });
     setLoading(true);
     const { data, error } = await supabase.functions.invoke("cognitive-advice", { body: { patientId, careNeeds: needs.trim() } });
     setLoading(false);
@@ -69,7 +65,7 @@ export default function AiAdvicePanel({ patientId, name, saved, savedAt, compact
       </Card>
 
       <ActionSheet open={open} onOpenChange={setOpen} title="患者自评与照护需求" description={`${name} · ${complete ? "已读取自评结果" : "请医生协助患者完成缺失问卷"}`}
-        footer={<Button className="w-full" disabled={loading || !complete || !doctorComplete} onClick={run}>{loading ? <><Loader2 className="mr-1 h-4 w-4 animate-spin" />生成中…</> : !doctorComplete ? "请先完成医生他评" : complete ? "结合他评与自评生成治疗方案" : "完成四份自评后可生成"}</Button>}>
+        footer={<Button className="w-full" disabled={loading || !complete} onClick={run}>{loading ? <><Loader2 className="mr-1 h-4 w-4 animate-spin" />生成中…</> : complete ? "结合自评生成治疗方案" : "完成四份自评后可生成"}</Button>}>
         <div className="space-y-3">
           <SelfAssessmentForm patientId={patientId} assisted />
           <div>

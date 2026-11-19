@@ -1,8 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Camera, FileText, Pill, HeartPulse, IdCard, Sparkles, CheckCircle2, Image as ImageIcon, Clock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { useCurrentPatient } from "@/data/patients";
-import SelfAssessmentResults from "@/components/cognitive/SelfAssessmentResults";
 
 const cats = [
   { key: "lab", label: "化验单", status: "已识别 3", icon: FileText, done: true, color: "text-emerald-600", bg: "bg-emerald-50" },
@@ -20,7 +18,6 @@ const history = [
 
 const PatientArchive = () => {
   const navigate = useNavigate();
-  const { data: patient } = useCurrentPatient();
 
   return (
     <div className="flex h-full flex-col bg-muted/30">
@@ -33,7 +30,6 @@ const PatientArchive = () => {
       </header>
 
       <main className="flex-1 space-y-4 overflow-y-auto px-4 py-4 pb-8">
-        {patient && <SelfAssessmentResults patientId={patient.id} />}
         {/* 顶部卡 */}
         <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-cyan-50 p-4 ring-1 ring-border/60 dark:from-sky-950/40 dark:to-cyan-950/40">
           <div className="flex items-start justify-between gap-3">

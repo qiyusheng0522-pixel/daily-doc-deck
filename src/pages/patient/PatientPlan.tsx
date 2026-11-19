@@ -9,7 +9,6 @@ import mallBanner from "@/assets/mall-banner.jpg";
 import { useCurrentPatient, usePatientsRealtime } from "@/data/patients";
 import { planConfirmed } from "@/data/cognitive";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
-import SelfAssessmentResults from "@/components/cognitive/SelfAssessmentResults";
 import PatientActionSheet from "@/components/patient/PatientActionSheet";
 import {
   isProfileComplete, subscribeProfile, setProfileComplete,
@@ -126,7 +125,6 @@ const PatientPlan = () => {
 
 
 
-      {me && <div className="mx-3"><SelfAssessmentResults patientId={me.id} /></div>}
       {/* 模型生成康复训练方案 */}
       <section className="mx-3 rounded-2xl bg-card p-4 shadow-sm ring-1 ring-border/60">
         <h3 className="text-base font-semibold">我的康复训练方案</h3>

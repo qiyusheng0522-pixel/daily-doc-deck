@@ -1,13 +1,12 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { generateResponse, GatewayError } from "npm:@lovable.dev/ai-gateway";
 import { TREATMENT_PROTOCOL } from "../_shared/treatment.ts";
-import { latestSelfAssessments, latestDoctorAssessments } from "../_shared/selfAssessment.ts";
-import { editablePlanSchema } from "../_shared/planValidation.ts";
-import { draftPlanUpdate } from "../_shared/planRevision.ts";
-import { z } from "npm:zod@3";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { latestSelfAssessments } from "../_shared/selfAssessment.ts";
 
-const cors = corsHeaders;
+const cors = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
@@ -75,25 +74,8 @@ Deno.serve(async (req) => {
 
   let body: { patientId?: string; self?: Record<string, number>; careNeeds?: string; mode?: string; items?: Record<string, unknown> };
   try { body = await req.json(); } catch { return json({ error: "请求格式错误" }, 400); }
-  const parsed = z.object({ patientId: z.string().uuid(), careNeeds: z.string().max(1000).default(""), mode: z.enum(["risk", "edit"]).optional(), items: z.record(z.unknown()).optional(), plan: z.unknown().optional(), baseAt: z.string().nullable().optional() }).safeParse(body);
-  if (!parsed.success) return json({ error: "参数不完整或格式错误" }, 400);
-  const { patientId, careNeeds } = parsed.data;
-
-  if (parsed.data.mode === "edit") {
-    const { data: roles } = await sb.from("user_roles").select("role").eq("user_id", u.user.id);
-    if (!roles?.some(r => r.role === "doctor")) return json({ error: "仅医院医生可修改治疗方案" }, 403);
-    const plan = editablePlanSchema.safeParse(parsed.data.plan);
-    if (!plan.success) return json({ error: "请补全训练内容、频次、时长及治疗措施" }, 400);
-    const { data: current } = await sb.from("patients").select("ai_plan,ai_plan_at,cognitive_risk").eq("id", patientId).single();
-    if (!current?.ai_plan || current.ai_plan_at !== parsed.data.baseAt) return json({ error: "方案已更新，请重新打开最新方案再修改" }, 409);
-    const now = new Date().toISOString();
-    const updated = { ...(current.ai_plan as Record<string, unknown>), ...plan.data, edited_at: now, edited_by: "医院医生" };
-    const { error: saveError } = await sb.from("patients").update(draftPlanUpdate(updated, now)).eq("id", patientId).eq("ai_plan_at", parsed.data.baseAt).select("id").single();
-    if (saveError) return json({ error: "保存失败或方案已被修改，请重新打开" }, 409);
-    const { error: historyError } = await sb.from("treatment_plans").insert({ patient_id: patientId, plan: updated, risk: current.cognitive_risk, created_at: now });
-    if (historyError) return json({ error: "方案已保存，但历史记录保存失败，请联系管理员" }, 500);
-    return json({ advice: updated });
-  }
+  const { patientId, careNeeds = "" } = body;
+  if (!patientId || careNeeds.length > 1000) return json({ error: "参数不完整或照护需求过长" }, 400);
 
   const { data: p, error } = await sb.from("patients")
     .select("name,gender,age,cognitive_diagnosis,cognitive_risk,ad8,mmse,moca,scd_q9,adl,caregiver,risk_tags")
@@ -125,8 +107,6 @@ Deno.serve(async (req) => {
   const { data: selfRecords, error: selfError } = await sb.from("scale_assessments").select("scale,items,total,created_at,assessed_by").eq("patient_id", patientId).order("created_at", { ascending: false });
   if (selfError) return json({ error: "自评记录读取失败" }, 500);
   const selfAssessments = latestSelfAssessments(selfRecords ?? []);
-  const doctorRecords = latestDoctorAssessments(selfRecords ?? []);
-  if (!doctorRecords.length) return json({ error: "请先由医生在量表库完成至少一份他评量表" }, 400);
   const missing = selfAssessments.filter(x => !x.record);
   if (missing.length) return json({ error: `请医生协助患者完成：${missing.map(x => x.questionnaire.name).join("、")}` }, 400);
   const selfText = selfAssessments.map(({ questionnaire: q, record }) => {
@@ -142,12 +122,12 @@ Deno.serve(async (req) => {
         "你是江苏省老年认知训练站的认知康复顾问，为训练站评估师/治疗管理师生成可执行建议。遵循《老年认知训练站建设基本标准》：" +
         "风险分层 低风险(认知正常/SCD)→宣教+每年复评；中风险(MCI/轻中度痴呆)→认知训练、家庭作业每周1-2次、危险因素管理、每6个月复评；高风险(重度痴呆)→长期照护/家庭病床/上门评估、每3个月复评；每月随访。" +
         `严格遵循服务参数：${JSON.stringify(TREATMENT_PROTOCOL)}。` +
-        "interventions须逐项包含该风险档位的所有治疗类型，每项给出结合本人量表和照护需求的具体措施、频次、时长。中风险认知训练累计20-36小时/期、6-12人小组，家庭作业每周1-2次、每次20-30分钟，另含非药物干预、风险管理、睡眠、营养、心理。高风险以长期护理、家庭病床准入评估、家庭病床框架内上门评估康复和风险管理为主，不套用中风险小组训练；不得声称未经评估已符合家庭病床准入。必须同时依据医生他评逐题得分与患者自评逐题答案选择训练领域。training必须包含3-6个可执行项目，activity逐项写明具体活动名称、目标、材料、分步骤操作、每步次数或分钟、难度调整和停止条件，不可仅写记忆训练等泛化描述。高风险训练在家庭病床/上门康复框架下由人员协助实施。结合睡眠、营养、跌倒、心理自评个性化调整，具体到频次时长，不做诊断，待医生确认后执行。",
+        "interventions须逐项包含该风险档位的所有治疗类型，每项给出结合本人量表和照护需求的具体措施、频次、时长。中风险认知训练累计20-36小时/期、6-12人小组，家庭作业每周1-2次、每次20-30分钟，另含非药物干预、风险管理、睡眠、营养、心理。高风险以长期护理、家庭病床准入评估、家庭病床框架内上门评估康复和风险管理为主，不套用中风险小组训练；不得声称未经评估已符合家庭病床准入。结合睡眠、营养、跌倒、心理自评个性化调整，具体到频次时长，不做诊断，待医生确认后执行。",
       input: [{
         role: "user",
         content: `老人：${p.name}，${p.gender}，${p.age}岁；诊断：${p.cognitive_diagnosis ?? "未确诊"}；风险：${p.cognitive_risk ?? "未分级"}；` +
           `AD-8 ${p.ad8 ?? "-"}，MMSE ${p.mmse ?? "-"}，MoCA ${p.moca ?? "-"}，SCD-Q9 ${p.scd_q9 ?? "-"}，ADL ${p.adl ?? "-"}；危险因素：${(p.risk_tags ?? []).join("、") || "无"}；照护者：${p.caregiver ?? "未登记"}。\n` +
-          `医生他评量表（真实保存记录，未完成量表不得推断正常）：${JSON.stringify(doctorRecords)}。\n老年综合评估自评：${selfText}。\n照护需求：${careNeeds || "未填写"}。\n请生成 3-6 项具体训练和随访计划。`,
+          `老年综合评估自评：${selfText}。\n照护需求：${careNeeds || "未填写"}。\n请生成 3-6 项训练和随访计划。`,
       }],
       text: { format: { type: "json_schema", name: "cognitive_advice", strict: true, schema } },
     });
@@ -156,12 +136,8 @@ Deno.serve(async (req) => {
     if (!out) return json({ error: "模型未返回内容，请稍后重试" }, 502);
     const advice = JSON.parse(out);
     advice.self_assessments = selfAssessments.map(({ questionnaire: q, record }) => ({ name: q.name, total: record?.total, assessed_at: record?.created_at, assessed_by: record?.assessed_by }));
-    advice.doctor_assessments = doctorRecords.map(r => ({ name: r.scale, total: r.total, assessed_at: r.created_at, assessed_by: r.assessed_by, items: r.items }));
-    const now = new Date().toISOString();
-    const { error: planError } = await sb.from("patients").update(draftPlanUpdate(advice, now)).eq("id", patientId);
-    if (planError) return json({ error: "治疗方案保存失败" }, 500);
-    const { error: historyError } = await sb.from("treatment_plans").insert({ patient_id: patientId, plan: advice, risk: p.cognitive_risk ?? null, created_at: now });
-    if (historyError) return json({ error: "治疗方案历史保存失败" }, 500);
+    await sb.from("patients").update({ ai_plan: advice, ai_plan_at: new Date().toISOString() }).eq("id", patientId);
+    await sb.from("treatment_plans").insert({ patient_id: patientId, plan: advice, risk: p.cognitive_risk ?? null });
     return json({ advice });
   } catch (e) {
     if (e instanceof GatewayError) {

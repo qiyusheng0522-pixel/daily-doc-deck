@@ -49,9 +49,6 @@ export const SELF_QUESTIONNAIRES: Questionnaire[] = [
 ];
 
 export type SelfRecord = { scale: string; items: unknown; total: number; created_at: string; assessed_by: string | null };
-export function latestDoctorAssessments(records: SelfRecord[]) {
-  return ["scd_q9", "mmse", "moca", "adl"].map(scale => [...records].sort((a, b) => b.created_at.localeCompare(a.created_at)).find(r => r.scale === scale && r.items && typeof r.items === "object" && Object.keys(r.items).length > 0)).filter(r => r !== undefined);
-}
 export function questionnaireTotal(q: Questionnaire, answers: Record<string, number>): number | null {
   if (!q.questions.every(item => item.options.some(o => o.score === answers[item.id]))) return null;
   return q.questions.reduce((sum, item) => sum + answers[item.id], 0);

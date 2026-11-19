@@ -13,14 +13,11 @@ import {
   riskSummaryText,
   riskOverview,
 } from "@/data/patientProfile";
-import { useCurrentPatient } from "@/data/patients";
-import SelfAssessmentResults from "@/components/cognitive/SelfAssessmentResults";
 
 const iconMap = { Heart, Activity, Droplets, Utensils, Dumbbell, Moon, HeartPulse } as const;
 
 const PatientRisk = () => {
   const navigate = useNavigate();
-  const { data: patient } = useCurrentPatient();
   const [ready, setReady] = useState(isProfileComplete());
 
   useEffect(() => subscribeProfile(() => setReady(isProfileComplete())), []);
@@ -36,7 +33,6 @@ const PatientRisk = () => {
       </header>
 
       <main className="flex-1 space-y-3 overflow-y-auto px-4 py-3 pb-8">
-        {patient && <SelfAssessmentResults patientId={patient.id} />}
         {!ready ? (
           <UnfilledGuide onMock={() => setProfileComplete(true)} onGoAssessment={() => navigate("/patient/assessment")} onGoArchive={() => navigate("/patient/archive")} />
         ) : (
