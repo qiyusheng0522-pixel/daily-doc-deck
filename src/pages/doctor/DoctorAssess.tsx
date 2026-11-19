@@ -11,13 +11,15 @@ import { usePatient, useScaleAssessments } from "@/data/patients";
 import { SCALES, scaleTotal, type ScaleKey } from "@/data/scales";
 import { RISK_PLAN } from "@/data/cognitive";
 import RiskAnalysisCard, { type RiskAnalysis } from "@/components/cognitive/RiskAnalysisCard";
+import ActionSheet from "@/components/nurse/ActionSheet";
+import { assessmentHistory } from "@/data/assessmentHistory";
 
 /** 评估医生：逐项完成 SCD-Q9 / MMSE / MoCA / ADL，保存后由模型分析风险等级 */
 export default function DoctorAssess() {
   const { id = "" } = useParams();
   const qc = useQueryClient();
   const { data: p } = usePatient(id);
-  const { data: history = [] } = useScaleAssessments(id);
+  const { data: history = [], isLoading: historyLoading, isError: historyError } = useScaleAssessments(id);
   const [chosen, setChosen] = useState<ScaleKey[]>([]);
   const [libOpen, setLibOpen] = useState(true);
   const [openH, setOpenH] = useState<string | null>(null);
@@ -28,7 +30,10 @@ export default function DoctorAssess() {
   const [analyzing, setAnalyzing] = useState(false);
 
   if (!p) return <p className="p-6 text-sm text-muted-foreground">加载中…</p>;
-  const scale = SCALES.find((s) => s.key === active)!;
+  const scale = SCALES.find((s) => s.key === active);
+  if (!scale) return null;
+  const allHistory = assessmentHistory(history);
+  const selectedHistory = allHistory.find(h => h.id === openH);
   const cur = picks[active];
   const total = scaleTotal(scale, cur);
   const answered = Object.keys(cur).length;
@@ -84,7 +89,7 @@ export default function DoctorAssess() {
                 <span><span className="text-sm font-medium">{s.name}</span><br /><span className="text-[11px] text-muted-foreground">{s.desc} · 满分 {s.max} · {s.items.length} 项</span></span>
                 <span className={`flex h-5 w-5 items-center justify-center rounded border ${on ? "border-primary bg-primary text-primary-foreground" : ""}`}>{on && <Check className="h-3 w-3" />}</span>
               </button>); })}
-            <Button className="w-full" disabled={chosen.length === 0} onClick={() => { setLibOpen(false); setActive(SCALES.find((s) => chosen.includes(s.key))!.key); }}>开始评估（{chosen.length}）</Button>
+            <Button className="w-full" disabled={chosen.length === 0} onClick={() => { const first = SCALES.find((s) => chosen.includes(s.key)); if (first) { setLibOpen(false); setActive(first.key); } }}>开始评估（{chosen.length}）</Button>
           </div>}
         </Card>
 
@@ -132,19 +137,23 @@ export default function DoctorAssess() {
 
         <Card className="p-3 shadow-soft">
           <p className="mb-1 text-sm font-semibold">历史量表记录 <span className="text-xs font-normal text-muted-foreground">({history.length})</span></p>
-          {history.length === 0 ? <p className="text-xs text-muted-foreground">暂无</p> : history.map((h) => { const sc = SCALES.find((s) => s.key === h.scale); return (
-            <div key={h.id} className="border-b py-1.5 text-xs last:border-0">
-              <button className="flex w-full justify-between" onClick={() => setOpenH(openH === h.id ? null : h.id)}>
-                <span className="font-medium">{sc?.name ?? h.scale}</span>
-                <span className="text-muted-foreground"><span className="font-semibold text-primary">{h.total}</span>{sc ? ` / ${sc.max}` : ""} 分 · {new Date(h.created_at).toLocaleDateString("zh-CN")} · {h.assessed_by ?? ""} {openH === h.id ? "▲" : "▼"}</span>
-              </button>
-              {openH === h.id && <div className="mt-1 space-y-0.5 rounded bg-muted/50 p-2">
-                {Object.entries((h.items ?? {}) as Record<string, unknown>).map(([k, v]) => (
-                  <p key={k} className="flex justify-between gap-2"><span className="text-muted-foreground">{k}</span><span>{String(v)}</span></p>))}
-              </div>}
-            </div>); })}
+          {historyLoading ? <p className="text-xs text-muted-foreground">读取中…</p> : historyError ? <p className="text-xs text-destructive">记录读取失败，请重试</p> : allHistory.length === 0 ? <p className="text-xs text-muted-foreground">暂无历史量表记录</p> : allHistory.map(h => (
+            <div key={h.id} className="flex items-center justify-between gap-2 border-b py-3 last:border-0">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">{h.name} <span className="ml-1 text-primary">{h.total}{h.max ? ` / ${h.max}` : ""} 分</span></p>
+                <p className="mt-1 break-words text-[11px] text-muted-foreground">{new Date(h.created_at).toLocaleString("zh-CN")} · {h.assessed_by ?? "评估人未记录"}</p>
+              </div>
+              <Button variant="ghost" size="sm" className="shrink-0 text-primary" onClick={() => setOpenH(h.id)}>查看详情</Button>
+            </div>
+          ))}
         </Card>
       </div>
+      <ActionSheet open={!!selectedHistory} onOpenChange={open => { if (!open) setOpenH(null); }} title={selectedHistory ? `${selectedHistory.name} · 历史记录` : "历史量表记录"}>
+        {selectedHistory && <div className="space-y-3">
+          <div className="border-b pb-3"><p className="text-lg font-semibold text-primary">{selectedHistory.total}{selectedHistory.max ? ` / ${selectedHistory.max}` : ""} 分</p><p className="mt-1 text-xs text-muted-foreground">{new Date(selectedHistory.created_at).toLocaleString("zh-CN")} · {selectedHistory.assessed_by ?? "评估人未记录"}</p></div>
+          {selectedHistory.answers.length === 0 ? <p className="text-sm text-muted-foreground">此记录仅保存总分，未记录逐项作答。</p> : selectedHistory.answers.map((answer, index) => <div key={answer.question} className="border-b pb-3 last:border-0"><p className="text-sm">{index + 1}. {answer.question}</p><p className="mt-1 text-sm text-primary">{answer.answer}{answer.score !== null ? `（${answer.score} 分）` : ""}</p></div>)}
+        </div>}
+      </ActionSheet>
     </div>
   );
 }

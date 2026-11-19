@@ -1,4 +1,5 @@
 <!-- AGENT-MEMORY:BEGIN -->
+- Doctor scale history retains every saved assessment and resolves answer labels through shared scale/questionnaire definitions; profile service statistics derive from shared patients/referrals so repeat records do not inflate rates.
 - Doctor list reception and combined filters use doctorReception; only pending upward referrals enter the pending queue, and acceptance moves them into the managed list without implying diagnosis, treatment confirmation or community reception.
 - Doctor assessment and plan back controls use a shared history-aware button with a parent-page fallback; questionnaire tab changes replace history so one return exits the detail page.
 - Keep provincial dashboard presentation and demo analytics in dedicated screen modules; derive map, trends and drilldown rows from the same selected region to prevent inconsistent interactions.
