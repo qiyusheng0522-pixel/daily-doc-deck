@@ -406,26 +406,32 @@ export type Database = {
       patient_documents: {
         Row: {
           created_at: string
+          extracted_text: string | null
           id: string
           kind: string
           path: string
           patient_id: string
+          title: string | null
           uploaded_by: string | null
         }
         Insert: {
           created_at?: string
+          extracted_text?: string | null
           id?: string
           kind?: string
           path: string
           patient_id: string
+          title?: string | null
           uploaded_by?: string | null
         }
         Update: {
           created_at?: string
+          extracted_text?: string | null
           id?: string
           kind?: string
           path?: string
           patient_id?: string
+          title?: string | null
           uploaded_by?: string | null
         }
         Relationships: [

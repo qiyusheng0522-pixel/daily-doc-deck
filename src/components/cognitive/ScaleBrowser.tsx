@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Brain, Activity, Home, Footprints, Smile, Moon, Utensils, ChevronDown, FileText, Target } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useScaleAssessments } from "@/data/patients";
-import { assessmentHistory, scaleDefinition, SCALE_CATEGORIES } from "@/data/assessmentHistory";
+import { assessmentHistory, scaleDefinition } from "@/data/assessmentHistory";
 import { AiReading, HistoryList, MetaRows, ResultBlock, ScaleTable, fmtDate, scoreTone, type ScaleRecord } from "./ScaleRecordView";
 import { cn } from "@/lib/utils";
 
@@ -12,21 +12,17 @@ const ICON: Record<string, React.ElementType> = { 认知功能: Brain, 生活能
 export default function ScaleBrowser({ patientId, initialScale }: { patientId: string; initialScale?: string | null }) {
   const { data: records = [], isLoading } = useScaleAssessments(patientId);
   const all = useMemo(() => assessmentHistory(records), [records]);
-  const [kind, setKind] = useState<"all" | "pro" | "self">("all");
-  const [cat, setCat] = useState<string>("all");
   const [scale, setScale] = useState<string | null>(initialScale ?? null);
   const [recordId, setRecordId] = useState<string | null>(null);
   useEffect(() => { if (initialScale) { setScale(initialScale); setRecordId(null); } }, [initialScale]);
 
   const latest = all.filter((r, i, a) => a.findIndex(x => x.scale === r.scale) === i)
-    .filter(r => (kind === "all" || (kind === "pro") === r.professional) && (cat === "all" || r.category === cat));
+    ;
   const pro = latest.filter(r => r.professional), self = latest.filter(r => !r.professional);
   const activeScale = scale && latest.some(r => r.scale === scale) ? scale : latest[0]?.scale;
   const history = all.filter(r => r.scale === activeScale);
   const r = history.find(h => h.id === recordId) ?? history[0];
-  const counts = { pro: all.filter((x, i, a) => x.professional && a.findIndex(y => y.scale === x.scale) === i).length, self: all.filter((x, i, a) => !x.professional && a.findIndex(y => y.scale === x.scale) === i).length };
 
-  const chip = (on: boolean) => cn("rounded-full px-4 py-1.5 text-sm transition-colors", on ? "bg-primary text-primary-foreground" : "bg-muted/60 text-foreground hover:bg-muted");
   const Item = ({ x }: { x: ScaleRecord }) => { const Icon = ICON[x.category] ?? Activity; return <button type="button" onClick={() => { setScale(x.scale); setRecordId(null); }}
     className={cn("flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left", x.scale === activeScale ? "bg-primary/10 ring-1 ring-primary/30" : "hover:bg-muted/50")}>
     <Icon className="h-5 w-5 shrink-0 text-primary" />
@@ -36,16 +32,7 @@ export default function ScaleBrowser({ patientId, initialScale }: { patientId: s
   const Group = ({ title, list }: { title: string; list: ScaleRecord[] }) => list.length ? <Card className="p-3 shadow-soft"><p className="mb-2 flex items-center gap-1.5 text-base font-semibold"><ChevronDown className="h-4 w-4 text-primary" />{title}<span className="text-sm text-muted-foreground">{list.length}</span></p><div className="space-y-1">{list.map(x => <Item key={x.scale} x={x} />)}</div></Card> : null;
 
   return <div className="space-y-3">
-    <Card className="flex flex-wrap items-center gap-2 p-2 shadow-soft">
-      <div className="flex gap-1 rounded-full border p-1">
-        <button type="button" className={chip(kind === "all")} onClick={() => setKind("all")}>全部量表</button>
-        <button type="button" className={chip(kind === "pro")} onClick={() => setKind("pro")}>专业评估（{counts.pro}）</button>
-        <button type="button" className={chip(kind === "self")} onClick={() => setKind("self")}>患者自评（{counts.self}）</button>
-      </div>
-      <span className="mx-1 h-6 w-px bg-border" />
-      <button type="button" className={chip(cat === "all")} onClick={() => setCat("all")}>全部类型</button>
-      {SCALE_CATEGORIES.map(c => <button key={c} type="button" className={chip(cat === c)} onClick={() => setCat(c)}>{c}</button>)}
-    </Card>
+
     {isLoading ? <p className="text-sm text-muted-foreground">加载中…</p> : !r ? <Card className="p-6 text-center text-sm text-muted-foreground">暂无符合条件的量表记录</Card> :
       <div className="grid items-start gap-3 lg:grid-cols-[1fr_1.8fr_1fr]">
         <div className="space-y-3"><Group title="专业评估" list={pro} /><Group title="患者自评" list={self} /></div>

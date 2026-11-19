@@ -270,7 +270,12 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const visitCard = (role === "doctor" || role === "community") && <Card className="p-4 shadow-soft">
     <Head icon={FileText} title={`诊断记录（${visitDocs.length}）`} action={role === "doctor" && <Button size="sm" variant="ghost" className="h-7 text-sm text-primary" onClick={() => setVisitOpen(true)}><Camera className="mr-1 h-4 w-4" />拍照上传</Button>} />
     {visitDocs.length === 0 ? <p className="text-sm text-muted-foreground">{role === "doctor" ? "可拍照上传院内就诊单、门诊病历、检查报告等，社区端同步查看" : "暂无医生上传的诊疗记录"}</p>
-      : <div className="grid grid-cols-4 gap-2">{visitDocs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer" className="block"><img src={d.url} alt="诊疗记录" className="h-28 w-full rounded object-cover" /><p className="mt-0.5 truncate text-sm text-muted-foreground">{new Date(d.created_at).toLocaleDateString("zh-CN")}</p></a>)}</div>}
+      : <div className="space-y-3">{visitDocs.map((d) => { const doc = d as typeof d & { title?: string | null; extracted_text?: string | null }; return <div key={d.id} className="flex gap-4 rounded-xl border p-3">
+          {d.url ? <a href={d.url} target="_blank" rel="noreferrer" className="shrink-0"><img src={d.url} alt={doc.title ?? "诊疗记录"} className="h-40 w-32 rounded-lg border object-cover object-top" /></a> : <div className="h-40 w-32 shrink-0 rounded-lg bg-muted" />}
+          <div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-2"><p className="font-semibold">{doc.title ?? "诊疗记录"}</p><span className="text-sm text-muted-foreground">{new Date(d.created_at).toLocaleDateString("zh-CN")} · {d.uploaded_by ?? "评估医生"}</span></div>
+            <p className="mt-1 text-xs font-medium text-primary">智能提取内容</p>
+            {doc.extracted_text ? <div className="mt-1 space-y-1 text-sm">{doc.extracted_text.split("\n").map((l, i) => { const [k, ...v] = l.split("："); return <p key={i}>{v.length ? <><b>{k}：</b>{v.join("：")}</> : l}</p>; })}</div> : <p className="mt-1 text-sm text-muted-foreground">暂未提取内容</p>}
+          </div></div>; })}</div>}
     {role === "community" && visitDocs.length > 0 && <p className="mt-2 text-sm text-muted-foreground">由上级医院医生上传，社区端只读</p>}
     {fileDocs.length > 0 && <><p className="mb-2 mt-4 text-sm font-semibold">建档材料（{fileDocs.length}）</p><div className="grid grid-cols-4 gap-2">{fileDocs.map((d) => d.url && <a key={d.id} href={d.url} target="_blank" rel="noreferrer"><img src={d.url} alt={d.kind} className="h-28 w-full rounded object-cover" /></a>)}</div></>}
   </Card>;
@@ -317,13 +322,13 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const week = trainings.filter((t) => Date.now() - new Date(t.trained_on).getTime() < 7 * 864e5).length;
 
   return (
-    <div className="flex min-h-full flex-col bg-muted/30">
-      <div className="sticky top-0 z-20 flex items-center gap-3 border-b bg-card px-4 py-3">
+    <div className="flex flex-col overflow-hidden bg-muted/30" style={{ height: 768 }}>
+      <div className="shrink-0 sticky top-0 z-20 flex items-center gap-3 border-b bg-card px-4 py-3">
         <DoctorBackButton fallback={`/${role}/patients`} />
         <h2 className="text-xl font-semibold">患者详情</h2>
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 px-4 pb-2 pt-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-2 pt-4 [&>*]:shrink-0">
         <Card className="flex items-center gap-5 rounded-2xl border-0 p-5 shadow-soft" style={{ zoom: 0.8 }}>
           <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-accent/20 text-4xl font-bold text-accent">{p.name[0]}</div>
           <div className="min-w-0 flex-1">
@@ -369,7 +374,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           ))}
         </Card>
 
-        <div style={{ zoom: 0.7 }} className="flex flex-1 flex-col gap-4">
+        <div className="min-h-0 flex-1 !shrink overflow-y-auto rounded-2xl"><div style={{ zoom: 0.7 }} className="flex min-h-full flex-col gap-4">
         {tab === "overview" && (
           <div className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.45fr)_minmax(0,1fr)] [&_.rounded-lg.border-card]:rounded-2xl">
             <div className="flex h-full flex-col gap-3">
@@ -417,12 +422,12 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           </div>
         )}
         {tab === "info" && <><div className="grid gap-3 lg:grid-cols-2">{fullInfoCard}{healthCard}</div>{visitCard}</>}
-                {tab === "scale" && <>{role === "doctor" && <div className="flex justify-end"><Button size="sm" className="h-9" onClick={() => navigate(`/doctor/assess/${p.id}`)}>新增量表评估</Button></div>}{role === "community" && <div className="flex justify-end"><Button size="sm" variant="outline" className="h-9" onClick={() => setAd8(AD8_ITEMS.map(() => false))}>AD-8 初筛评估</Button></div>}<ScaleBrowser patientId={p.id} initialScale={scaleFocus} />{role === "doctor" && <SelfAssessmentResults patientId={p.id} readOnly assist />}</>}
+                {tab === "scale" && <>{role === "doctor" && <div className="flex justify-end"><Button size="sm" className="h-9" onClick={() => navigate(`/doctor/assess/${p.id}`)}>新增量表评估</Button></div>}{role === "community" && <div className="flex justify-end"><Button size="sm" variant="outline" className="h-9" onClick={() => setAd8(AD8_ITEMS.map(() => false))}>AD-8 初筛评估</Button></div>}<ScaleBrowser patientId={p.id} initialScale={scaleFocus} />{role === "doctor" && <SelfAssessmentResults patientId={p.id} assist />}</>}
         {tab === "plan" && (role === "doctor" || role === "community") && <PlanReview p={p} historyOnly confirmedOnly={role === "community"} />}
         {tab === "training" && trainingCard}
         {tab === "referral" && referralCard}
 
-        </div>
+        </div></div>
         {role === "nurse" && <Card className="p-4 shadow-soft">
           <p className="mb-2 text-sm font-semibold">已推送宣教</p>
           {edu.length === 0 ? <p className="text-sm text-muted-foreground">暂无</p> : edu.map((e) => (
