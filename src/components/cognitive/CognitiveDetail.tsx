@@ -73,12 +73,12 @@ export default function CognitiveDetail({ role }: { role: Role }) {
 
   const aiRisk = suggestRisk(p);
   const planItems = planConfirmed(p) ? ((p.ai_plan as Advice).training ?? []) : [];
-  const openTask = (idx: number, completion: string) => {
+  const openTask = (idx: number) => {
     const t = planItems[idx];
     if (!t) return;
     setTrainingOpen(false);
     setTask({ domain: t.domain, activity: t.activity, setting: t.setting === "家庭作业" ? "家庭任务" : t.setting, freq: `${t.frequency} · ${t.duration}`, planIdx: idx,
-      date: new Date().toLocaleDateString("en-CA"), time: new Date().toTimeString().slice(0, 5), feedback: "", duration: String(parseInt(t.duration.replace(/\D*(\d+).*/, "$1")) || 20), completion });
+      date: new Date().toLocaleDateString("en-CA"), time: new Date().toTimeString().slice(0, 5), feedback: "", duration: String(parseInt(t.duration.replace(/\D*(\d+).*/, "$1")) || 20), completion: "完成" });
   };
   const confirmGrade = async () => {
     if (!grade) return;
@@ -140,7 +140,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     setSaving(false);
     if (error) return toast({ title: "安排失败", description: error.message });
     refresh(); setTask(null);
-    toast({ title: task.completion === "待执行" ? (task.setting === "家庭任务" ? "家庭任务已发放" : "训练已安排") : `已记录执行：${task.completion}`, description: "按医生确认的训练方案执行" });
+    toast({ title: "训练记录已保存", description: "按医生确认的训练方案执行" });
   };
   const markExec = async (rid: string, completion: string) => {
     const { error } = await supabase.from("training_records").update({ completion }).eq("id", rid);
@@ -256,16 +256,14 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             <ul className="mt-2 space-y-1.5">
               {((p.ai_plan as Advice).training ?? []).map((t, i) => {
                 const setting = t.setting === "家庭作业" ? "家庭任务" : t.setting;
-                const open = (completion: string) => { setTrainingOpen(false); setTask({ domain: t.domain, activity: t.activity, setting, freq: `${t.frequency} · ${t.duration}`, planIdx: i,
-                  date: new Date().toLocaleDateString("en-CA"), time: new Date().toTimeString().slice(0, 5), feedback: "", duration: String(parseInt(t.duration.replace(/\D*(\d+).*/, "$1")) || 20), completion }); };
+                const open = () => openTask(i);
                 return (
                   <li key={i} className="rounded-lg border p-2.5 text-xs">
                     <div className="flex items-center justify-between"><span className="font-medium">{t.domain}</span><span className="text-[11px] text-muted-foreground">{setting}</span></div>
                     <p className="mt-0.5">{t.activity}</p>
                     <p className="text-[11px] text-muted-foreground">{t.frequency} · {t.duration}</p>
-                    <div className="mt-1.5 grid grid-cols-2 gap-1.5">
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => open("待执行")}>{setting === "家庭任务" ? "发放家庭任务" : "安排训练"}</Button>
-                      <Button size="sm" className="h-7 text-xs" onClick={() => open("完成")}>选择并记录</Button>
+                    <div className="mt-1.5">
+                      <Button size="sm" className="h-7 w-full text-xs" onClick={open}>选择并记录</Button>
                     </div>
                   </li>
                 );
@@ -329,10 +327,10 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </Card>
 
         <Card className="p-4 shadow-soft">
-          <div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold">训练记录 <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>{role === "community" && <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => (planItems.length > 0 ? openTask(0, "完成") : setTrainingOpen(true))}>添加训练记录</Button>}</div>
+          <div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold">训练记录 <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>{role === "community" && <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => (planItems.length > 0 ? openTask(0) : setTrainingOpen(true))}>添加训练记录</Button>}</div>
           {trainings.length === 0 ? <p className="text-xs text-muted-foreground">暂无训练记录</p> : trainings.map((t) => (
             <div key={t.id} className="flex flex-wrap items-start justify-between gap-2 border-b py-1.5 text-xs last:border-0">
-              <div className="min-w-0 flex-1"><p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on}{t.training_time ? ` ${t.training_time.slice(0, 5)}` : ""} · {t.setting} · {t.duration_min} 分钟{t.operator ? ` · ${t.operator}` : ""}</p>{t.feedback && <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">训练反馈：{t.feedback}</p>}</div>
+              <div className="min-w-0 flex-1"><p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on}{t.training_time ? ` ${t.training_time.slice(0, 5)}` : ""} · {t.setting} · {t.duration_min} 分钟{t.operator ? ` · ${t.operator}` : ""}</p>{t.feedback && <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">备注：{t.feedback}</p>}</div>
               {t.completion === "待执行" && role === "community" ? (
                 <span className="flex shrink-0 gap-1">{["完成", "部分完成", "未完成"].map((c) => (
                    <Button key={c} size="sm" variant="outline" onClick={() => markExec(t.id, c)} className="h-7 px-1.5 text-[11px] text-primary">{c}</Button>))}</span>
@@ -371,8 +369,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         )}
       </ActionSheet>
 
-      <ActionSheet open={!!task} onOpenChange={(o) => !o && setTask(null)} title={task?.completion === "待执行" ? (task?.setting === "家庭任务" ? "发放家庭任务" : "安排训练") : "记录执行"}
-        description="按医生确认的训练方案执行"
+      <ActionSheet open={!!task} onOpenChange={(o) => !o && setTask(null)} title="记录训练"
+        description="训练项目来自 AI 生成、医生确认的训练方案"
         footer={<Button className="w-full" disabled={saving} onClick={saveTask}>确认</Button>}>
         {task && (
           <div className="space-y-3">
@@ -392,7 +390,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
               {task.freq && <p className="mt-0.5 text-muted-foreground">方案要求：{task.freq}</p>}
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <label className="text-xs">{task.completion === "待执行" ? "计划日期" : "执行日期"}<Input className="mt-1" type="date" value={task.date} onChange={(e) => setTask({ ...task, date: e.target.value })} /></label>
+              <label className="text-xs">训练日期<Input className="mt-1" type="date" value={task.date} onChange={(e) => setTask({ ...task, date: e.target.value })} /></label>
               <label className="text-xs">训练时间<Input className="mt-1" type="time" value={task.time} onChange={(e) => setTask({ ...task, time: e.target.value })} /></label>
             </div>
             <div className="text-xs">
@@ -404,11 +402,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
                 <Input className="h-7 w-20 px-2 text-xs" type="number" placeholder="自定义" value={DURATION_OPTIONS.includes(Number(task.duration)) ? "" : task.duration} onChange={(e) => setTask({ ...task, duration: e.target.value })} />
               </div>
             </div>
-            {task.completion !== "待执行" && (
-              <div className="grid grid-cols-3 gap-1">{["完成", "部分完成", "未完成"].map((c) => (
-                <Button key={c} variant={task.completion === c ? "default" : "outline"} size="sm" onClick={() => setTask({ ...task, completion: c })} className="text-xs">{c}</Button>))}</div>
-            )}
-            <label className="block text-xs">训练反馈<Textarea className="mt-1" rows={3} maxLength={1000} value={task.feedback} onChange={e => setTask({ ...task, feedback: e.target.value })} placeholder="记录参与情况、完成表现及需关注的问题" /></label>
+            <label className="block text-xs">备注<Textarea className="mt-1" rows={3} maxLength={1000} value={task.feedback} onChange={e => setTask({ ...task, feedback: e.target.value })} placeholder="记录参与情况、表现及需关注的问题（选填）" /></label>
           </div>
         )}
       </ActionSheet>
