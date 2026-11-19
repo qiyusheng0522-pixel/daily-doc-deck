@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Users, BookOpen, AlertTriangle, Bell, Stethoscope, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HeroCard } from "@/pages/doctor/DoctorHome";
 import { usePatients, useFollowups, useReferrals, useEducationItems, useMyProfile, useTrainingRecords } from "@/data/patients";
 import { communityRiskPatient, communityScreeningAbnormal, filterCommunityPatients, pendingCommunityReferral } from "@/data/communityReception";
 
@@ -30,10 +31,12 @@ const CommunityHome = () => {
     { label: "智能随访", desc: "随访计划与执行记录", count: pendingFollowups.length, icon: Stethoscope, tone: "text-success", bg: "bg-success/10", to: "/community/followup" },
     { label: "风险患者", desc: "评估确定的中高风险患者", count: riskPatients.length, icon: AlertTriangle, tone: "text-destructive", bg: "bg-destructive/10", to: "/community/patients?tab=risk" },
   ];
-  return <div className="space-y-4 p-4">
-    <section className="py-1"><h2 className="text-xl font-semibold">{profile?.full_name ?? "社区工作人员"}，您好</h2><p className="mt-1 text-xs text-muted-foreground">小市社区认知训练站 · {tasks.length} 项待处理</p></section>
-    <section className="grid grid-cols-2 gap-3">{modules.map(m => <Link key={m.label} to={m.to} className="block rounded-lg bg-card p-4 shadow-sm ring-1 ring-border/60"><div className={`flex h-10 w-10 items-center justify-center rounded-lg ${m.bg}`}><m.icon className={`h-5 w-5 ${m.tone}`} /></div><p className="mt-3 text-2xl font-semibold">{m.count}</p><p className="mt-1 text-xs font-medium">{m.label}</p><p className="mt-0.5 text-[11px] text-muted-foreground">{m.desc}</p></Link>)}</section>
-    <section><div className="mb-2 flex items-center justify-between"><h3 className="flex items-center gap-2 text-sm font-semibold"><Bell className="h-4 w-4 text-primary" />今日待办清单</h3><span className="text-xs text-muted-foreground">{tasks.length} 项</span></div><ul className="divide-y divide-border">{!tasks.length && <li className="py-6 text-center text-sm text-muted-foreground">暂无待办</li>}{tasks.map(t => <li key={t.id} className="flex items-center gap-2 py-3"><span className={`shrink-0 rounded px-2 py-1 text-[11px] ${t.type === "异常" ? "bg-destructive/10 text-destructive" : t.type === "接收" ? "bg-warning/15 text-warning" : "bg-success/10 text-success"}`}>{t.type}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{t.title}</p><p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground"><CalendarClock className="h-3 w-3" />{t.time}</p></div><Button variant="outline" size="sm" className="shrink-0 text-xs" onClick={() => navigate(t.to)}>处理</Button></li>)}</ul></section>
+  const heroTone = ["primary", "warning", "success", "destructive"] as const;
+  return <div className="space-y-5 px-6 py-2">
+    <p className="text-sm text-muted-foreground">小市社区认知训练站 · 今日 {tasks.length} 项待处理</p>
+    <section className="grid grid-cols-2 gap-5">{modules.map((m, i) => <HeroCard key={m.label} tone={heroTone[i]} icon={m.icon} title={`${m.label} ${m.count}`} desc={m.desc} onClick={() => navigate(m.to)} />)}</section>
+    <section className="rounded-3xl bg-card p-6 shadow-card ring-1 ring-border/60"><div className="flex items-center justify-between"><h3 className="flex items-center gap-2 text-lg font-bold"><Bell className="h-6 w-6 text-accent" />今日待办清单</h3><span className="text-sm text-muted-foreground">{tasks.length} 项</span></div>
+      <ul className="mt-4 divide-y divide-border border-t">{!tasks.length && <li className="py-10 text-center text-sm text-muted-foreground">暂无待办</li>}{tasks.map(t => <li key={t.id} className="grid grid-cols-[80px_1fr_160px_110px] items-center gap-4 py-4"><span className={`justify-self-start rounded-full px-4 py-1.5 text-sm font-semibold ${t.type === "异常" ? "bg-destructive/10 text-destructive" : t.type === "接收" ? "bg-warning/15 text-warning" : "bg-success/10 text-success"}`}>{t.type}</span><p className="truncate text-base font-semibold">{t.title}</p><p className="flex items-center gap-1 text-sm text-muted-foreground"><CalendarClock className="h-4 w-4" />{t.time}</p><Button variant="outline" className="rounded-full border-accent/50 font-semibold text-accent" onClick={() => navigate(t.to)}>去处理</Button></li>)}</ul></section>
   </div>;
 };
 export default CommunityHome;
