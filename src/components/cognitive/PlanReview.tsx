@@ -9,6 +9,9 @@ import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 import { useTreatmentPlans, type Patient } from "@/data/patients";
 import { needsReferral } from "@/data/cognitive";
 import { TREATMENT_PROTOCOL } from "../../../supabase/functions/_shared/treatment";
+import PlanEditor from "./PlanEditor";
+import { Pencil } from "lucide-react";
+import { planEditError, treatmentCategories } from "@/data/treatmentPlan";
 
 const fmt = (d: string) => new Date(d).toLocaleDateString("zh-CN");
 
@@ -18,11 +21,14 @@ export default function PlanReview({ p, showCurrent = true, historyOnly = false 
   const { data: history = [] } = useTreatmentPlans(p.id);
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
   const pending = !p.ai_plan_confirmed_at || (p.ai_plan_at && p.ai_plan_at > p.ai_plan_confirmed_at);
   const mustConfirm = needsReferral(p.cognitive_risk);
 
   const confirm = async () => {
     if (saving || !p.ai_plan || !mustConfirm) return;
+    const message = planEditError(p.ai_plan as Advice, p.cognitive_risk);
+    if (message) return toast({ title: "请先补全方案", description: message });
     setSaving(true);
     const now = new Date().toISOString();
     if (history[0]) {
@@ -44,9 +50,10 @@ export default function PlanReview({ p, showCurrent = true, historyOnly = false 
             <p className="text-sm font-semibold">认知治疗方案 · {p.cognitive_risk ?? "待分级"}</p>
             {p.ai_plan_at && <span className="text-[11px] text-muted-foreground">生成于 {fmt(p.ai_plan_at)}</span>}
           </div>
-          {needsReferral(p.cognitive_risk) && <TypeDetails p={p} />}
-          {p.ai_plan ? <details className="mt-3"><summary className="cursor-pointer text-xs text-primary">查看完整AI方案（训练、随访、照护要点）</summary><div className="mt-2"><PlanView advice={p.ai_plan as Advice} /></div></details>
-            : <p className="mt-2 text-xs text-muted-foreground">尚未生成AI方案，以上为各类型标准内容；完成自评后生成个性化方案。</p>}
+          {p.ai_plan ? <><Button className="my-3 w-full" size="sm" variant="outline" onClick={() => setEditing(true)}><Pencil className="mr-1 h-3.5 w-3.5" />编辑各类型方案与训练内容</Button>
+            {treatmentCategories(p.cognitive_risk).filter(c => !(p.ai_plan as Advice).interventions?.some(x => x.category === c)).map(c => <section key={c} className="mb-2 border-b pb-2 text-xs"><h4 className="font-semibold text-primary">{c}</h4><p className="mt-1 text-warning">此旧版本未生成该类型内容，请重新生成或由医生编辑补全。</p></section>)}
+            <PlanView advice={p.ai_plan as Advice} /></>
+            : <><TypeDetails p={p} /><p className="mt-2 text-xs text-muted-foreground">尚未生成个性化方案，以上仅为服务标准，不是患者训练内容。请结合医生他评与患者自评生成。</p></>}
         </Card>
       )}
       {p.ai_plan && !historyOnly && (
@@ -71,6 +78,7 @@ export default function PlanReview({ p, showCurrent = true, historyOnly = false 
           </div>
         ))}
       </Card>
+      {editing && p.ai_plan && <PlanEditor p={p} onClose={() => setEditing(false)} />}
     </>
   );
 }

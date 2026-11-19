@@ -56,3 +56,14 @@ export function questionnaireTotal(q: Questionnaire, answers: Record<string, num
 export function latestSelfAssessments(records: SelfRecord[]) {
   return SELF_QUESTIONNAIRES.map(q => ({ questionnaire: q, record: [...records].sort((a,b) => b.created_at.localeCompare(a.created_at)).find(r => r.scale === `self_${q.id}` && questionnaireTotal(q, (r.items ?? {}) as Record<string,number>) === r.total) }));
 }
+
+/** Item-level concerns, not diagnostic cutoffs: nutrition scores run in reverse. */
+export function selfAssessmentConcerns(q: Questionnaire, items: unknown) {
+  const answers = (items ?? {}) as Record<string, number>;
+  return q.questions.flatMap(item => {
+    const option = item.options.find(o => o.score === answers[item.id]);
+    if (!option) return [];
+    const best = q.id === "nutrition" ? Math.max(...item.options.map(o => o.score)) : 0;
+    return option.score === best ? [] : [{ question: item.text, answer: option.label, id: item.id }];
+  });
+}

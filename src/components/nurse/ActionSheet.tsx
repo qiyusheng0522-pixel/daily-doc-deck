@@ -65,7 +65,7 @@ const ActionSheet = ({ open, onOpenChange, title, description, children, footer 
         <div className="flex h-1 justify-center pt-2">
           <span className="h-1 w-10 rounded-full bg-muted-foreground/30" />
         </div>
-        <div className="flex items-start justify-between gap-2 px-5 pb-3 pt-3">
+        <div className="flex shrink-0 items-start justify-between gap-2 px-5 pb-3 pt-3">
           <div className="min-w-0 flex-1 text-left">
             <h3 className="truncate text-base font-semibold">{title}</h3>
             {description && <p className="mt-0.5 truncate text-xs text-muted-foreground">{description}</p>}
@@ -78,8 +78,8 @@ const ActionSheet = ({ open, onOpenChange, title, description, children, footer 
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 pb-4">{children}</div>
-        {footer && <div className="border-t bg-muted/20 px-5 py-3">{footer}</div>}
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4">{children}</div>
+        {footer && <div className="shrink-0 border-t bg-muted/20 px-5 py-3">{footer}</div>}
       </div>
     </div>
   );

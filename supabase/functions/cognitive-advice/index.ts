@@ -2,11 +2,10 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { generateResponse, GatewayError } from "npm:@lovable.dev/ai-gateway";
 import { TREATMENT_PROTOCOL } from "../_shared/treatment.ts";
 import { latestSelfAssessments } from "../_shared/selfAssessment.ts";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { z } from "npm:zod@3";
 
-const cors = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const cors = corsHeaders;
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
@@ -25,7 +24,7 @@ const schema = {
       },
     },
     training: {
-      type: "array",
+      type: "array", minItems: 3,
       items: {
         type: "object", additionalProperties: false,
         required: ["domain", "activity", "frequency", "duration", "setting"],
@@ -72,8 +71,11 @@ Deno.serve(async (req) => {
   const { data: u } = await sb.auth.getUser();
   if (!u.user) return json({ error: "请先登录" }, 401);
 
-  let body: { patientId?: string; self?: Record<string, number>; careNeeds?: string; mode?: string; items?: Record<string, unknown> };
-  try { body = await req.json(); } catch { return json({ error: "请求格式错误" }, 400); }
+  let raw: unknown;
+  try { raw = await req.json(); } catch { return json({ error: "请求格式错误" }, 400); }
+  const parsed = z.object({ patientId: z.string().uuid(), careNeeds: z.string().max(1000).optional(), mode: z.enum(["risk"]).optional(), items: z.record(z.unknown()).optional() }).safeParse(raw);
+  if (!parsed.success) return json({ error: "参数不完整或格式错误" }, 400);
+  const body = parsed.data;
   const { patientId, careNeeds = "" } = body;
   if (!patientId || careNeeds.length > 1000) return json({ error: "参数不完整或照护需求过长" }, 400);
 
@@ -106,6 +108,13 @@ Deno.serve(async (req) => {
 
   const { data: selfRecords, error: selfError } = await sb.from("scale_assessments").select("scale,items,total,created_at,assessed_by").eq("patient_id", patientId).order("created_at", { ascending: false });
   if (selfError) return json({ error: "自评记录读取失败" }, 500);
+  const doctorKeys = ["scd_q9", "mmse", "moca", "adl"];
+  const doctorRecords = doctorKeys.flatMap(scale => {
+    const record = selfRecords?.find(r => r.scale === scale);
+    return record ? [record] : [];
+  });
+  if (!doctorRecords.length) return json({ error: "请先选择并完成医生他评量表，再结合患者自评生成方案" }, 400);
+  const doctorText = doctorRecords.map(r => `${r.scale}：${r.total}分，评估人${r.assessed_by}，日期${r.created_at}，逐项结果${JSON.stringify(r.items)}`).join("\n");
   const selfAssessments = latestSelfAssessments(selfRecords ?? []);
   const missing = selfAssessments.filter(x => !x.record);
   if (missing.length) return json({ error: `请医生协助患者完成：${missing.map(x => x.questionnaire.name).join("、")}` }, 400);
@@ -122,12 +131,13 @@ Deno.serve(async (req) => {
         "你是江苏省老年认知训练站的认知康复顾问，为训练站评估师/治疗管理师生成可执行建议。遵循《老年认知训练站建设基本标准》：" +
         "风险分层 低风险(认知正常/SCD)→宣教+每年复评；中风险(MCI/轻中度痴呆)→认知训练、家庭作业每周1-2次、危险因素管理、每6个月复评；高风险(重度痴呆)→长期照护/家庭病床/上门评估、每3个月复评；每月随访。" +
         `严格遵循服务参数：${JSON.stringify(TREATMENT_PROTOCOL)}。` +
-        "interventions须逐项包含该风险档位的所有治疗类型，每项给出结合本人量表和照护需求的具体措施、频次、时长。中风险认知训练累计20-36小时/期、6-12人小组，家庭作业每周1-2次、每次20-30分钟，另含非药物干预、风险管理、睡眠、营养、心理。高风险以长期护理、家庭病床准入评估、家庭病床框架内上门评估康复和风险管理为主，不套用中风险小组训练；不得声称未经评估已符合家庭病床准入。结合睡眠、营养、跌倒、心理自评个性化调整，具体到频次时长，不做诊断，待医生确认后执行。",
+        "interventions须逐项包含该风险档位的所有治疗类型，category必须与服务参数中的名称完全一致；每项给出结合本人量表和照护需求的具体措施、频次、时长。中风险认知训练累计20-36小时/期、6-12人小组，家庭作业每周1-2次、每次20-30分钟，另含非药物干预、风险管理、睡眠、营养、心理。高风险以长期护理、家庭病床准入评估、家庭病床框架内上门评估康复和风险管理为主，不套用中风险小组训练；不得声称未经评估已符合家庭病床准入。结合睡眠、营养、跌倒、心理自评个性化调整，具体到频次时长，不做诊断，待医生确认后执行。" +
+        "必须同时根据已保存的医生他评逐项评分和患者自评逐题答案制定个性化方案。缺失的他评量表明确写为未评估，不得推断其分数。training必须包含3-6项可直接执行的具体训练，不可只写记忆训练等类别名。每项activity写明训练名称、所需材料、分步操作、重复次数、难度调整、达成目标与安全注意事项；针对他评受损领域及自评异常安排场景。中风险包含站内训练及家庭作业；高风险以照护者协助的居家或上门训练为主。",
       input: [{
         role: "user",
         content: `老人：${p.name}，${p.gender}，${p.age}岁；诊断：${p.cognitive_diagnosis ?? "未确诊"}；风险：${p.cognitive_risk ?? "未分级"}；` +
           `AD-8 ${p.ad8 ?? "-"}，MMSE ${p.mmse ?? "-"}，MoCA ${p.moca ?? "-"}，SCD-Q9 ${p.scd_q9 ?? "-"}，ADL ${p.adl ?? "-"}；危险因素：${(p.risk_tags ?? []).join("、") || "无"}；照护者：${p.caregiver ?? "未登记"}。\n` +
-          `老年综合评估自评：${selfText}。\n照护需求：${careNeeds || "未填写"}。\n请生成 3-6 项训练和随访计划。`,
+          `医生他评量表：${doctorText}。\n老年综合评估自评：${selfText}。\n照护需求：${careNeeds || "未填写"}。\n请生成 3-6 项具体训练和全部治疗类型、随访计划。`,
       }],
       text: { format: { type: "json_schema", name: "cognitive_advice", strict: true, schema } },
     });
@@ -135,9 +145,13 @@ Deno.serve(async (req) => {
       ?? (res as any).output?.flatMap((o: any) => o.content ?? []).find((c: any) => c.type === "output_text")?.text;
     if (!out) return json({ error: "模型未返回内容，请稍后重试" }, 502);
     const advice = JSON.parse(out);
+    if (!Array.isArray(advice.training) || advice.training.length < 3 || advice.training.some((t: { activity: string }) => !t.activity?.trim())) return json({ error: "模型未给出完整训练内容，请重新生成" }, 502);
+    advice.doctor_assessments = doctorRecords.map(r => ({ name: r.scale.toUpperCase(), total: r.total, assessed_at: r.created_at, assessed_by: r.assessed_by }));
     advice.self_assessments = selfAssessments.map(({ questionnaire: q, record }) => ({ name: q.name, total: record?.total, assessed_at: record?.created_at, assessed_by: record?.assessed_by }));
-    await sb.from("patients").update({ ai_plan: advice, ai_plan_at: new Date().toISOString() }).eq("id", patientId);
-    await sb.from("treatment_plans").insert({ patient_id: patientId, plan: advice, risk: p.cognitive_risk ?? null });
+    const { error: historyError } = await sb.from("treatment_plans").insert({ patient_id: patientId, plan: advice, risk: p.cognitive_risk ?? null });
+    if (historyError) return json({ error: "方案历史保存失败" }, 500);
+    const { error: saveError } = await sb.from("patients").update({ ai_plan: advice, ai_plan_at: new Date().toISOString(), ai_plan_confirmed_at: null, ai_plan_confirmed_by: null }).eq("id", patientId);
+    if (saveError) return json({ error: "当前方案保存失败" }, 500);
     return json({ advice });
   } catch (e) {
     if (e instanceof GatewayError) {

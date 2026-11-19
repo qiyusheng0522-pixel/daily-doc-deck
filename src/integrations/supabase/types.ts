@@ -1005,6 +1005,10 @@ export type Database = {
         Returns: boolean
       }
       is_program_member: { Args: never; Returns: boolean }
+      save_treatment_revision: {
+        Args: { _expected_at: string; _patient_id: string; _plan: Json }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "doctor" | "nurse" | "community" | "patient"

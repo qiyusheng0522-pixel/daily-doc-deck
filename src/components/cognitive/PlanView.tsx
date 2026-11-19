@@ -5,6 +5,7 @@ import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 export default function PlanView({ advice }: { advice: Advice }) {
   return (
     <div className="space-y-3 text-sm">
+            {advice.doctor_assessments && <section className="border-b pb-2"><h4 className="mb-1 text-xs font-semibold">方案依据 · 医生他评</h4>{advice.doctor_assessments.map(s => <p key={s.name} className="text-xs text-muted-foreground">{s.name} {s.total} 分 · {new Date(s.assessed_at).toLocaleDateString("zh-CN")} · {s.assessed_by}</p>)}</section>}
             {advice.self_assessments && <section className="border-b pb-2"><h4 className="mb-1 text-xs font-semibold">方案依据 · 患者自评</h4>{advice.self_assessments.map(s => <p key={s.name} className="text-xs text-muted-foreground">{s.name} {s.total} 分 · {new Date(s.assessed_at).toLocaleDateString("zh-CN")} · {s.assessed_by}</p>)}</section>}
             <p className="rounded-lg bg-primary/5 p-2.5 leading-relaxed">{advice.summary}</p>
             {advice.focus.length > 0 && (
@@ -18,12 +19,13 @@ export default function PlanView({ advice }: { advice: Advice }) {
               </section>
             ))}
             <section>
-              <h4 className="mb-1.5 flex items-center gap-1 text-xs font-semibold text-muted-foreground"><Dumbbell className="h-3.5 w-3.5" />认知训练</h4>
+              <h4 className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-primary"><Dumbbell className="h-3.5 w-3.5" />具体认知训练内容</h4>
+              {!advice.training.length && <p className="text-xs text-warning">此版本缺少具体训练内容，请重新生成或由医生补充后确认。</p>}
               <ul className="space-y-1.5">
                 {advice.training.map((t, i) => (
                   <li key={i} className="rounded-lg border p-2">
                     <div className="flex items-center justify-between"><span className="font-medium">{t.domain}</span><span className="text-[11px] text-muted-foreground">{t.setting}</span></div>
-                    <p className="text-xs">{t.activity}</p>
+                    <p className="mt-1 whitespace-pre-line text-xs leading-relaxed">{t.activity}</p>
                     <p className="text-[11px] text-muted-foreground">{t.frequency} · {t.duration}</p>
                   </li>
                 ))}

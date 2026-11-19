@@ -19,6 +19,7 @@ import DoctorPatientDetail from "./pages/doctor/DoctorPatientDetail.tsx";
 import DoctorPlans from "./pages/doctor/DoctorPlans.tsx";
 import DoctorPlanDetail from "./pages/doctor/DoctorPlanDetail.tsx";
 import DoctorAssess from "./pages/doctor/DoctorAssess.tsx";
+import DoctorSelfAssessment from "./pages/doctor/DoctorSelfAssessment";
 import DoctorStats from "./pages/doctor/DoctorStats.tsx";
 import NurseLayout from "./pages/nurse/NurseLayout.tsx";
 import NurseHome from "./pages/nurse/NurseHome.tsx";
@@ -100,6 +101,7 @@ const App = () => (
             <Route path="plans" element={<DoctorPlans />} />
             <Route path="plans/:id" element={<DoctorPlanDetail />} />
             <Route path="assess/:id" element={<DoctorAssess />} />
+            <Route path="self-assess/:id" element={<DoctorSelfAssessment />} />
             <Route path="stats" element={<DoctorStats />} />
           </Route>
 

@@ -22,7 +22,7 @@ const DoctorLayout = () => {
   const location = useLocation();
   const isFullscreenChild =
     /^\/doctor\/patients\/[^/]+/.test(location.pathname) ||
-    /^\/doctor\/(plans|assess)\/[^/]+/.test(location.pathname);
+    /^\/doctor\/(plans|assess|self-assess)\/[^/]+/.test(location.pathname);
   const title = titleMap[location.pathname] ?? "工作台";
 
   return (
