@@ -6,6 +6,8 @@ import { Building2, CalendarCheck, MapPin, Users } from "lucide-react";
 import { JS_CITIES, JS_VIEWBOX } from "@/data/jiangsuMap";
 import { CityView, CountyView } from "./LevelViews";
 import { GL_AREAS, GL_STATIONS, GL_VIEWBOX, NJ_AREAS, NJ_VIEWBOX } from "@/data/nanjingMap";
+import RegulatoryIndicators from "./RegulatoryIndicators";
+import { demoRegulatoryCounts } from "./regulatoryMetrics";
 
 
 type CityStat = { stations: number; elders: number; screen: number; guide: number; referral: number; improve: number };
@@ -183,6 +185,7 @@ export default function ProvinceScreen() {
       </header>
 
       <main className="space-y-3 px-4 pb-4 pt-3">
+        <RegulatoryIndicators scope={level === "province" ? "江苏省" : `${city}${cfg.suffix}`} counts={level === "province" ? demoRegulatoryCounts(276000) : demoRegulatoryCounts(level === "city" ? Math.round(cs.elders * 10000) : cs.elders, cs.screen, cs.guide, level === "city" ? 86.9 : 88.2)} />
         {level === "province" ? <ProvinceDashboard nav={nav} onOverview={() => setNav("总体概览")} /> : level === "city" ? <CityView map={mapSection} area={city} /> : <CountyView map={mapSection} area={city} />}
       </main>
     </div>

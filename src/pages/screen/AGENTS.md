@@ -1,0 +1,3 @@
+<!-- AGENT-MEMORY:BEGIN -->
+- All three mandated regulatory rates use regulatoryMetrics evidence-based, person-deduplicated cohorts; shared RegulatoryIndicators renders counts and definitions across levels, because screening positivity, assessed suspicion and formal visits are distinct events. Demo aggregates must stay explicitly labeled until source evidence is connected.
+<!-- AGENT-MEMORY:END -->

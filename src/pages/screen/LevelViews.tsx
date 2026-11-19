@@ -3,6 +3,7 @@ import { AlertTriangle, ArrowLeftRight, Brain, Building2, CalendarCheck, CheckCi
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { C, Legend, Panel, axis, tip } from "./screenKit";
 import { usePatients } from "@/data/patients";
+import { demoRegulatoryCounts, indicatorResult } from "./regulatoryMetrics";
 
 function KpiStrip({ items }: { items: { label: string; value: string; unit?: string; sub: string; icon: typeof Users; warn?: boolean }[] }) {
   return (
@@ -69,7 +70,7 @@ export function CityView({ map, area }: { map: ReactNode; area: string }) {
         { label: "接收上转", value: "312", unit: "人", sub: "本年累计", icon: ArrowLeftRight },
         { label: "确诊率", value: "86.5%", sub: "270 / 312", icon: Brain },
         { label: "平均确诊时长", value: "4.2", unit: "天", sub: "上转至出具诊断", icon: Clock },
-        { label: "疑似就诊率", value: "86.9%", sub: "标准 ≥85%", icon: CheckCircle2 },
+        { label: "疑似认知障碍就诊率", value: `${indicatorResult(demoRegulatoryCounts(32100, 93.6, 92.1, 86.9), "suspectedVisitRate").value}%`, sub: "正式就诊 / 基层综合评估疑似 · 演示", icon: CheckCircle2 },
       ]} />
       <div className="grid grid-cols-[1fr_1.6fr_1fr] gap-3">
         <div className="flex flex-col gap-3">
@@ -141,19 +142,17 @@ export function CityView({ map, area }: { map: ReactNode; area: string }) {
         <h3 className="mb-2 flex items-center gap-2 text-lg font-bold"><MapPin className="h-5 w-5 text-scr-cyan" />区县质控排名<span className="text-sm font-normal text-scr-dim">（点击地图高亮 · 当前 {area}{sel ? `：筛查 ${sel.screen}% / 干预 ${sel.guide}% / 就诊 ${sel.visit}%` : ""}）</span></h3>
         <table className="w-full text-sm">
           <thead className="text-xs text-scr-dim"><tr className="border-b border-scr-line/30">
-            {["排名", "区县", "65岁+筛查覆盖率(≥90%)", "初筛阳性干预指导率(≥90%)", "疑似就诊率(≥85%)", "人员持证率", "质控结论"].map((h) => <th key={h} className="py-1.5 text-left font-normal">{h}</th>)}
+            {["排名", "区县", "认知功能初筛率", "初筛阳性干预指导率", "疑似认知障碍就诊率", "人员持证率", "统计口径"].map((h) => <th key={h} className="py-1.5 text-left font-normal">{h}</th>)}
           </tr></thead>
           <tbody>
             {[...QC].sort((a, b) => b.screen - a.screen).map((q, i) => {
-              const ok = q.screen >= 90 && q.guide >= 90 && q.visit >= 85;
+              const counts = demoRegulatoryCounts([2400,2800,1600,3800,2900,2700,1700,4800,3600,3000,2800][QC.indexOf(q)], q.screen, q.guide, q.visit);
               return (
                 <tr key={q.d} className={`border-b border-scr-line/15 ${q.d === area ? "bg-scr-gold/15" : ""}`}>
                   <td className="py-1">{i + 1}</td><td>{q.d}</td>
-                  <td className={q.screen < 90 ? "text-scr-red" : ""}>{q.screen}%</td>
-                  <td className={q.guide < 90 ? "text-scr-red" : ""}>{q.guide}%</td>
-                  <td className={q.visit < 85 ? "text-scr-red" : ""}>{q.visit}%</td>
+                  {(["initialScreeningRate", "positiveGuidanceRate", "suspectedVisitRate"] as const).map(key => { const result = indicatorResult(counts, key); return <td key={key}>{result.value}%<span className="block text-[11px] text-scr-dim">{result.numerator.toLocaleString()} / {result.denominator.toLocaleString()} 人</span></td>; })}
                   <td className={q.cert < 100 ? "text-scr-gold" : ""}>{q.cert}%</td>
-                  <td><Badge ok={ok}>{ok ? "达标" : "预警 · 需督导"}</Badge></td>
+                  <td className="text-xs text-scr-dim">按人去重 · 演示</td>
                 </tr>
               );
             })}
@@ -271,9 +270,7 @@ export function CountyView({ map, area }: { map: ReactNode; area: string }) {
         <div>
           <h4 className="mb-2 text-sm font-bold">本月核心指标 <span className="font-normal text-scr-dim">（对照建设标准）</span></h4>
           <div className="space-y-2.5">
-            <Bar100 label="65岁+认知筛查覆盖率" v={95.1} target={90} />
-            <Bar100 label="初筛阳性干预指导率" v={93.6} target={90} />
-            <Bar100 label="疑似认知障碍就诊率" v={88.2} target={85} />
+            <p className="text-xs leading-5 text-scr-dim">三项核心监管指标及分子、分母见顶部，随所选训练站更新；疑似人群仅取基层医生综合评估结果，转诊或咨询不等于正式就诊。</p>
             <Bar100 label="月度随访完成率" v={75.0} target={90} />
           </div>
         </div>
