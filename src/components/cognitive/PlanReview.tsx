@@ -12,6 +12,7 @@ import { TREATMENT_PROTOCOL } from "../../../supabase/functions/_shared/treatmen
 import PlanEditor from "./PlanEditor";
 import { Pencil } from "lucide-react";
 import { planEditError, treatmentCategories } from "@/data/treatmentPlan";
+import ActionSheet from "@/components/nurse/ActionSheet";
 
 const fmt = (d: string) => new Date(d).toLocaleDateString("zh-CN");
 
@@ -22,6 +23,7 @@ export default function PlanReview({ p, showCurrent = true, historyOnly = false 
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
+  const selectedHistory = history.find(h => h.id === open);
   const pending = !p.ai_plan_confirmed_at || (p.ai_plan_at && p.ai_plan_at > p.ai_plan_confirmed_at);
   const mustConfirm = needsReferral(p.cognitive_risk);
 
@@ -50,7 +52,8 @@ export default function PlanReview({ p, showCurrent = true, historyOnly = false 
             <p className="text-sm font-semibold">认知治疗方案 · {p.cognitive_risk ?? "待分级"}</p>
             {p.ai_plan_at && <span className="text-[11px] text-muted-foreground">生成于 {fmt(p.ai_plan_at)}</span>}
           </div>
-          {p.ai_plan ? <><Button className="my-3 w-full" size="sm" variant="outline" onClick={() => setEditing(true)}><Pencil className="mr-1 h-3.5 w-3.5" />编辑各类型方案与训练内容</Button>
+          <Button className="my-3 w-full" size="sm" variant="outline" onClick={() => setEditing(true)}><Pencil className="mr-1 h-3.5 w-3.5" />编辑各类型方案与训练内容</Button>
+          {p.ai_plan ? <>
             {treatmentCategories(p.cognitive_risk).filter(c => !(p.ai_plan as Advice).interventions?.some(x => x.category === c)).map(c => <section key={c} className="mb-2 border-b pb-2 text-xs"><h4 className="font-semibold text-primary">{c}</h4><p className="mt-1 text-warning">此旧版本未生成该类型内容，请重新生成或由医生编辑补全。</p></section>)}
             <PlanView advice={p.ai_plan as Advice} /></>
             : <><TypeDetails p={p} /><p className="mt-2 text-xs text-muted-foreground">尚未生成个性化方案，以上仅为服务标准，不是患者训练内容。请结合医生他评与患者自评生成。</p></>}
@@ -67,18 +70,19 @@ export default function PlanReview({ p, showCurrent = true, historyOnly = false 
       )}
       <Card className="p-4 shadow-soft">
         <p className="mb-2 text-sm font-semibold">{historyOnly ? "方案记录" : "历史治疗方案"} <span className="text-xs font-normal text-muted-foreground">({history.length})</span></p>
-        {history.length === 0 ? <p className="text-xs text-muted-foreground">暂无历史方案</p> : history.map((h, i) => (
+        {history.length === 0 ? <p className="text-xs text-muted-foreground">暂无历史方案</p> : history.map(h => (
           <div key={h.id} className="border-b py-2 text-xs last:border-0">
-            <Button variant="ghost" className="flex h-auto w-full items-center justify-between whitespace-normal px-0 text-left text-xs" onClick={() => setOpen(open === h.id ? null : h.id)}>
-              <span className="font-medium">{fmt(h.created_at)} · {h.risk ?? "—"}{i === 0 && <span className="ml-1 text-primary">当前</span>}</span>
-              <span className={h.confirmed_at ? "text-success" : "text-muted-foreground"}>{h.confirmed_at ? `已确认 ${fmt(h.confirmed_at)}` : "未确认"} {open === h.id ? "▲" : "▼"}</span>
-            </Button>
-            {open !== h.id && <p className="mt-0.5 line-clamp-1 text-muted-foreground">{(h.plan as Advice)?.summary}</p>}
-            {open === h.id && <div className="mt-2"><PlanView advice={h.plan as Advice} /></div>}
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-medium">{fmt(h.created_at)}</span>
+              <Button variant="ghost" size="sm" className="text-xs text-primary" onClick={() => setOpen(h.id)}>查看详情</Button>
+            </div>
           </div>
         ))}
       </Card>
-      {editing && p.ai_plan && <PlanEditor p={p} onClose={() => setEditing(false)} />}
+      {selectedHistory && <ActionSheet open onOpenChange={value => !value && setOpen(null)} title="历史治疗方案详情" description={`${p.name} · ${fmt(selectedHistory.created_at)}`}>
+        <PlanView advice={selectedHistory.plan as Advice} />
+      </ActionSheet>}
+      {editing && <PlanEditor p={p} onClose={() => setEditing(false)} />}
     </>
   );
 }

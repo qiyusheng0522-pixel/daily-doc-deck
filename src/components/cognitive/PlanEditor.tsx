@@ -13,7 +13,7 @@ import type { Json } from "@/integrations/supabase/types";
 import type { Patient } from "@/data/patients";
 
 export default function PlanEditor({ p, onClose }: { p: Patient; onClose: () => void }) {
-  const [draft, setDraft] = useState(() => editablePlan(p.ai_plan as Advice, p.cognitive_risk));
+  const [draft, setDraft] = useState(() => editablePlan(p.ai_plan as Advice | null, p.cognitive_risk));
   const [saving, setSaving] = useState(false);
   const qc = useQueryClient();
   const lines = (value: string) => value.split("\n");

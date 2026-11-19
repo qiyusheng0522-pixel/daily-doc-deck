@@ -5,8 +5,13 @@ export function treatmentCategories(risk: string | null) {
   return TREATMENT_PROTOCOL[risk === "高风险" ? "高风险" : "中风险"].categories;
 }
 
-export function editablePlan(plan: Advice, risk: string | null): Advice {
-  const copy: Advice = JSON.parse(JSON.stringify(plan));
+export function editablePlan(plan: Advice | null, risk: string | null): Advice {
+  const copy: Advice = plan ? JSON.parse(JSON.stringify(plan)) : {
+    summary: "", focus: [],
+    training: [{ domain: "记忆", activity: "", setting: "站内小组", frequency: "", duration: "" }],
+    followup: { cycle: "", reassess: "", items: [] },
+    caregiver_tips: [], red_flags: [], interventions: [],
+  };
   copy.interventions = [...treatmentCategories(risk).map(category => copy.interventions?.find(i => i.category === category) ?? { category, actions: [], frequency: "", duration: "" }), ...(copy.interventions ?? []).filter(i => !treatmentCategories(risk).some(c => c === i.category))];
   return copy;
 }
