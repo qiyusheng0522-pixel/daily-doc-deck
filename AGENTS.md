@@ -28,4 +28,5 @@
 - DemoSession (mounted in App) auto-signs in the demo account when signed out, so stakeholder demos never hit RLS write failures; all ends share that multi-role account.
 - Visit records = patient_documents kind 诊疗记录; training_records.record_type splits device/non-device; plans render via planGroups.
 - Scales follow the 评估量表 document: scales.ts (clinician) and _shared/selfAssessment.ts (self, per-scale score fns) drive forms, history and AI; ScaleDetailSheet readings use cognitive-advice mode "scale", unsaved.
+- Doctor plan detail edits a three-group plan_table (planTable.ts) and applyRows syncs it back to interventions/training before save_treatment_revision, so community/family keep reading the same plan. Community 添加训练记录 offers device/non-device example presets plus confirmed-plan items.
 <!-- AGENT-MEMORY:END -->

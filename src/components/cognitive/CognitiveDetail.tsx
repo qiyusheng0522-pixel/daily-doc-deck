@@ -19,6 +19,8 @@ import { acceptDoctorPatient, pendingDoctorReferral } from "@/data/doctorRecepti
 import { Camera, FileText, Cpu, HandHeart, LayoutGrid, User, Target, Layers, BarChart3, ClipboardCheck, Dumbbell, Repeat, ChevronRight, Pencil, ShieldPlus, ShieldCheck, Clock } from "lucide-react";
 import ScaleDetailSheet from "@/components/cognitive/ScaleDetailSheet";
 import ScaleBrowser from "@/components/cognitive/ScaleBrowser";
+import TrainingRecords from "@/components/cognitive/TrainingRecords";
+import AddTrainingSheet from "@/components/cognitive/AddTrainingSheet";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 import {
   usePatient, usePatientDocuments, useReferrals, usePatientEducation, useTrainingRecords, useCreateReferral, useReceiveReferral, type Patient,
@@ -74,6 +76,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const [accept, setAccept] = useState<null | { rid: string; dept: string; diag: string; feedback: string }>(null);
   const [fu, setFu] = useState<null | { item: string; note: string }>(null);
   const [scaleOpen, setScaleOpen] = useState<string | null>(null);
+  const [addTraining, setAddTraining] = useState(false);
   const [scaleFocus, setScaleFocus] = useState<string | null>(null);
   const [visitOpen, setVisitOpen] = useState(false);
   const [tab, setTab] = useState<string>("overview");
@@ -303,23 +306,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       ))}
     </Card>
   );
-  const trainingCard = (
-    <Card className="p-4 shadow-soft">
-      <Head icon={Dumbbell} title={`训练记录（${trainings.length}）`} action={role === "community" && <Button size="sm" variant="ghost" className="text-sm text-primary" onClick={() => (planItems.length > 0 ? openTask(0) : toast({ title: "暂无可训练项目", description: "该患者的训练方案尚待评估医生确认，确认后即可选择训练项目记录。" }))}>添加干预记录</Button>} />
-      <div className="grid grid-cols-2 gap-3">
-      {([["设备训练记录", Cpu, deviceTrainings, "暂无认知训练设备同步的记录"], ["非设备干预记录", HandHeart, otherTrainings, "暂无非设备干预记录"]] as const).map(([title, Icon, rows, empty]) => (
-        <section key={title} className="rounded-lg border p-3">
-          <p className="mb-1 flex items-center gap-1 text-sm font-semibold text-primary"><Icon className="h-4 w-4" />{title} <span className="font-normal text-muted-foreground">({rows.length})</span></p>
-          {rows.length === 0 ? <p className="text-sm text-muted-foreground">{empty}</p> : rows.map((t) => (
-            <div key={t.id} className="border-b py-1.5 text-sm last:border-0">
-              <p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on}{t.training_time ? ` ${t.training_time.slice(0, 5)}` : ""} · {t.duration_min} 分钟 · {t.setting}</p>{t.feedback && <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">{title === "设备训练记录" ? "设备结果" : "备注"}：{t.feedback}</p>}
-            </div>
-          ))}
-        </section>
-      ))}
-      </div>
-    </Card>
-  );
+  const trainingCard = <TrainingRecords trainings={trainings as never} onAdd={role === "community" ? () => setAddTraining(true) : undefined} />;
   const KeyRow = ({ icon: Icon, title, sub, to }: { icon: typeof User; title: string; sub: string; to: string }) => (
     <button type="button" onClick={() => setTab(to)} className="flex w-full items-center gap-3 rounded-2xl border bg-card p-4 text-left transition-colors hover:bg-muted/50">
       <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><Icon className="h-7 w-7" /></span>
@@ -450,6 +437,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </p>
       </div>
 
+      <AddTrainingSheet patientId={p.id} open={addTraining} onClose={() => setAddTraining(false)} planItems={planItems} />
       <ScaleDetailSheet patientId={p.id} scale={scaleOpen} onClose={() => setScaleOpen(null)} onViewHistory={k => { setScaleFocus(k); setTab("scale"); }} />
       <ActionSheet open={assessmentOpen} onOpenChange={setAssessmentOpen} title="历史量表记录">
         {role === "community" && <div className="mb-3 flex gap-2"><Button size="sm" variant="outline" className="text-xs" onClick={() => { setAssessmentOpen(false); setAd8(AD8_ITEMS.map(() => false)); }}>AD-8 初筛评估</Button>{p.community_stage === "新接收" && <Button size="sm" variant="outline" className="text-xs" onClick={buildFile}>干预建档</Button>}</div>}
