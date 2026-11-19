@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import ActionSheet from "@/components/nurse/ActionSheet";
 import { planConfirmed, needsReferral, COMMUNITY_STATIONS, DIAG_DEPTS, DEPT_DOCTORS, AD8_ITEMS } from "@/data/cognitive";
 import PlanReview from "@/components/cognitive/PlanReview";
+import SelfAssessmentResults from "@/components/cognitive/SelfAssessmentResults";
 import { Camera } from "lucide-react";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 import {
@@ -300,6 +301,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             </div>
           )}
         </Card>
+
+        <SelfAssessmentResults patientId={p.id} />
 
         {docs.length > 0 && <Card className="p-4 shadow-soft">
           <p className="mb-2 text-sm font-semibold">建档材料 <span className="text-xs font-normal text-muted-foreground">({docs.length})</span></p>

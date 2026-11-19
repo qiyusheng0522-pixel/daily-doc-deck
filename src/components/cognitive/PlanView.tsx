@@ -5,6 +5,8 @@ import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 export default function PlanView({ advice }: { advice: Advice }) {
   return (
     <div className="space-y-3 text-sm">
+            {advice.edited_at && <p className="text-xs text-primary">医院修订 · {new Date(advice.edited_at).toLocaleString("zh-CN")}</p>}
+            {advice.doctor_assessments && <section className="border-b pb-2"><h4 className="mb-1 text-xs font-semibold">方案依据 · 医生他评</h4>{advice.doctor_assessments.map(s => <p key={s.name} className="text-xs text-muted-foreground">{s.name.toUpperCase()} {s.total} 分 · {new Date(s.assessed_at).toLocaleDateString("zh-CN")} · {s.assessed_by}</p>)}</section>}
             {advice.self_assessments && <section className="border-b pb-2"><h4 className="mb-1 text-xs font-semibold">方案依据 · 患者自评</h4>{advice.self_assessments.map(s => <p key={s.name} className="text-xs text-muted-foreground">{s.name} {s.total} 分 · {new Date(s.assessed_at).toLocaleDateString("zh-CN")} · {s.assessed_by}</p>)}</section>}
             <p className="rounded-lg bg-primary/5 p-2.5 leading-relaxed">{advice.summary}</p>
             {advice.focus.length > 0 && (
@@ -23,7 +25,7 @@ export default function PlanView({ advice }: { advice: Advice }) {
                 {advice.training.map((t, i) => (
                   <li key={i} className="rounded-lg border p-2">
                     <div className="flex items-center justify-between"><span className="font-medium">{t.domain}</span><span className="text-[11px] text-muted-foreground">{t.setting}</span></div>
-                    <p className="text-xs">{t.activity}</p>
+                    <p className="whitespace-pre-line break-words text-xs leading-relaxed">{t.activity}</p>
                     <p className="text-[11px] text-muted-foreground">{t.frequency} · {t.duration}</p>
                   </li>
                 ))}
