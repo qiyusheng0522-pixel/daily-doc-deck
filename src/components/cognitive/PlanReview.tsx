@@ -16,9 +16,10 @@ import ActionSheet from "@/components/nurse/ActionSheet";
 const fmt = (d: string) => new Date(d).toLocaleDateString("zh-CN");
 
 /** 医生审核模块：当前认知治疗方案 + 确认 + 历史方案。患者详情与"方案"页共用。 */
-export default function PlanReview({ p, showCurrent = true, historyOnly = false }: { p: Patient; showCurrent?: boolean; historyOnly?: boolean }) {
+export default function PlanReview({ p, showCurrent = true, historyOnly = false, confirmedOnly = false }: { p: Patient; showCurrent?: boolean; historyOnly?: boolean; confirmedOnly?: boolean }) {
   const qc = useQueryClient();
-  const { data: history = [] } = useTreatmentPlans(p.id);
+  const { data: allHistory = [] } = useTreatmentPlans(p.id);
+  const history = confirmedOnly ? allHistory.filter(h => h.confirmed_at) : allHistory;
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Brain, Send, AlertTriangle } from "lucide-react";
+import { Brain, Send, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import ActionSheet from "@/components/nurse/ActionSheet";
 import { planConfirmed, needsReferral, COMMUNITY_STATIONS, DIAG_DEPTS, DEPT_DOCTORS, AD8_ITEMS } from "@/data/cognitive";
 import PlanReview from "@/components/cognitive/PlanReview";
+import DoctorBackButton from "@/components/doctor/DoctorBackButton";
 import SelfAssessmentResults from "@/components/cognitive/SelfAssessmentResults";
 import { Camera } from "lucide-react";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
@@ -53,6 +54,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const [station, setStation] = useState<string>(COMMUNITY_STATIONS[0]);
   const [uploading, setUploading] = useState(false);
   const [task, setTask] = useState<null | { domain: string; activity: string; setting: string; date: string; duration: string; completion: string; freq?: string }>(null);
+  const [trainingOpen, setTrainingOpen] = useState(false);
   const [docsOpen, setDocsOpen] = useState(false);
   const [ad8, setAd8] = useState<null | boolean[]>(null);
   const [accept, setAccept] = useState<null | { rid: string; dept: string; diag: string; feedback: string }>(null);
@@ -187,9 +189,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   return (
     <div className="bg-muted/30 min-h-full">
       <div className="sticky top-0 z-20 flex items-center justify-between border-b bg-card px-4 py-3">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-accent">
-          <ArrowLeft className="h-4 w-4" /><span className="text-sm">返回</span>
-        </button>
+        <DoctorBackButton fallback={`/${role}/patients`} />
         <h2 className="text-base font-semibold">{p.name}</h2>
         <span className="w-10" />
       </div>
@@ -211,7 +211,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
               <Button size="sm" variant="outline" className="flex-1" onClick={() => setDocsOpen(true)}><Camera className="mr-1 h-4 w-4" />上传档案</Button>
             )}
             {role !== "doctor" && needsReferral(p.cognitive_risk) && (
-              <Button size="sm" className="flex-1" onClick={() => setSheet("up")}><Send className="mr-1 h-4 w-4" />患者上传</Button>
+              <Button size="sm" className="flex-1" onClick={() => setSheet("up")}><Send className="mr-1 h-4 w-4" />{role === "community" ? "转诊至上级医院" : "患者上传"}</Button>
             )}
             {role === "doctor" && (
               <Button size="sm" variant="outline" className="flex-1" onClick={() => setDocsOpen(true)}><Camera className="mr-1 h-4 w-4" />录入档案</Button>
@@ -229,48 +229,6 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             <Button size="sm" className="mt-2 w-full" onClick={() => setAccept({ rid: pendingUp.id, dept: pendingUp.dept ?? DIAG_DEPTS[0], diag: p.cognitive_diagnosis ?? "", feedback: "" })}>确认接收患者</Button>
           </Card>
         )}
-        {role === "community" && (planConfirmed(p) ? (
-          <Card className="p-4 shadow-soft">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold">医生训练方案 · 按方案执行</p>
-              {p.ai_plan_confirmed_at && <span className="text-[11px] text-success">✓ 医生已确认 {new Date(p.ai_plan_confirmed_at).toLocaleDateString("zh-CN")}</span>}
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">{(p.ai_plan as Advice).summary}</p>
-            <ul className="mt-2 space-y-1.5">
-              {(p.ai_plan as Advice).training.map((t, i) => {
-                const setting = t.setting === "家庭作业" ? "家庭任务" : t.setting;
-                const open = (completion: string) => setTask({ domain: t.domain, activity: t.activity, setting, freq: `${t.frequency} · ${t.duration}`,
-                  date: new Date().toISOString().slice(0, 10), duration: String(parseInt(t.duration.replace(/\D*(\d+).*/, "$1")) || 20), completion });
-                return (
-                  <li key={i} className="rounded-lg border p-2.5 text-xs">
-                    <div className="flex items-center justify-between"><span className="font-medium">{t.domain}</span><span className="text-[11px] text-muted-foreground">{setting}</span></div>
-                    <p className="mt-0.5">{t.activity}</p>
-                    <p className="text-[11px] text-muted-foreground">{t.frequency} · {t.duration}</p>
-                    <div className="mt-1.5 grid grid-cols-2 gap-1.5">
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => open("待执行")}>{setting === "家庭任务" ? "发放家庭任务" : "安排训练"}</Button>
-                      <Button size="sm" className="h-7 text-xs" onClick={() => open("完成")}>记录执行</Button>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </Card>
-        ) : <div className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">训练方案待评估医生确认，确认后在此按方案安排训练并记录执行。</div>)}
-        {role === "community" && (
-          <Card className="p-3 shadow-soft">
-            <p className="mb-2 text-sm font-semibold">训练站工作</p>
-            <div className="mb-2 grid grid-cols-2 gap-2">
-              <Button size="sm" variant="outline" onClick={() => setAd8(AD8_ITEMS.map(() => false))}>AD-8 初筛评估</Button>
-              {p.community_stage === "新接收"
-                ? <Button size="sm" onClick={buildFile}>干预建档</Button>
-                : <Button size="sm" variant="outline" disabled>{p.community_stage === "干预中" ? "干预管理中" : "已建档"}</Button>}
-            </div>
-            <Button size="sm" className="w-full" onClick={() => setFu({ item: "月度电话随访", note: "" })}>记录随访</Button>
-            <p className="mt-2 text-[11px] text-muted-foreground">认知训练按上方医生方案逐项安排、记录执行；已安排的在"认知训练记录"中登记完成情况。</p>
-          </Card>
-        )}
-        {role === "community" && !needsReferral(p.cognitive_risk) && p.cognitive_risk && <p className="px-1 text-[11px] text-muted-foreground">低风险无需转诊：与家庭医生联合制定随访评估计划并开展健康宣教。</p>}
-
         <Card className="p-4 shadow-soft">
           <div className="mb-2 flex items-center justify-between"><p className="flex items-center gap-1 text-sm font-semibold"><Brain className="h-4 w-4 text-accent" />认知风险评估</p>{role === "doctor" && <span className="flex gap-1"><Button size="sm" className="h-7 text-xs" onClick={() => navigate(`/doctor/assess/${p.id}`)}>量表评估</Button><Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => openEdit("assess")}>编辑</Button></span>}</div>
           <div className="grid grid-cols-3 gap-2">
@@ -302,7 +260,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           )}
         </Card>
 
-        {role === "doctor" && <SelfAssessmentResults patientId={p.id} />}
+        {(role === "doctor" || role === "community") && <SelfAssessmentResults patientId={p.id} readOnly={role === "community"} />}
 
         {docs.length > 0 && <Card className="p-4 shadow-soft">
           <p className="mb-2 text-sm font-semibold">建档材料 <span className="text-xs font-normal text-muted-foreground">({docs.length})</span></p>
@@ -321,7 +279,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </Card>
 
         <Card className="p-4 shadow-soft">
-          <p className="mb-2 text-sm font-semibold">{role === "doctor" ? "训练记录" : "认知训练记录"} <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>
+          <div className="mb-2 flex items-center justify-between gap-2"><p className="text-sm font-semibold">训练记录 <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>{role === "community" && <Button size="sm" variant="outline" onClick={() => setTrainingOpen(true)}>记录认知训练</Button>}</div>
           {trainings.length === 0 ? <p className="text-xs text-muted-foreground">暂无训练记录</p> : trainings.map((t) => (
             <div key={t.id} className="flex items-start justify-between gap-2 border-b py-1.5 text-xs last:border-0">
               <div className="min-w-0 flex-1"><p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on} · {t.setting} · {t.duration_min} 分钟{t.operator ? ` · ${t.operator}` : ""}</p></div>
@@ -333,9 +291,9 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           ))}
         </Card>
 
-        {role === "doctor" && <PlanReview p={p} historyOnly />}
+        {(role === "doctor" || role === "community") && <PlanReview p={p} historyOnly confirmedOnly={role === "community"} />}
 
-        {role !== "doctor" && <Card className="p-4 shadow-soft">
+        {role === "nurse" && <Card className="p-4 shadow-soft">
           <p className="mb-2 text-sm font-semibold">已推送宣教</p>
           {edu.length === 0 ? <p className="text-xs text-muted-foreground">暂无</p> : edu.map((e) => (
             <div key={e.id} className="flex justify-between border-b py-1.5 text-xs last:border-0">
@@ -361,6 +319,13 @@ export default function CognitiveDetail({ role }: { role: Role }) {
             ))}
           </div>
         )}
+      </ActionSheet>
+
+      <ActionSheet open={trainingOpen} onOpenChange={setTrainingOpen} title="记录认知训练" description="医生确认的认知训练方案">
+        {planConfirmed(p) ? <div className="space-y-2">{((p.ai_plan as Advice).training ?? []).map((t, i) => <Button key={i} variant="outline" className="h-auto w-full flex-col items-start gap-1 whitespace-normal p-3 text-left" onClick={() => {
+          setTrainingOpen(false);
+          setTask({ domain: t.domain, activity: t.activity, setting: t.setting === "家庭作业" ? "家庭任务" : t.setting, freq: `${t.frequency} · ${t.duration}`, date: new Date().toISOString().slice(0, 10), duration: String(parseInt(t.duration.replace(/\D*(\d+).*/, "$1")) || 20), completion: "完成" });
+        }}><span className="text-sm font-medium">{t.domain} · {t.setting}</span><span className="text-xs">{t.activity}</span><span className="text-xs text-muted-foreground">{t.frequency} · {t.duration}</span></Button>)}{!(p.ai_plan as Advice).training?.length && <p className="text-xs text-muted-foreground">医生确认的方案中暂无具体训练项目。</p>}</div> : <p className="text-sm text-muted-foreground">暂无医生确认的训练方案，暂不能记录认知训练。</p>}
       </ActionSheet>
 
       <ActionSheet open={!!task} onOpenChange={(o) => !o && setTask(null)} title={task?.completion === "待执行" ? (task?.setting === "家庭任务" ? "发放家庭任务" : "安排训练") : "记录执行"}
@@ -452,7 +417,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       </ActionSheet>
 
       <ActionSheet open={!!sheet} onOpenChange={(o) => !o && setSheet(null)}
-        title={sheet === "up" ? "患者上传 · 南京市鼓楼医院" : "确诊下转 · 选择承接机构"}
+        title={sheet === "up" ? (role === "community" ? "转诊至上级医院 · 南京市鼓楼医院" : "患者上传 · 南京市鼓楼医院") : "确诊下转 · 选择承接机构"}
         description={sheet === "up" ? "疑似认知障碍，筛查评估后 3 个工作日内推送" : "填写诊疗建议，训练站接诊后 5 个工作日内建档"}
         footer={<Button className="w-full" disabled={createReferral.isPending} onClick={submit}>确认提交</Button>}>
         {sheet === "up" && (
