@@ -20,13 +20,13 @@ const titleMap: Record<string, string> = {
 
 const CommunityLayout = () => {
   const location = useLocation();
-  const isFullscreenChild = location.pathname.startsWith("/community/__none");
+  const isFullscreenChild = location.pathname.startsWith("/community/patients/");
   const title = titleMap[location.pathname] ?? "工作台";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100 px-4 py-6 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900">
       <RoleSwitcher />
-      <div className="mx-auto" style={{ width: 408 }}>
+      <div className="mx-auto w-full max-w-[408px]">
         <div className="phone-shell">
           <span className="phone-side-left" />
           <div data-community-frame className="phone-screen relative flex flex-col" style={{ height: 820 }}>

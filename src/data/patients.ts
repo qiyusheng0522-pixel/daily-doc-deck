@@ -301,9 +301,10 @@ export function usePlanReviews() {
 export function useTrainingRecords(patientId?: string) {
   return useQuery({
     queryKey: ["training-records", patientId],
-    enabled: !!patientId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("training_records").select("*").eq("patient_id", patientId!).order("trained_on", { ascending: false });
+      let query = supabase.from("training_records").select("*").order("trained_on", { ascending: false });
+      if (patientId) query = query.eq("patient_id", patientId);
+      const { data, error } = await query;
       if (error) throw error;
       return data ?? [];
     },
