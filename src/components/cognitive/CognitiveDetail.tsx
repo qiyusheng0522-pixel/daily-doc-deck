@@ -13,6 +13,7 @@ import SelfAssessmentResults from "@/components/cognitive/SelfAssessmentResults"
 import AssessmentHistory from "@/components/cognitive/AssessmentHistory";
 import DoctorBackButton from "@/components/doctor/DoctorBackButton";
 import { pendingCommunityReferral } from "@/data/communityReception";
+import { acceptDoctorPatient, pendingDoctorReferral } from "@/data/doctorReception";
 import { Camera } from "lucide-react";
 import type { Advice } from "@/components/cognitive/AiAdvicePanel";
 import {
@@ -170,15 +171,19 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const saveAccept = async () => {
     if (!accept || !accept.feedback.trim()) return toast({ title: "请填写指导意见" });
     setSaving(true);
-    const { error } = await supabase.from("referrals").update({ status: "已接收", received_at: new Date().toISOString(), dept: accept.dept, feedback: accept.feedback.trim().slice(0, 1000) }).eq("id", accept.rid);
-    if (!error && accept.diag.trim()) await supabase.from("patients").update({ cognitive_diagnosis: accept.diag.trim().slice(0, 60), refer_dept: accept.dept }).eq("id", p.id);
+    try {
+      await acceptDoctorPatient(accept.rid, { dept: accept.dept, feedback: accept.feedback.trim().slice(0, 1000) });
+    } catch (error) {
+      setSaving(false);
+      return toast({ title: "提交失败", description: error instanceof Error ? error.message : "接收失败" });
+    }
+    if (accept.diag.trim()) await supabase.from("patients").update({ cognitive_diagnosis: accept.diag.trim().slice(0, 60), refer_dept: accept.dept }).eq("id", p.id);
     setSaving(false);
-    if (error) return toast({ title: "提交失败", description: error.message });
     qc.invalidateQueries(); setAccept(null);
     toast({ title: "已接诊确认", description: "指导意见已反馈至社区训练站" });
   };
   const myRefs = referrals.filter((r) => r.patient_id === p.id);
-  const pendingUp = myRefs.find((r) => r.direction === "上转" && r.status === "待接收");
+  const pendingUp = pendingDoctorReferral(myRefs, p.id);
   const pendingDown = pendingCommunityReferral(myRefs, p.id);
 
   const submit = () => {

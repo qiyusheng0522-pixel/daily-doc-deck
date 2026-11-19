@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Users, ClipboardCheck, CalendarClock, Bell } from "lucide-react";
 import { planConfirmed, needsReferral } from "@/data/cognitive";
 import { Button } from "@/components/ui/button";
+import { doctorReceptionQueue } from "@/data/doctorReception";
 import {
   usePatients,
   useReferrals,
@@ -23,7 +24,7 @@ const DoctorHome = () => {
   const reviews = patients.filter((p) => needsReferral(p.cognitive_risk) && !planConfirmed(p));
   const { data: profile } = useMyProfile();
   const { data: referrals = [] } = useReferrals();
-  const upQueue = referrals.filter((r) => r.direction === "上转" && r.status === "待接收");
+  const upQueue = doctorReceptionQueue(referrals);
 
   const pendingReviews = reviews.length;
 

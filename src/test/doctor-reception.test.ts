@@ -1,10 +1,29 @@
-import { describe, expect, it } from "vitest";
-import { filterDoctorPatients, pendingDoctorReferral, type DoctorPatientFilters } from "@/data/doctorReception";
+import { describe, expect, it, vi } from "vitest";
+import { supabase } from "@/integrations/supabase/client";
+import { acceptDoctorPatient, doctorReceptionQueue, filterDoctorPatients, pendingDoctorReferral, type DoctorPatientFilters } from "@/data/doctorReception";
 
 describe("医生接收患者", () => {
   const pending = { id: "up", patient_id: "patient", direction: "上转", status: "待接收" };
+  it("同一患者五条待接收上转仅计一件待办，保留最新入口与其他患者", () => {
+    const records = Array.from({ length: 5 }, (_, i) => ({ ...pending, id: `up-${i}` }));
+    const queue = doctorReceptionQueue([...records, { ...pending, id: "other", patient_id: "other" }, { ...pending, id: "down", direction: "下转" }]);
+    expect(queue.map(r => r.id)).toEqual(["up-0", "other"]);
+    expect(records).toHaveLength(5);
+  });
   it("待接收的上转患者可以确认接收", () => {
     expect(pendingDoctorReferral([pending], "patient")?.id).toBe("up");
+  });
+  it("一次接收按患者更新所有待接收上转，不删除历史或更新下转", async () => {
+    const read = { select: vi.fn(), eq: vi.fn(), maybeSingle: vi.fn().mockResolvedValue({ data: { patient_id: "patient" }, error: null }) };
+    read.select.mockReturnValue(read); read.eq.mockReturnValue(read);
+    const write = { update: vi.fn(), eq: vi.fn(), select: vi.fn().mockResolvedValue({ data: Array.from({ length: 5 }, (_, i) => ({ id: `up-${i}` })), error: null }) };
+    write.update.mockReturnValue(write); write.eq.mockReturnValue(write);
+    const spy = vi.spyOn(supabase, "from").mockReturnValueOnce(read as never).mockReturnValueOnce(write as never);
+    try {
+      await acceptDoctorPatient("up");
+      expect(write.eq.mock.calls).toEqual([["patient_id", "patient"], ["direction", "上转"], ["status", "待接收"]]);
+      expect(write.update).toHaveBeenCalledWith(expect.objectContaining({ status: "已接收" }));
+    } finally { spy.mockRestore(); }
   });
   it("已接收患者不重复显示接收操作", () => {
     expect(pendingDoctorReferral([{ ...pending, status: "已接收" }], "patient")).toBeUndefined();

@@ -4,8 +4,31 @@ import type { Patient } from "@/data/patients";
 
 type ReceptionReferral = { id: string; patient_id: string; direction: string; status: string };
 
+/** 一位患者只有一件接收待办；输入保持转诊时间倒序。历史记录不删除。 */
+export function doctorReceptionQueue<T extends ReceptionReferral>(referrals: T[]): T[] {
+  const seen = new Set<string>();
+  return referrals.filter(r => {
+    if (r.direction !== "上转" || r.status !== "待接收" || seen.has(r.patient_id)) return false;
+    seen.add(r.patient_id);
+    return true;
+  });
+}
+
 export function pendingDoctorReferral<T extends ReceptionReferral>(referrals: T[], patientId: string): T | undefined {
-  return referrals.find(r => r.patient_id === patientId && r.direction === "上转" && r.status === "待接收");
+  return doctorReceptionQueue(referrals).find(r => r.patient_id === patientId);
+}
+
+export async function acceptDoctorPatient(referralId: string, guidance?: { dept: string; feedback: string }) {
+  const { data: referral, error: readError } = await supabase.from("referrals")
+    .select("patient_id").eq("id", referralId).eq("direction", "上转").eq("status", "待接收").maybeSingle();
+  if (readError) throw readError;
+  if (!referral) throw new Error("接收状态已更新，请重新查看");
+  const { data, error } = await supabase.from("referrals")
+    .update({ status: "已接收", received_at: new Date().toISOString(), ...guidance })
+    .eq("patient_id", referral.patient_id).eq("direction", "上转").eq("status", "待接收")
+    .select("id");
+  if (error) throw error;
+  if (!data?.length) throw new Error("接收状态已更新，请重新查看");
 }
 
 export type DoctorPatientFilters = {
@@ -32,14 +55,7 @@ export function filterDoctorPatients<T extends Pick<Patient, "id" | "name" | "di
 export function useDoctorReception() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (referralId: string) => {
-      const { data, error } = await supabase.from("referrals")
-        .update({ status: "已接收", received_at: new Date().toISOString() })
-        .eq("id", referralId).eq("direction", "上转").eq("status", "待接收")
-        .select("id").maybeSingle();
-      if (error) throw error;
-      if (!data) throw new Error("接收状态已更新，请刷新后查看");
-    },
+    mutationFn: (referralId: string) => acceptDoctorPatient(referralId),
     onSuccess: async () => { await qc.invalidateQueries({ queryKey: ["referrals"] }); },
   });
 }

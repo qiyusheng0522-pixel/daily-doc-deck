@@ -1,4 +1,5 @@
 <!-- AGENT-MEMORY:BEGIN -->
+- Doctor reception todos use doctorReceptionQueue keyed by patient; both acceptance entry points share acceptDoctorPatient to resolve all pending upward referrals for that person while retaining history, preventing repeated reception tasks.
 - Community concern summaries map saved item answers to non-diagnostic short tags; training sessions persist clock time and feedback in training_records and select activities only from the confirmed shared plan, avoiding invented clinical findings or detached execution logs.
 - Doctor and community patient details share CognitiveDetail section order and history renderers; community scale details stay read-only in an in-frame sheet and execution/upward referral remain community actions, preserving clinical role boundaries.
 - Community reception filters use communityReception over shared patients/referrals, deduplicating pending downward referrals; reuse the existing receive mutation and shared history renderers, keeping community treatment history read-only and confirmed-only to prevent draft execution.
