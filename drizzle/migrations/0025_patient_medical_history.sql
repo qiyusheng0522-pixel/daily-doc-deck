@@ -1,0 +1,1 @@
+ALTER TABLE public.patients ADD COLUMN IF NOT EXISTS past_history text, ADD COLUMN IF NOT EXISTS medications text, ADD COLUMN IF NOT EXISTS family_history text, ADD COLUMN IF NOT EXISTS condition_summary text;

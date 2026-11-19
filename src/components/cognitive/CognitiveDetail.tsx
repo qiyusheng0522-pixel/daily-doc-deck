@@ -106,7 +106,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     toast({ title: `已确认为${grade.risk}`, description: grade.refer ? "已转社区护理康复承接" : `复评周期：${RISK_PLAN[grade.risk].reassess}` });
     setGrade(null);
   };
-  const PROFILE_F = [["name", "姓名"], ["gender", "性别"], ["age", "年龄"], ["phone", "电话"], ["caregiver", "照护者"], ["id_no", "身份证号"]] as const;
+  const PROFILE_F = [["name", "姓名"], ["gender", "性别"], ["age", "年龄"], ["phone", "电话"], ["caregiver", "照护者"], ["id_no", "身份证号"], ["past_history", "既往疾病"], ["medications", "用药情况"], ["family_history", "家族史"], ["condition_summary", "病情摘要"]] as const;
   const ASSESS_F = [["ad8", "AD-8 (0-8)"], ["mmse", "MMSE (0-30)"], ["moca", "MoCA (0-30)"], ["scd_q9", "SCD-Q9 (0-9)"], ["adl", "ADL (0-100)"], ["cognitive_diagnosis", "认知诊断"]] as const;
   const NUM = ["age", "ad8", "mmse", "moca", "scd_q9", "adl"];
   const openEdit = (kind: "profile" | "assess") => {
@@ -259,7 +259,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const healthCard = (
     <Card className="p-4 shadow-soft">
       <Head icon={ShieldPlus} title="健康与既往史" />
-      <Rows rows={[...(role !== "community" ? [["主要诊断", p.cognitive_diagnosis ?? "待评估"]] as [string, string][] : []), ["危险因素", tags.length ? [...p.risk_tags, ...p.lifestyle_warnings].join("、") : null], ["过敏史", p.allergy], ["下次复评", p.next_reassess]]} />
+      <Rows rows={[...(role !== "community" ? [["主要诊断", p.cognitive_diagnosis ?? "待评估"]] as [string, string][] : []), ["既往疾病", p.past_history], ["用药情况", p.medications], ["家族史", p.family_history], ["病情摘要", p.condition_summary], ["危险因素", tags.length ? [...p.risk_tags, ...p.lifestyle_warnings].join("、") : null], ["过敏史", p.allergy], ["下次复评", p.next_reassess]]} />
     </Card>
   );
   const visitCard = (role === "doctor" || role === "community") && <Card className="p-4 shadow-soft">
@@ -386,7 +386,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
               </Card>
               <Card className="p-4 shadow-soft">
                 <Head icon={ClipboardCheck} title="主要诊断与病情" />
-                <dl className="divide-y text-sm">{([...(role !== "community" ? [["主要诊断", p.cognitive_diagnosis ?? "待评估"]] : []), ["合并疾病", p.risk_tags.join("、") || null], ["当前分级", p.cognitive_risk], ["病情摘要", (p.ai_risk as { summary?: string } | null)?.summary ?? null]] as [string, string | null][]).map(([k, v]) => <div key={k} className="flex gap-3 py-2"><dt className="w-24 shrink-0 text-muted-foreground">{k}</dt><dd className="min-w-0 break-words font-medium">{v || "未登记"}</dd></div>)}</dl>
+                <dl className="divide-y text-sm">{([...(role !== "community" ? [["主要诊断", p.cognitive_diagnosis ?? "待评估"]] : []), ["合并疾病", p.past_history ?? (p.risk_tags.join("、") || null)], ["当前分级", p.cognitive_risk], ["病情摘要", p.condition_summary ?? (p.ai_risk as { summary?: string } | null)?.summary ?? null]] as [string, string | null][]).map(([k, v]) => <div key={k} className="flex gap-3 py-2"><dt className="w-24 shrink-0 text-muted-foreground">{k}</dt><dd className="min-w-0 break-words font-medium">{v || "未登记"}</dd></div>)}</dl>
               </Card>
             </div>
             <div className="space-y-3">
@@ -453,8 +453,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         {edit && (
           <div className="grid grid-cols-2 gap-2">
             {(edit.kind === "profile" ? PROFILE_F as readonly (readonly [string, string])[] : ASSESS_F).map(([k, label]) => (
-              <label key={k} className={`text-xs ${k === "cognitive_diagnosis" || k === "id_no" ? "col-span-2" : ""}`}>{label}
-                <Input className="mt-1" type={NUM.includes(k) ? "number" : "text"} value={edit.v[k]} maxLength={60}
+              <label key={k} className={`text-xs ${["cognitive_diagnosis", "id_no", "past_history", "medications", "family_history", "condition_summary"].includes(k) ? "col-span-2" : ""}`}>{label}
+                <Input className="mt-1" type={NUM.includes(k) ? "number" : "text"} value={edit.v[k]} maxLength={200}
                   onChange={(e) => setEdit({ ...edit, v: { ...edit.v, [k]: e.target.value } })} />
               </label>
             ))}

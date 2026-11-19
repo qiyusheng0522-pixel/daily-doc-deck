@@ -176,6 +176,13 @@
       "when": 1795080033963,
       "tag": "0024_training_record_type",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1795092223598,
+      "tag": "0025_patient_medical_history",
+      "breakpoints": true
     }
   ]
 }

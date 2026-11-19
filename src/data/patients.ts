@@ -38,6 +38,10 @@ export type Patient = {
   ai_plan_confirmed_by: string | null;
   ai_risk: unknown;
   ai_risk_at: string | null;
+  past_history: string | null;
+  medications: string | null;
+  family_history: string | null;
+  condition_summary: string | null;
   abnormal: boolean;
   last_visit: string | null;
   refer_dept: string | null;
@@ -185,7 +189,7 @@ export type Med = {
 export const DEMO_PATIENT_NAME = "王建国";
 
 const PATIENT_FIELDS =
-  "id, name, gender, age, phone, diagnosis, allergy, source, bed_number, id_no, vip, stroke_type, condition_category, hospital_stage, community_stage, abnormal, last_visit, refer_dept, refer_doctor, nihss, mrs, limb_power, bp, hr, ldl, glucose, vitals_flags, risk_tags, lifestyle_warnings, ad8, mmse, moca, scd_q9, adl, cognitive_risk, cognitive_diagnosis, next_reassess, caregiver, ai_plan, ai_plan_at, ai_plan_confirmed_at, ai_plan_confirmed_by, ai_risk, ai_risk_at, created_at";
+  "id, name, gender, age, phone, diagnosis, allergy, source, bed_number, id_no, vip, stroke_type, condition_category, hospital_stage, community_stage, abnormal, last_visit, refer_dept, refer_doctor, nihss, mrs, limb_power, bp, hr, ldl, glucose, vitals_flags, risk_tags, lifestyle_warnings, ad8, mmse, moca, scd_q9, adl, cognitive_risk, cognitive_diagnosis, next_reassess, caregiver, ai_plan, ai_plan_at, ai_plan_confirmed_at, ai_plan_confirmed_by, ai_risk, ai_risk_at, past_history, medications, family_history, condition_summary, created_at";
 
 async function pick<T>(query: { then: (r: (v: { data: T | null; error: unknown }) => void) => unknown }, label: string): Promise<T> {
   return new Promise((resolve, reject) => {

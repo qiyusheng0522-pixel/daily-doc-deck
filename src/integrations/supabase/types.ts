@@ -501,9 +501,11 @@ export type Database = {
           cognitive_risk: string | null
           community_stage: string | null
           condition_category: string | null
+          condition_summary: string | null
           created_at: string
           diagnosis: string
           doctor_id: string | null
+          family_history: string | null
           gender: string
           glucose: string | null
           hospital_stage: string | null
@@ -514,12 +516,14 @@ export type Database = {
           ldl: string | null
           lifestyle_warnings: string[]
           limb_power: string | null
+          medications: string | null
           mmse: number | null
           moca: number | null
           mrs: string | null
           name: string
           next_reassess: string | null
           nihss: string | null
+          past_history: string | null
           phone: string | null
           refer_dept: string | null
           refer_doctor: string | null
@@ -552,9 +556,11 @@ export type Database = {
           cognitive_risk?: string | null
           community_stage?: string | null
           condition_category?: string | null
+          condition_summary?: string | null
           created_at?: string
           diagnosis: string
           doctor_id?: string | null
+          family_history?: string | null
           gender: string
           glucose?: string | null
           hospital_stage?: string | null
@@ -565,12 +571,14 @@ export type Database = {
           ldl?: string | null
           lifestyle_warnings?: string[]
           limb_power?: string | null
+          medications?: string | null
           mmse?: number | null
           moca?: number | null
           mrs?: string | null
           name: string
           next_reassess?: string | null
           nihss?: string | null
+          past_history?: string | null
           phone?: string | null
           refer_dept?: string | null
           refer_doctor?: string | null
@@ -603,9 +611,11 @@ export type Database = {
           cognitive_risk?: string | null
           community_stage?: string | null
           condition_category?: string | null
+          condition_summary?: string | null
           created_at?: string
           diagnosis?: string
           doctor_id?: string | null
+          family_history?: string | null
           gender?: string
           glucose?: string | null
           hospital_stage?: string | null
@@ -616,12 +626,14 @@ export type Database = {
           ldl?: string | null
           lifestyle_warnings?: string[]
           limb_power?: string | null
+          medications?: string | null
           mmse?: number | null
           moca?: number | null
           mrs?: string | null
           name?: string
           next_reassess?: string | null
           nihss?: string | null
+          past_history?: string | null
           phone?: string | null
           refer_dept?: string | null
           refer_doctor?: string | null
