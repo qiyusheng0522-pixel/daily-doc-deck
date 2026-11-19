@@ -2,6 +2,7 @@ import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import { Home, Users, BookOpen, MessageSquare, ArrowLeft, Bell, Wifi, Signal, BatteryFull, Stethoscope } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import RoleSwitcher from "@/components/RoleSwitcher";
+import { usePatientsRealtime } from "@/data/patients";
 
 const tabs = [
   { to: "/community", icon: Home, label: "工作台", end: true },
@@ -19,6 +20,7 @@ const titleMap: Record<string, string> = {
 };
 
 const CommunityLayout = () => {
+  usePatientsRealtime();
   const location = useLocation();
   const isFullscreenChild = location.pathname.startsWith("/community/patients/");
   const title = titleMap[location.pathname] ?? "工作台";

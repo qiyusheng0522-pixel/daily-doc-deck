@@ -632,6 +632,12 @@ export function usePatientsRealtime() {
         qc.invalidateQueries({ queryKey: ["patient"] });
         qc.invalidateQueries({ queryKey: ["patient-by-name"] });
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "treatment_plans" }, () => {
+        qc.invalidateQueries({ queryKey: ["treatment-plans"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "followups" }, () => {
+        qc.invalidateQueries({ queryKey: ["followups"] });
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [qc]);
