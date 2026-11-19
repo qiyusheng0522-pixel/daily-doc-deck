@@ -1,4 +1,5 @@
 <!-- AGENT-MEMORY:BEGIN -->
+- Community concern summaries map saved item answers to non-diagnostic short tags; training sessions persist clock time and feedback in training_records and select activities only from the confirmed shared plan, avoiding invented clinical findings or detached execution logs.
 - Doctor and community patient details share CognitiveDetail section order and history renderers; community scale details stay read-only in an in-frame sheet and execution/upward referral remain community actions, preserving clinical role boundaries.
 - Community reception filters use communityReception over shared patients/referrals, deduplicating pending downward referrals; reuse the existing receive mutation and shared history renderers, keeping community treatment history read-only and confirmed-only to prevent draft execution.
 - Doctor scale history retains every saved assessment and resolves answer labels through shared scale/questionnaire definitions; profile service statistics derive from shared patients/referrals so repeat records do not inflate rates.

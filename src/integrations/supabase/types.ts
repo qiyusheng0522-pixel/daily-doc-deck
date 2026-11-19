@@ -861,11 +861,13 @@ export type Database = {
           created_at: string
           domain: string
           duration_min: number
+          feedback: string | null
           id: string
           operator: string | null
           patient_id: string
           setting: string
           trained_on: string
+          training_time: string | null
         }
         Insert: {
           activity: string
@@ -873,11 +875,13 @@ export type Database = {
           created_at?: string
           domain: string
           duration_min?: number
+          feedback?: string | null
           id?: string
           operator?: string | null
           patient_id: string
           setting?: string
           trained_on?: string
+          training_time?: string | null
         }
         Update: {
           activity?: string
@@ -885,11 +889,13 @@ export type Database = {
           created_at?: string
           domain?: string
           duration_min?: number
+          feedback?: string | null
           id?: string
           operator?: string | null
           patient_id?: string
           setting?: string
           trained_on?: string
+          training_time?: string | null
         }
         Relationships: [
           {

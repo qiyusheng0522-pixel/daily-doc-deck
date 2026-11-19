@@ -14,6 +14,7 @@ Roles: doctor=上级指导中心(鼓楼记忆门诊), nurse=评估师/治疗管�
 - [x] Rule tests: AD-8 ≥2 positive; reassess 1y/6m/3m. Verified nurse 上转 → doctor queue in browser.
 
 ## Open
+- [x] Community detail: concise self-assessment concern tags; training entry inside history with confirmed-plan selection, session time and persisted feedback. Signed-in save/reload verified at 10:35 with 25-minute duration and feedback; verification record removed; 13 targeted tests passed.
 - [x] Community workstation: four modules and patient-linked todo list; doctor-style reception/filters and detail histories, confirmed-plan training recording and upward referral. Signed-in acceptance, training and upward referral save/reload verified; verification records restored; all 67 tests passed.
 - [x] Current request: show every saved historical scale with readable answer details; simplify doctor profile to shared service counts and referral rate, removing earnings, certification and fabricated outcome statistics. Signed-in doctor/self history open-close and profile readback verified; all 63 tests passed.
 - [x] Current request: show reception action only, move accepted patients into managed list, and add combined reception/risk/source/gender filters. Verified signed-in acceptance, reload and combined filters; demo referral restored; 11 tests passed.
