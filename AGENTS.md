@@ -2,6 +2,7 @@
 - Doctor assessment and plan back controls use a shared history-aware button with a parent-page fallback; questionnaire tab changes replace history so one return exits the detail page.
 - Keep provincial dashboard presentation and demo analytics in dedicated screen modules; derive map, trends and drilldown rows from the same selected region to prevent inconsistent interactions.
 - All four ends read one shared database via hooks in src/data/patients.ts; never add per-page hardcoded patient lists (ends must show the same people).
+- Keep additive patient-history demo seeds in supabase/seeds; preserve existing answers and current-plan confirmation, and label illustrative historical plans so examples never publish new treatment.
 - patients.hospital_stage is the nurse/assessor stage and community_stage the training-station stage; one row per person carries both so one record flows across ends.
 - referrals.direction ('上转'/'下转') distinguishes station→center vs center→station in one table, so both flows share receive/list logic.
 - Stroke-era columns (nihss, mrs, limb_power, stroke_type) are deprecated, not dropped, to avoid breaking migrations.

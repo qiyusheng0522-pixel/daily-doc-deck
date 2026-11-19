@@ -14,6 +14,7 @@ Roles: doctor=上级指导中心(鼓楼记忆门诊), nurse=评估师/治疗管�
 - [x] Rule tests: AD-8 ≥2 positive; reassess 1y/6m/3m. Verified nurse 上转 → doctor queue in browser.
 
 ## Open
+- [x] Current request: mixed completed/missing self-assessment examples with labels/details; rename doctor training history and seed shared training/treatment history examples. Verified self details, three completion states and expandable treatment history in preview.
 - [x] Doctor review: editable treatment categories and concrete training, generation reads doctor + self-assessments, self-result tags and detail navigation. Signed-in revision save/readback and self-result detail verified; test data restored. New AI generation prompt deployed but not invoked.
 - [x] Link AI plans to saved patient self-assessment questionnaires; doctor-assisted completion and family readback verified with four saved questionnaires. Test answers removed; AI generation itself not invoked.
 - [x] Doctor home simplified; mid/high-risk AI treatment confirmation centralized in plans with risk-specific service categories; patient files keep reception and referral/training/plan history. Reception and confirmation verified signed in; new AI output not invoked during verification.

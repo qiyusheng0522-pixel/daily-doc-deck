@@ -321,14 +321,14 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </Card>
 
         <Card className="p-4 shadow-soft">
-          <p className="mb-2 text-sm font-semibold">{role === "doctor" ? "下级训练记录" : "认知训练记录"} <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>
+          <p className="mb-2 text-sm font-semibold">{role === "doctor" ? "训练记录" : "认知训练记录"} <span className="text-xs font-normal text-muted-foreground">({trainings.length})</span></p>
           {trainings.length === 0 ? <p className="text-xs text-muted-foreground">暂无训练记录</p> : trainings.map((t) => (
-            <div key={t.id} className="flex items-start justify-between border-b py-1.5 text-xs last:border-0">
-              <div><p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on} · {t.setting} · {t.duration_min} 分钟{t.operator ? ` · ${t.operator}` : ""}</p></div>
+            <div key={t.id} className="flex items-start justify-between gap-2 border-b py-1.5 text-xs last:border-0">
+              <div className="min-w-0 flex-1"><p className="font-medium">{t.domain} · {t.activity}</p><p className="text-muted-foreground">{t.trained_on} · {t.setting} · {t.duration_min} 分钟{t.operator ? ` · ${t.operator}` : ""}</p></div>
               {t.completion === "待执行" && role === "community" ? (
                 <span className="flex shrink-0 gap-1">{["完成", "部分完成", "未完成"].map((c) => (
                   <button key={c} onClick={() => markExec(t.id, c)} className="rounded border px-1.5 py-0.5 text-[11px] text-primary">{c}</button>))}</span>
-              ) : <span className={t.completion === "完成" ? "text-success" : t.completion === "待执行" ? "text-primary" : "text-warning"}>{t.completion}</span>}
+              ) : <span className={`shrink-0 whitespace-nowrap ${t.completion === "完成" ? "text-success" : t.completion === "待执行" ? "text-primary" : "text-warning"}`}>{t.completion}</span>}
             </div>
           ))}
         </Card>
