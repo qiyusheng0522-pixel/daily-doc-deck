@@ -304,7 +304,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           )}
         </Card>
 
-        {(role === "doctor" || role === "community") && <SelfAssessmentResults patientId={p.id} readOnly={role === "community"} />}
+        {(role === "doctor" || role === "community") && <SelfAssessmentResults patientId={p.id} readOnly />}
         <ActionSheet open={assessmentOpen} onOpenChange={setAssessmentOpen} title="历史量表记录">
           {role === "community" && <div className="mb-3 flex gap-2"><Button size="sm" variant="outline" className="text-xs" onClick={() => { setAssessmentOpen(false); setAd8(AD8_ITEMS.map(() => false)); }}>AD-8 初筛评估</Button>{p.community_stage === "新接收" && <Button size="sm" variant="outline" className="text-xs" onClick={buildFile}>干预建档</Button>}</div>}
           <AssessmentHistory patientId={p.id} />
