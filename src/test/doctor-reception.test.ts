@@ -16,8 +16,10 @@ describe("医生接收患者", () => {
   it("一次接收按患者更新所有待接收上转，不删除历史或更新下转", async () => {
     const read = { select: vi.fn(), eq: vi.fn(), maybeSingle: vi.fn().mockResolvedValue({ data: { patient_id: "patient" }, error: null }) };
     read.select.mockReturnValue(read); read.eq.mockReturnValue(read);
+    Object.assign(read, { or: vi.fn().mockReturnValue(read) });
     const write = { update: vi.fn(), eq: vi.fn(), select: vi.fn().mockResolvedValue({ data: Array.from({ length: 5 }, (_, i) => ({ id: `up-${i}` })), error: null }) };
     write.update.mockReturnValue(write); write.eq.mockReturnValue(write);
+    Object.assign(write, { or: vi.fn().mockReturnValue(write) });
     const spy = vi.spyOn(supabase, "from").mockReturnValueOnce(read as never).mockReturnValueOnce(write as never);
     try {
       await acceptDoctorPatient("up");

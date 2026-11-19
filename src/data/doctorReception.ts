@@ -2,13 +2,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Patient } from "@/data/patients";
 
-type ReceptionReferral = { id: string; patient_id: string; direction: string; status: string };
+type ReceptionReferral = { id: string; patient_id: string; direction: string; status: string; approval_status?: string | null };
 
 /** 一位患者只有一件接收待办；输入保持转诊时间倒序。历史记录不删除。 */
 export function doctorReceptionQueue<T extends ReceptionReferral>(referrals: T[]): T[] {
   const seen = new Set<string>();
   return referrals.filter(r => {
-    if (r.direction !== "上转" || r.status !== "待接收" || seen.has(r.patient_id)) return false;
+    if (r.direction !== "上转" || r.status !== "待接收" || (r.approval_status && r.approval_status !== "已转出") || seen.has(r.patient_id)) return false;
     seen.add(r.patient_id);
     return true;
   });
@@ -20,12 +20,13 @@ export function pendingDoctorReferral<T extends ReceptionReferral>(referrals: T[
 
 export async function acceptDoctorPatient(referralId: string, guidance?: { dept: string; feedback: string }) {
   const { data: referral, error: readError } = await supabase.from("referrals")
-    .select("patient_id").eq("id", referralId).eq("direction", "上转").eq("status", "待接收").maybeSingle();
+    .select("patient_id").eq("id", referralId).eq("direction", "上转").eq("status", "待接收").or("approval_status.is.null,approval_status.eq.已转出").maybeSingle();
   if (readError) throw readError;
   if (!referral) throw new Error("接收状态已更新，请重新查看");
   const { data, error } = await supabase.from("referrals")
     .update({ status: "已接收", received_at: new Date().toISOString(), ...guidance })
     .eq("patient_id", referral.patient_id).eq("direction", "上转").eq("status", "待接收")
+    .or("approval_status.is.null,approval_status.eq.已转出")
     .select("id");
   if (error) throw error;
   if (!data?.length) throw new Error("接收状态已更新，请重新查看");

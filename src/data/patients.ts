@@ -116,6 +116,10 @@ export type PatientEducation = {
 };
 
 export type Referral = {
+  approval_status?: "待审批" | "已转出" | "已退回" | null;
+  approval_note?: string | null;
+  approved_at?: string | null;
+  approved_by?: string | null;
   id: string;
   patient_id: string;
   from_hospital: string;
@@ -505,7 +509,14 @@ export function useMeds(patientId?: string) {
 export function useCreateReferral() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { patientId: string; reason: string; doctorName?: string; direction?: "上转" | "下转"; toCommunity?: string; dept?: string }) => {
+    mutationFn: async (input: { patientId: string; reason: string; doctorName?: string; direction?: "上转" | "下转"; toCommunity?: string; dept?: string; requireApproval?: boolean }) => {
+      if (input.direction === "上转" && input.requireApproval) {
+        const { data: id, error } = await supabase.rpc("request_upward_referral", { _patient_id: input.patientId, _reason: input.reason, _dept: input.dept ?? "", _doctor_name: input.doctorName ?? "" });
+        if (error) throw error;
+        const { data, error: readError } = await supabase.from("referrals").select("*").eq("id", id).single();
+        if (readError) throw readError;
+        return data as Referral;
+      }
       const { data, error } = await supabase
         .from("referrals")
         .insert({ patient_id: input.patientId, reason: input.reason, doctor_name: input.doctorName ?? null, status: "待接收", dept: input.dept ?? null, direction: input.direction ?? "下转", ...(input.direction === "上转" ? { from_hospital: "小市社区", to_community: "南京市鼓楼医院" } : input.toCommunity ? { to_community: input.toCommunity } : {}) })
@@ -637,6 +648,9 @@ export function usePatientsRealtime() {
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "followups" }, () => {
         qc.invalidateQueries({ queryKey: ["followups"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "referrals" }, () => {
+        qc.invalidateQueries({ queryKey: ["referrals"] });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };

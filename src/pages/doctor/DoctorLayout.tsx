@@ -3,6 +3,7 @@ import { LayoutGrid, Users, ClipboardList, User as UserIcon, ArrowLeft, Bell, Wi
 import { toast } from "@/hooks/use-toast";
 import { doctor } from "@/data/doctorMock";
 import RoleSwitcher from "@/components/RoleSwitcher";
+import { usePatientsRealtime } from "@/data/patients";
 
 export const tabs = [
   { to: "/doctor", icon: LayoutGrid, label: "工作台", end: true },
@@ -19,6 +20,7 @@ const titleMap: Record<string, string> = {
 };
 
 const DoctorLayout = () => {
+  usePatientsRealtime();
   const location = useLocation();
   const isFullscreenChild =
     /^\/doctor\/patients\/[^/]+/.test(location.pathname) ||

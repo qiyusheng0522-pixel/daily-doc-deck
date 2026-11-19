@@ -1,4 +1,5 @@
 <!-- AGENT-MEMORY:BEGIN -->
+- Community upward requests use request_upward_referral and doctor review uses review_upward_referral; approval_status is independent of hospital reception, preserving legacy referrals and community intervention. Subscribe both ends to referral changes so approval and reception read back live.
 - Community screening badges/todos and risk lists/referral controls use separate predicates in communityReception over saved patient fields, so screening positivity cannot be promoted into an assessment risk or referral eligibility.
 - Doctor reception todos use doctorReceptionQueue keyed by patient; both acceptance entry points share acceptDoctorPatient to resolve all pending upward referrals for that person while retaining history, preventing repeated reception tasks.
 - Community concern summaries map saved item answers to non-diagnostic short tags; training sessions persist clock time and feedback in training_records and select activities only from the confirmed shared plan, avoiding invented clinical findings or detached execution logs.

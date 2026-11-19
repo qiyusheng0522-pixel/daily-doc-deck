@@ -14,6 +14,7 @@ Roles: doctor=上级指导中心(鼓楼记忆门诊), nurse=评估师/治疗管�
 - [x] Rule tests: AD-8 ≥2 positive; reassess 1y/6m/3m. Verified nurse 上转 → doctor queue in browser.
 
 ## Open
+- [x] Community referral confirmation → doctor approval queue → approved upward transfer; two signed-in windows verified without refresh, community approval note and transfer status persist on reload; 79 tests passed. Temporary verification referral removed. Transfer remains a platform record, not an external hospital-system integration.
 - [x] Community risk workflow: AD-8 ≥2 drives screening abnormality; saved medium/high assessment risk drives risk list and upward referral, without a separate confirmation step. Verified six medium/high list rows, low-risk referral hidden, medium/high hospital chooser opens; 21 tests passed.
 - [x] Doctor duplicate todos: confirmed five pending upward referrals for one patient; grouped reception todos by patient (9 → 5 verified in signed-in preview). Both acceptance entries resolve that patient's pending upward referrals while preserving history; 17 reception/filter tests passed.
 - [x] Community detail: concise self-assessment concern tags; training entry inside history with confirmed-plan selection, session time and persisted feedback. Signed-in save/reload verified at 10:35 with 25-minute duration and feedback; verification record removed; 13 targeted tests passed.

@@ -12,6 +12,8 @@ import PlanReview from "@/components/cognitive/PlanReview";
 import SelfAssessmentResults from "@/components/cognitive/SelfAssessmentResults";
 import AssessmentHistory from "@/components/cognitive/AssessmentHistory";
 import DoctorBackButton from "@/components/doctor/DoctorBackButton";
+import ReferralApproval from "@/components/cognitive/ReferralApproval";
+import { referralApprovalQueue, upwardReferralState } from "@/data/referralApproval";
 import { communityRiskPatient, pendingCommunityReferral } from "@/data/communityReception";
 import { acceptDoctorPatient, pendingDoctorReferral } from "@/data/doctorReception";
 import { Camera } from "lucide-react";
@@ -185,6 +187,9 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const myRefs = referrals.filter((r) => r.patient_id === p.id);
   const pendingUp = pendingDoctorReferral(myRefs, p.id);
   const pendingDown = pendingCommunityReferral(myRefs, p.id);
+  const pendingApproval = referralApprovalQueue(myRefs)[0];
+  const transferState = upwardReferralState(myRefs, p.id);
+  const transferBusy = transferState === "待审批" || transferState === "已转出";
 
   const submit = () => {
     if (role === "community" && !communityRiskPatient(p)) return toast({ title: "仅评估确定的中高风险患者可转诊" });
@@ -193,11 +198,11 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       ? `AD-8 ${p.ad8 ?? "-"}，MMSE ${p.mmse ?? "-"}，MoCA ${p.moca ?? "-"}，${p.cognitive_risk ?? "风险待评估"}，申请${upDept}进一步评估`
       : `确诊${p.cognitive_diagnosis ?? ""}，回${station}接续认知训练`);
     createReferral.mutate(
-      { patientId: p.id, reason, direction, toCommunity: direction === "下转" ? station : undefined, dept: direction === "上转" ? upDept : undefined, doctorName: direction === "上转" ? upDoc : "记忆门诊" },
+      { patientId: p.id, reason, direction, requireApproval: role === "community" && direction === "上转", toCommunity: direction === "下转" ? station : undefined, dept: direction === "上转" ? upDept : undefined, doctorName: direction === "上转" ? upDoc : "记忆门诊" },
       {
         onSuccess: () => {
-          toast({ title: direction === "上转" ? `已转诊至鼓楼医院${upDept} · ${upDoc}` : `已下转${station}`,
-            description: direction === "上转" ? "筛查评估后 3 个工作日内推送" : "训练站需在接诊后 5 个工作日内建档" });
+          toast({ title: direction === "上转" && role === "community" ? "转诊申请已提交医生审批" : direction === "上转" ? `已转诊至鼓楼医院${upDept} · ${upDoc}` : `已下转${station}`,
+            description: direction === "上转" ? "转诊进度将在社区端自动同步" : "训练站需在接诊后 5 个工作日内建档" });
           setSheet(null); setNote("");
         },
         onError: (e) => toast({ title: "提交失败", description: String(e) }),
@@ -230,7 +235,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
               <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => setDocsOpen(true)}><Camera className="mr-1 h-4 w-4" />录入档案</Button>
             )}
             {role !== "doctor" && (role === "community" ? communityRiskPatient(p) : needsReferral(p.cognitive_risk)) && (
-              <Button size="sm" className="flex-1 text-xs" onClick={() => setSheet("up")}><Send className="mr-1 h-4 w-4" />{role === "community" ? "上转医院" : "患者上传"}</Button>
+              <Button size="sm" className="flex-1 text-xs" disabled={role === "community" && transferBusy} onClick={() => setSheet("up")}><Send className="mr-1 h-4 w-4" />{role === "community" ? transferBusy ? transferState : "申请上转" : "患者上传"}</Button>
             )}
             {role === "doctor" && (
               <Button size="sm" className="flex-1" onClick={() => setSheet("down")}><Send className="mr-1 h-4 w-4" />转诊</Button>
@@ -238,6 +243,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           </div>
         </Card>
 
+        {role === "doctor" && pendingApproval && <ReferralApproval key={pendingApproval.id} referral={pendingApproval} />}
         {role === "doctor" && pendingUp && (
           <Card className="border-warning/40 bg-warning/5 p-3 shadow-soft">
             <p className="text-sm font-semibold">上转待接诊 · 来自{pendingUp.from_hospital}</p>
@@ -320,8 +326,10 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           <p className="mb-2 text-sm font-semibold">平台转诊记录</p>
           {myRefs.length === 0 ? <p className="text-xs text-muted-foreground">暂无转诊</p> : myRefs.map((r) => (
             <div key={r.id} className="mb-2 rounded-lg border p-2 text-xs">
-              <p className="font-medium">{r.direction} · {r.from_hospital} → {r.to_community} <span className="text-muted-foreground">({r.status})</span></p>
+              <p className="font-medium">{r.direction} · {r.from_hospital} → {r.to_community} <span className="text-muted-foreground">({r.approval_status === "已转出" && r.status === "已接收" ? "上级医院已接收" : r.approval_status ?? r.status})</span></p>
               <p className="text-muted-foreground">{r.reason}</p>
+              {r.approval_note && <p className="mt-1 break-words text-primary">审批意见：{r.approval_note}</p>}
+              {r.approved_at && <p className="mt-1 text-muted-foreground">审批时间：{new Date(r.approved_at).toLocaleString("zh-CN")}</p>}
               {r.feedback && <p className="mt-1 rounded bg-primary/5 p-1.5"><span className="font-medium text-primary">指导意见{r.dept ? `（${r.dept}）` : ""}：</span>{r.feedback}</p>}
             </div>
           ))}
@@ -475,7 +483,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       </ActionSheet>
 
       <ActionSheet open={!!sheet} onOpenChange={(o) => !o && setSheet(null)}
-        title={sheet === "up" ? "转诊至上级医院 · 南京市鼓楼医院" : "确诊下转 · 选择承接机构"}
+        title={sheet === "up" ? role === "community" ? "确认转诊申请 · 等待医生审批" : "转诊至上级医院 · 南京市鼓楼医院" : "确诊下转 · 选择承接机构"}
         description={sheet === "up" ? `${p.name} · 选择门诊与接诊医生` : "填写诊疗建议，训练站接诊后 5 个工作日内建档"}
         footer={<Button className="w-full" disabled={createReferral.isPending} onClick={submit}>确认提交</Button>}>
         {sheet === "up" && (

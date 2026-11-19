@@ -3,6 +3,7 @@ import { Users, ClipboardCheck, CalendarClock, Bell } from "lucide-react";
 import { planConfirmed, needsReferral } from "@/data/cognitive";
 import { Button } from "@/components/ui/button";
 import { doctorReceptionQueue } from "@/data/doctorReception";
+import { referralApprovalQueue } from "@/data/referralApproval";
 import {
   usePatients,
   useReferrals,
@@ -30,6 +31,11 @@ const DoctorHome = () => {
 
   // 待办直接来自方案审核队列：审核中的每一条都是一件真实的待处理事项。
   const todoList = [
+    ...referralApprovalQueue(referrals).map(r => ({
+      id: `approval-${r.id}`, type: "审核" as const,
+      title: `${r.patients?.name ?? "患者"} · 转诊申请待审批`,
+      time: r.created_at.slice(0, 10), to: `/doctor/patients/${r.patient_id}`,
+    })),
     ...upQueue.map((r) => ({
       id: r.id,
       type: "审核" as const,

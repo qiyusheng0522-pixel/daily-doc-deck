@@ -703,6 +703,10 @@ export type Database = {
       }
       referrals: {
         Row: {
+          approval_note: string | null
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           dept: string | null
           direction: string
@@ -717,6 +721,10 @@ export type Database = {
           to_community: string
         }
         Insert: {
+          approval_note?: string | null
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           dept?: string | null
           direction?: string
@@ -731,6 +739,10 @@ export type Database = {
           to_community?: string
         }
         Update: {
+          approval_note?: string | null
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           dept?: string | null
           direction?: string
@@ -1011,6 +1023,25 @@ export type Database = {
         Returns: boolean
       }
       is_program_member: { Args: never; Returns: boolean }
+      request_upward_referral: {
+        Args: {
+          _dept: string
+          _doctor_name: string
+          _patient_id: string
+          _reason: string
+        }
+        Returns: string
+      }
+      review_upward_referral: {
+        Args: {
+          _approve: boolean
+          _dept: string
+          _doctor_name: string
+          _note: string
+          _referral_id: string
+        }
+        Returns: undefined
+      }
       save_treatment_revision: {
         Args: { _expected_at: string; _patient_id: string; _plan: Json }
         Returns: string
