@@ -18,7 +18,7 @@ const CommunityEducation = () => {
   const qc = useQueryClient();
   const [params] = useSearchParams();
   const [activeTask, setActiveTask] = useState<string | null>(null);
-  const [tab, setTab] = useState<"todo" | "library">("todo");
+  const [tab, setTab] = useState<"todo" | "library">(params.get("patient") ? "library" : "todo");
   const { data: library = [] } = useEducationItems();
   const { data: patients = [] } = usePatients("community");
   const push = usePushEducation();
@@ -27,7 +27,7 @@ const CommunityEducation = () => {
   const [picked, setPicked] = useState<string[]>([]);
   const [q, setQ] = useState("");
   const [lq, setLq] = useState("");
-  const open = (c: { id: string; title: string }, m: "single" | "batch") => { setTarget(c); setMode(m); if (!activeTask) setPicked([]); setQ(""); };
+  const open = (c: { id: string; title: string }, m: "single" | "batch") => { setTarget(c); setMode(m); if (!activeTask) { const patientId = params.get("patient"); setPicked(m === "single" && patientId && patients.some(p => p.id === patientId) ? [patientId] : []); } setQ(""); };
   const toggle = (id: string) => setPicked((p) => mode === "single" ? [id] : p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
   const shown = patients.filter((p) => !q || p.name.includes(q));
   const confirm = () => {

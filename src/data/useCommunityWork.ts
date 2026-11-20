@@ -19,6 +19,7 @@ export function useCommunityWork() {
   const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Shanghai" }).format(new Date());
   return {
     ...communityWorkQueues(patients.data ?? [], referrals.data ?? [], tasks.data ?? [], followups.data ?? [], trainings.data ?? [], today),
+    referrals: referrals.data ?? [],
     isLoading: patients.isLoading || referrals.isLoading || tasks.isLoading || followups.isLoading || trainings.isLoading,
   };
 }

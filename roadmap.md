@@ -14,6 +14,7 @@ Roles: doctor=上级指导中心(鼓楼记忆门诊), nurse=评估师/治疗管�
 - [x] Rule tests: AD-8 ≥2 positive; reassess 1y/6m/3m. Verified nurse 上转 → doctor queue in browser.
 
 ## Open
+- [x] Simplified community directory into compact screening/risk tabs, focused result/risk filters, expandable source/gender/reception filters and horizontal rows with direct actions. Signed-in browser checked result/combined filters, assessment/training/detail links, preselected education recipient and intake opening; 15 tests passed. No patient results or stored stages changed.
 - [x] Restored original community gradient entry cards and rounded todo area; shared examples cover assessment, education, followup, explicitly scheduled training and downward reception. Signed-in browser verified 12 todos, assessment 2/list 2 and training 1/list 1, all five action destinations; 11 targeted tests passed.
 - [x] Community workstation: shared four-kind queues and list counts; family request opens community AD-8; deferred intake/save/reload removes assessed patient from pending list. 17 tests passed; temporary records removed. Only explicitly dated/weekday/daily confirmed-plan training is due; undated weekly frequencies are not scheduled. Existing family demo identity remains, no new real-name verification service.
 - [x] Doctor workstation: shared pending-plan and actually-reviewed patient queues; entry/list counts verified as 1 pending and 3 reviewed, both patient links opened; 20 targeted tests passed.
