@@ -365,18 +365,23 @@
 .province-tech .province-trend > div > div:last-child { min-height: 0; flex: 1; height: auto; }
 .province-tech ::-webkit-scrollbar { width: 4px; height: 4px; }
 .province-tech ::-webkit-scrollbar-thumb { background: hsl(var(--scr-line) / .5); }
+.province-tech .province-right .screen-metric { gap: 8px; }
+.province-tech .province-right .screen-metric > div > span:first-child { font-size: 15px; }
+.province-tech .province-right .screen-metric b { font-size: 27px; }
+.province-tech .province-right .screen-metric-icon { width: 32px; height: 32px; }
+.province-tech .province-right > section > div { padding-top: 8px; padding-bottom: 8px; }
 @media (min-width: 1400px) {
   .province-tech { min-height: 100vh; }
   .province-tech .province-dashboard { height: calc(100vh - 194px); min-height: 830px; }
   .province-tech .province-activity-grid { flex: 1; min-height: 0; }
-  .province-tech .province-bottom { flex: 0 0 26%; min-height: 220px; }
+  .province-tech .province-bottom { flex: 0 0 20%; min-height: 220px; }
   .province-tech .province-activity-grid > div:first-child > section { min-height: 0; }
   .province-tech .province-activity-grid > div:first-child > section:nth-child(2) { flex: 1; }
   .province-tech .province-activity-grid > div:first-child > section:nth-child(2) > div > div { min-height: 0; }
   .province-tech .province-activity-grid > div:first-child > section:last-child { flex: 1.1; }
   .province-tech .province-right > section { min-height: 0; }
-  .province-tech .province-right > section:last-child { flex: 1; }
-  .province-tech .province-right > section:last-child > div { display: flex; flex-direction: column; }
+  .province-tech .province-right > section:last-child { flex: 1; min-height: 280px; }
+  .province-tech .province-right > section:last-child > div { display: flex; flex-direction: column; overflow-y: auto; }
   .province-tech .province-right > section:last-child .relative { flex: 1 1 0; min-height: 80px; height: 0; }
   .province-tech .province-right > section:last-child .screen-segments,
   .province-tech .province-right > section:last-child .grid,
