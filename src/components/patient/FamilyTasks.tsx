@@ -12,6 +12,8 @@ import CognitivePractice from "@/components/patient/CognitivePractice";
 import { practiceKind, dailyPractice, homeExercises, type HomeExercise } from "@/data/homePractice";
 
 import SpecialtyPractice from "@/components/patient/SpecialtyPractice";
+import { PatientTrainingHistory } from "@/components/cognitive/TrainingRecords";
+import { patientTrainingCheckins } from "@/data/trainingSources";
 
 type ActiveCheckin = { task: FamilyTask; mealIndex: number | null };
 
@@ -98,6 +100,7 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
         </div>; })}
       </section>;
     })}
+    {!compact && <PatientTrainingHistory records={patientTrainingCheckins(checks)} compact />}
     <PatientActionSheet open={!!chooser} onOpenChange={o => !o && setChooser(null)} title="游戏与专项训练">
       {chooser && <div className="grid grid-cols-2 gap-3">{homeExercises(chooser).map(item => <Button key={item.id} variant="outline" className="h-auto min-h-28 flex-col items-start gap-2 whitespace-normal p-3 text-left" onClick={() => { setPractice(chooser); setExercise(item); setChooser(null); }}><Brain className="h-7 w-7 text-primary" /><span className="text-sm font-semibold">{item.name}</span><span className="text-xs text-muted-foreground">{item.domain}</span></Button>)}</div>}
     </PatientActionSheet>
