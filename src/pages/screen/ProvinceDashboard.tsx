@@ -8,7 +8,7 @@ import ProvinceEChartMap from "./ProvinceEChartMap";
 import { C, Legend, Panel, axis, tip } from "./screenKit";
 import { formatValue, METRICS, metricFor, PROVINCE_ALERTS, REGION_DATA, regionalValue, RISKS, serviceTrend, type Region } from "./provinceData";
 import { demoRegulatoryCounts, INDICATORS, indicatorResult } from "./regulatoryMetrics";
-import { ProvinceSummary, ProvinceRecent, ScreeningFeed } from "./ProvinceActivityPanels";
+import { ProvinceSummary, ProvinceRecent, ProvinceTrend, ScreeningFeed } from "./ProvinceActivityPanels";
 import { activityDays, type Period } from "./provinceActivityData";
 
 type Drill = { key: string; region?: string; period?: string; risk?: string; alert?: number };
@@ -42,7 +42,6 @@ export default function ProvinceDashboard({ nav, onOverview }: { nav: string; on
   const [updated, setUpdated] = useState(() => new Date());
   useEffect(() => { const timer = setInterval(() => setUpdated(new Date()), 60000); return () => clearInterval(timer); }, []);
   const activities = activityDays(1, updated);
-  const recentActivities = activities.filter(r => r.city === city);
   const periodActivities = activityDays(period, updated).filter(r => r.city === city);
   const [hovered, setHovered] = useState<string>();
   const [drill, setDrill] = useState<Drill>();
@@ -65,14 +64,14 @@ export default function ProvinceDashboard({ nav, onOverview }: { nav: string; on
   const rows = REGION_DATA.filter(r => (!drillRegion || r.name === drillRegion.name) && r.name.includes(search));
   const title = regulatoryIndicator ? `${regulatoryIndicator.short}详情` : drill?.alert !== undefined ? "重点预警详情" : drill?.risk ? `${drill.risk}人群详情` : `${selectedMetric.label}详情`;
   const next = (d: Drill) => { if (drill) setHistory(h => [...h, drill]); setSearch(""); setDrill(d); };
-  return <TooltipProvider delayDuration={120}><div className="province-screen space-y-3">
-    <div className="flex flex-wrap items-center justify-between gap-2 text-[16.8px] text-scr-dim"><span>江苏省 · 13个设区市 · 156个训练站</span><span>演示汇总与动态 · 未接入实时筛查服务</span></div>
+  return <TooltipProvider delayDuration={120}><div className="province-dashboard">
+    <div className="province-status flex flex-wrap items-center justify-between gap-2 text-[16.8px] text-scr-dim"><span>江苏省 · 13个设区市 · 156个训练站</span><span>演示汇总与动态 · 未接入实时筛查服务</span></div>
     <div className="province-grid province-activity-grid">
       <ProvinceSummary rows={activities} city={city} onPick={select} />
       <div className="province-center flex min-h-0 min-w-0 flex-col gap-3">
-        <Panel title="江苏省筛查地图" className="min-h-[520px] flex-[2]" extra={<div className="screen-segments flex gap-1">{["江苏省", "设区市"].map(m => <Button key={m} variant="screenQuiet" size="sm" aria-pressed={mapMode === m} className="h-7 px-3 text-[16.8px]" onClick={() => setMapMode(m)}>{m === "江苏省" ? "地图" : "区域列表"}</Button>)}</div>}>
-          <div className="province-map relative grid h-full min-h-[460px] grid-cols-1 gap-2">
-            <div className="relative min-h-[430px] min-w-0">
+        <Panel title="江苏省筛查地图" className="province-map-panel min-h-0 flex-1" extra={<div className="screen-segments flex gap-1">{["江苏省", "设区市"].map(m => <Button key={m} variant="screenQuiet" size="sm" aria-pressed={mapMode === m} className="h-7 px-3 text-[16.8px]" onClick={() => setMapMode(m)}>{m === "江苏省" ? "地图" : "区域列表"}</Button>)}</div>}>
+          <div className="province-map relative grid h-full min-h-0 grid-cols-1 gap-2">
+            <div className="relative min-h-0 min-w-0">
               {mapMode === "江苏省" ? <ProvinceEChartMap city={city} rows={activities} onPick={select} /> : <div className="absolute inset-0 grid grid-cols-2 content-start gap-2 overflow-y-auto p-2">{REGION_DATA.map(r => <HoverData key={r.name} title={`${r.name}市`} text={`训练站 ${r.stations} 个；服务老年人 ${r.elders} 万人；随访完成率 ${r.completion}%。`}><Button variant="screen" className={`h-12 justify-between ${city === r.name ? "border-scr-gold text-scr-gold" : ""}`} onClick={() => select(r.name)}><span>{r.name}</span><b>{r.stations}个</b></Button></HoverData>)}</div>}
               {hoverRegion && <div role="tooltip" className="pointer-events-none absolute left-3 top-2 z-10 rounded border border-scr-cyan bg-scr-panel/95 p-3 text-xs"><b className="text-sm text-scr-cyan">{hoverRegion.name}市</b><div className="mt-1">训练站点：{hoverRegion.stations} 个</div><div>服务老年人：{hoverRegion.elders} 万人</div><div>随访完成率：{hoverRegion.completion}%</div></div>}
             </div>
@@ -80,10 +79,10 @@ export default function ProvinceDashboard({ nav, onOverview }: { nav: string; on
           </div>
         </Panel>
         <div className="flex flex-wrap items-center justify-between gap-2 border-y border-scr-line/40 px-3 py-2"><div><b className="text-lg text-scr-gold">{city}市</b><span className="ml-3 text-[16.8px] text-scr-dim">训练站 {region.stations} 个 · 服务 {region.elders} 万人</span></div><Button variant="screenQuiet" size="sm" onClick={() => open({key:"stations",region:city})}>区域详情<ChevronRight className="ml-1 h-4 w-4" /></Button></div>
-        <ScreeningFeed rows={activities} city={city} onPick={select} />
       </div>
-      <ProvinceRecent rows={periodActivities} recentRows={recentActivities} city={city} period={period} onPeriod={setPeriod} />
+      <ProvinceRecent rows={periodActivities} city={city} period={period} />
     </div>
+    <div className="province-bottom"><ScreeningFeed rows={activities} city={city} onPick={select} /><ProvinceTrend rows={periodActivities} city={city} period={period} onPeriod={setPeriod} /></div>
     {drill && <aside role="dialog" aria-modal="false" aria-label={title} onKeyDown={e => { if (e.key === "Escape") close(); }} className="province-detail fixed bottom-0 right-0 top-0 z-40 flex w-full max-w-[480px] flex-col border-l border-scr-cyan/60 bg-scr-bg text-scr-text">
       <header className="flex items-center gap-2 border-b border-scr-line/40 p-4">{history.length > 0 && <Button variant="screen" size="icon" aria-label="返回上一级" onClick={() => { const previous = history[history.length-1]; setDrill(previous); setHistory(h=>h.slice(0,-1)); setSearch(""); }}><ArrowLeft /></Button>}<div className="min-w-0 flex-1"><h2 className="text-lg font-bold">{title}</h2><p className="text-xs text-scr-dim">{drill.region ? `${drill.region}市` : "江苏省"} · {drill.period ?? "2026年1—10月"} · 演示数据</p></div><Button ref={closeRef} variant="screen" size="icon" aria-label="关闭详情" onClick={close}><X /></Button></header>
       <div className="flex-1 space-y-5 overflow-y-auto p-4">
