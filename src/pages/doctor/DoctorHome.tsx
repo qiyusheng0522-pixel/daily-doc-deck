@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ClipboardCheck, Hospital, ListChecks } from "lucide-react";
-import { planConfirmed, needsReferral } from "@/data/cognitive";
+import { doctorPlanQueues } from "@/data/doctorPlanQueue";
 import { Button } from "@/components/ui/button";
 import { doctorReceptionQueue } from "@/data/doctorReception";
 import { usePatients, useReferrals } from "@/data/patients";
@@ -16,7 +16,7 @@ const DoctorHome = () => {
   const { data: patients = [] } = usePatients("all");
   const { data: referrals = [] } = useReferrals();
   const byId = new Map(patients.map(p => [p.id, p]));
-  const reviews = patients.filter(p => needsReferral(p.cognitive_risk) && !planConfirmed(p));
+  const { pending: reviews, reviewed } = doctorPlanQueues(patients);
   const fmt = (d?: string | null) => d ? new Date(d).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "待生成方案";
 
   const todos = [
@@ -31,7 +31,7 @@ const DoctorHome = () => {
     <div className="space-y-5 px-6 py-2">
       <section className="grid grid-cols-2 gap-5">
         <HeroCard tone="primary" icon={ClipboardCheck} title="方案审核" desc={`审核评估结论与非药物干预方案 · ${reviews.length} 项`} onClick={() => navigate("/doctor/plans")} />
-        <HeroCard tone="success" icon={Hospital} title="转诊办理" desc={`接收社区转诊并跟踪进展 · ${todos.filter(t => t.kind !== "待审核").length} 项`} onClick={() => navigate("/doctor/patients")} />
+        <HeroCard tone="success" icon={Hospital} title="转诊办理" desc={`已完成方案审核的患者 · ${reviewed.length} 位`} onClick={() => navigate("/doctor/plans?status=reviewed")} />
       </section>
       <section className="rounded-3xl bg-card p-6 shadow-card ring-1 ring-border/60">
         <h3 className="flex items-center gap-2 text-lg font-bold"><ListChecks className="h-6 w-6 text-primary" />我的待办</h3>

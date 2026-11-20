@@ -10,7 +10,7 @@
 - Community reception filters use communityReception over shared patients/referrals, deduplicating pending downward referrals; reuse the existing receive mutation and shared history renderers, keeping community treatment history read-only and confirmed-only to prevent draft execution.
 - Doctor scale history retains every saved assessment and resolves answer labels through shared scale/questionnaire definitions; profile service statistics derive from shared patients/referrals so repeat records do not inflate rates.
 - Doctor list reception and combined filters use doctorReception; only pending upward referrals enter the pending queue, and acceptance moves them into the managed list without implying diagnosis, treatment confirmation or community reception.
-- All four ends read one shared database via hooks in src/data/patients.ts; never add per-page hardcoded patient lists (ends must show the same people).
+- All ends use shared patient hooks, never page-specific demo lists.
 - Keep additive patient-history demo seeds in supabase/seeds; preserve existing answers and current-plan confirmation, and label illustrative historical plans so examples never publish new treatment.
 - patients.hospital_stage is the nurse/assessor stage and community_stage the training-station stage; one row per person carries both so one record flows across ends.
 - referrals.direction ('上转'/'下转') distinguishes station→center vs center→station in one table, so both flows share receive/list logic.
@@ -28,4 +28,5 @@
 - Visit records = patient_documents kind 诊疗记录; training_records.record_type splits device/non-device; plans render via planGroups.
 - Scales follow the 评估量表 document: scales.ts (clinician) and _shared/selfAssessment.ts (self, per-scale score fns) drive forms, history and AI; ScaleDetailSheet readings use cognitive-advice mode "scale", unsaved.
 - Plan detail edits plan_table; applyRows syncs it to interventions/training so all ends read one plan.
+- Doctor entries/lists share doctorPlanQueues; referral lists require current approval.
 <!-- AGENT-MEMORY:END -->
