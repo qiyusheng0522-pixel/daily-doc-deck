@@ -4,6 +4,7 @@ import ScreenChart, { chartColors } from "./ScreenChart";
 import { Button } from "@/components/ui/button";
 import { C, Panel } from "./screenKit";
 import { activityTotals, activityTrend, concernDistribution, PERIODS, type Activity, type Period } from "./provinceActivityData";
+import { demoRegulatoryCounts, INDICATORS, indicatorResult, type IndicatorKey } from "./regulatoryMetrics";
 
 const COLORS = [C.cyan, C.green, C.gold, C.red];
 const DIMENSIONS = [
@@ -55,13 +56,26 @@ export function ScreeningFeed({ rows, city, onPick }: { rows: Activity[]; city: 
 
 export function ProvinceRecent({ rows, recentRows, city, period, onPeriod }: { rows: Activity[]; recentRows: Activity[]; city: string; period: Period; onPeriod: (period: Period) => void }) {
   const [distribution, setDistribution] = useState<"risk" | "concern">("risk");
+  const [expandedIndicator, setExpandedIndicator] = useState<IndicatorKey>();
+  const provinceCounts = demoRegulatoryCounts(276000);
+  const selectedIndicator = INDICATORS.find(i => i.key === expandedIndicator);
   const totals = activityTotals(rows), recent = activityTotals(recentRows), trend = activityTrend(rows);
   const risks = [{ name: "低风险", value: totals.low }, { name: "中风险", value: totals.medium }, { name: "高风险", value: totals.high }, { name: "待进一步评估", value: totals.pending }];
   const data = distribution === "risk" ? risks : concernDistribution(rows);
   const colors = distribution === "risk" ? [C.green, C.gold, C.red, C.blue] : COLORS;
   const denominator = data.reduce((sum, r) => sum + r.value, 0);
   return <div className="province-right flex min-h-0 min-w-0 flex-col gap-3">
-    <Panel title={`${city}市 · 近24小时`} className="shrink-0"><div className="grid grid-cols-2 divide-x divide-scr-line/30 py-3 text-center"><div><b className="block text-[43.2px] font-black text-scr-cyan">{recent.screened}</b><span className="text-[16.8px] text-scr-dim">新增筛查人数</span></div><div><b className="block text-[43.2px] font-black text-scr-red">{recent.positive}</b><span className="text-[16.8px] text-scr-dim">初筛阳性人数</span></div></div></Panel>
+    <Panel title="全省核心监管指标" sub="年度累计" className="shrink-0">
+      <div className="divide-y divide-scr-line/20">{INDICATORS.map((indicator, index) => {
+        const result = indicatorResult(provinceCounts, indicator.key);
+        return <Button key={indicator.key} variant="screenQuiet" aria-expanded={expandedIndicator === indicator.key} className="h-auto w-full justify-between gap-3 whitespace-normal rounded-none px-1 py-3 text-left" onClick={() => setExpandedIndicator(expandedIndicator === indicator.key ? undefined : indicator.key)}>
+          <span className="text-[20.16px] text-scr-text">{["认知初筛率", "阳性干预指导率", "疑似人群就诊率"][index]}</span>
+          <b className="shrink-0 text-[33.6px] tabular-nums text-scr-text">{result.value === null ? "—" : `${result.value}%`}</b>
+        </Button>;
+      })}</div>
+      {selectedIndicator && <div className="space-y-2 border-t border-scr-line/20 py-3 text-[16.8px] leading-relaxed" aria-label="监管指标统计口径"><p>分子：{selectedIndicator.numeratorRule}</p><p>分母：{selectedIndicator.denominatorRule}</p><p className="text-scr-dim">{selectedIndicator.note}</p></div>}
+      <p className="pt-2 text-[16.8px] text-scr-dim">江苏省 · 2026年1—10月 · 按人去重 · 演示数据</p>
+    </Panel>
     <Panel title={`${period === 1 ? "今日" : `近${period}日`}筛查趋势`} sub={`${city}市 · 人`} className="min-h-[290px] flex-1">
       <div className="screen-segments mb-3 flex flex-wrap gap-1" aria-label="趋势统计周期">{PERIODS.map(p => <Button key={p} variant="screenQuiet" size="sm" aria-pressed={period === p} className={`h-7 px-2 text-[16.8px] ${period === p ? "text-scr-cyan" : "text-scr-dim"}`} onClick={() => onPeriod(p)}>{p === 1 ? "24小时" : `${p}日`}</Button>)}</div>
       <div className="h-[calc(100%-48px)] min-h-[200px]"><ScreenChart label="区域筛查趋势" option={{ grid: { top: 12, bottom: 30, left: 36, right: 8 }, tooltip: { trigger: "axis" }, xAxis: { type: "category", data: trend.map(d => d.date), axisLabel: { color: chartColors().dim, fontSize: 17 }, axisLine: { lineStyle: { color: chartColors().line } }, axisTick: { show: false } }, yAxis: { type: "value", axisLabel: { color: chartColors().dim, fontSize: 17 }, splitLine: { lineStyle: { color: chartColors().line, opacity: .2 } } }, series: [{ type: "bar", name: "筛查人数", data: trend.map(d => d.screened), barMaxWidth: 22, itemStyle: { color: chartColors().cyan, borderRadius: [3,3,0,0] } }, { type: "bar", name: "初筛阳性", data: trend.map(d => d.positive), barMaxWidth: 22, itemStyle: { color: chartColors().blue, borderRadius: [3,3,0,0] } }] }} /></div>
