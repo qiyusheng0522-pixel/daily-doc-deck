@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Brain, Crosshair, Route, Images, Grid3x3, ShoppingCart, Monitor, PersonStanding, CalendarDays, BarChart3, CheckCircle2, Clock, Dumbbell, Plus, Compass, MessageSquare, Calculator, Lightbulb, Shapes } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { patientTrainingCheckins, patientTrainingSummary, type PatientTrainingCheckin } from "@/data/trainingSources";
@@ -79,21 +78,14 @@ export default function TrainingRecords({ trainings, onAdd, familyCheckins, fami
   const since = period === "all" ? "" : new Date(Date.now() - Number(period) * 864e5).toLocaleDateString("en-CA");
   const rows = trainings.filter(t => t.trained_on >= since);
   const family = patientTrainingCheckins(familyCheckins ?? [], since);
-  if (familyCheckins !== undefined) return <section className="space-y-4 p-5">
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-3"><h2 className="flex items-center gap-2 text-xl font-bold"><Dumbbell className="h-6 w-6 text-primary" />训练记录（{rows.length + family.length}）</h2><div className="flex items-center gap-2"><select aria-label="时间范围" value={period} onChange={e => setPeriod(e.target.value)} className="h-10 rounded-lg border bg-card px-3 text-sm">{PERIODS.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select>{onAdd && <Button onClick={onAdd}><Plus className="mr-1 h-4 w-4" />添加训练站记录</Button>}</div></div>
-    <div className="grid items-start gap-5 xl:grid-cols-2">
-      <section className="min-w-0"><div className="flex items-center gap-2 border-b pb-3"><Monitor className="h-5 w-5 text-primary" /><h3 className="text-lg font-bold">训练站-训练记录（{rows.length}）</h3></div>{rows.length ? rows.map(r => <div key={r.id}><p className="mt-3 text-xs text-primary">{r.record_type ?? "非设备干预"}</p><Row r={r} device={r.record_type === "设备训练"} /></div>) : <p className="py-6 text-sm text-muted-foreground">暂无训练站记录</p>}</section>
-      <section className="min-w-0"><div className="flex items-center gap-2 border-b pb-3"><PersonStanding className="h-5 w-5 text-secondary-foreground" /><h3 className="text-lg font-bold">患者打卡训练记录（{family.length}）</h3></div>{familyLoading ? <p className="py-6 text-sm text-muted-foreground">读取患者打卡…</p> : familyError ? <p className="py-6 text-sm text-destructive">打卡记录读取失败，请稍后重试。</p> : family.length ? family.map(r => <PatientTrainingRow key={r.id} record={r} />) : <p className="py-6 text-sm text-muted-foreground">暂无患者认知训练打卡</p>}</section>
-    </div>
-  </section>;
   const device = rows.filter(t => t.record_type === "设备训练"), other = rows.filter(t => t.record_type !== "设备训练");
   const col = (title: string, Icon: React.ElementType, list: Rec[], isDevice: boolean, empty: string) => <section className="overflow-hidden rounded-2xl border bg-card">
     <div className="flex items-center justify-between bg-primary/5 px-4 py-2"><p className="flex items-center gap-2 text-lg font-bold"><Icon className="h-6 w-6 text-primary" />{title}（{list.length}）</p><Ring value={completionRate(list, isDevice)} label={isDevice ? "平均完成率" : "完成率"} /></div>
     <div className="px-4">{list.length ? list.map(r => <Row key={r.id} r={r} device={isDevice} />) : <p className="py-6 text-center text-sm text-muted-foreground">{empty}</p>}</div>
   </section>;
-  return <Card className="rounded-2xl border-0 p-5 shadow-soft">
+  return <div className="space-y-5"><section className="p-5">
     <div className="mb-4 flex items-center justify-between border-b pb-3">
-      <p className="flex items-center gap-2 text-xl font-bold"><Dumbbell className="h-6 w-6 text-primary" />训练记录（{rows.length}）</p>
+      <p className="flex items-center gap-2 text-xl font-bold"><Dumbbell className="h-6 w-6 text-primary" />训练记录（{rows.length + family.length}）</p>
       <div className="flex items-center gap-2">
         <select aria-label="时间范围" value={period} onChange={e => setPeriod(e.target.value)} className="h-10 rounded-lg border bg-card px-3 text-sm">{PERIODS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
         {onAdd && <Button className="h-10" onClick={onAdd}><Plus className="mr-1 h-4 w-4" />添加训练记录</Button>}
@@ -103,5 +95,7 @@ export default function TrainingRecords({ trainings, onAdd, familyCheckins, fami
       {col("设备训练记录", Monitor, device, true, "暂无认知训练设备同步的记录")}
       {col("非设备干预记录", PersonStanding, other, false, "暂无非设备干预记录")}
     </div>
-  </Card>;
+  </section>
+  {familyCheckins !== undefined && <section className="min-w-0 border-t p-5"><div className="flex items-center gap-2 border-b pb-3"><PersonStanding className="h-5 w-5 text-primary" /><h3 className="text-lg font-bold">患者打卡训练记录（{family.length}）</h3></div>{familyLoading ? <p className="py-6 text-sm text-muted-foreground">读取患者打卡…</p> : familyError ? <p className="py-6 text-sm text-destructive">打卡记录读取失败，请稍后重试。</p> : family.length ? family.map(r => <PatientTrainingRow key={r.id} record={r} />) : <p className="py-6 text-sm text-muted-foreground">暂无患者认知训练打卡</p>}</section>}
+  </div>;
 }

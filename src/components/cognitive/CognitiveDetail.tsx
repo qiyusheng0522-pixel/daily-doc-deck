@@ -70,8 +70,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const [grade, setGrade] = useState<null | { risk: "低风险" | "中风险" | "高风险"; refer: boolean; plan: string }>(null);
   const [saving, setSaving] = useState(false);
   const { data: trainings = [] } = useTrainingRecords(id);
-  const { data: checkins = [], isLoading: checkinsLoading, isError: checkinsError } = useFamilyCheckins(role === "community" ? id : undefined);
-  const familyTrainings = role === "community" ? patientTrainingCheckins(checkins) : [];
+  const { data: checkins = [], isLoading: checkinsLoading, isError: checkinsError } = useFamilyCheckins(id);
+  const familyTrainings = patientTrainingCheckins(checkins);
   const { data: docs = [] } = usePatientDocuments(id);
   const [upDept, setUpDept] = useState<(typeof DIAG_DEPTS)[number]>(DIAG_DEPTS[0]);
   const [upDoc, setUpDoc] = useState<string>(DEPT_DOCTORS[DIAG_DEPTS[0]][0]);
@@ -326,7 +326,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       ))}
     </Card>
   );
-  const trainingCard = <TrainingRecords trainings={trainings} familyCheckins={role === "community" ? checkins : undefined} familyLoading={checkinsLoading} familyError={checkinsError} onAdd={role === "community" ? () => setAddTraining(true) : undefined} />;
+  const trainingCard = <TrainingRecords trainings={trainings} familyCheckins={checkins} familyLoading={checkinsLoading} familyError={checkinsError} onAdd={role === "community" ? () => setAddTraining(true) : undefined} />;
   const KeyRow = ({ icon: Icon, title, sub, to }: { icon: typeof User; title: string; sub: string; to: string }) => (
     <button type="button" onClick={() => setTab(to)} className="flex w-full items-center gap-3 rounded-2xl border bg-card p-4 text-left transition-colors hover:bg-muted/50">
       <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><Icon className="h-7 w-7" /></span>
