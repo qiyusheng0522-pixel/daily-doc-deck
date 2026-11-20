@@ -72,7 +72,7 @@ export function CityView({ map, area }: { map: ReactNode; area: string }) {
         { label: "平均确诊时长", value: "4.2", unit: "天", sub: "上转至出具诊断", icon: Clock },
         { label: "疑似认知障碍就诊率", value: `${indicatorResult(demoRegulatoryCounts(32100, 93.6, 92.1, 86.9), "suspectedVisitRate").value}%`, sub: "正式就诊 / 基层综合评估疑似 · 演示", icon: CheckCircle2 },
       ]} />
-      <div className="grid grid-cols-[1fr_1.6fr_1fr] gap-3">
+      <div className="province-grid">
         <div className="flex flex-col gap-3">
           <Panel title="巡回指导完成情况" sub="(本月驻点次数)" className="h-72">
             <div className="flex h-full flex-col">
@@ -193,7 +193,7 @@ export function CountyView({ map, area }: { map: ReactNode; area: string }) {
         { label: "本月随访到期", value: "128", unit: "人", sub: "已完成 96 · 剩余 32", icon: CalendarCheck },
         { label: "专业人员在岗", value: "26/26", sub: "评估师 13 · 治疗管理师 13", icon: UserCheck },
       ]} />
-      <div className="grid grid-cols-[1fr_1.6fr_1fr] gap-3">
+      <div className="province-grid">
         <div className="flex flex-col gap-3">
           <Panel title="今日小组训练排班">
             <ul className="divide-y divide-scr-line/25 text-sm">

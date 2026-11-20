@@ -202,8 +202,8 @@
 
 /* Provincial command screen (dark sci-fi) */
 :root {
-  --scr-bg: 222 80% 6%;
-  --scr-panel: 216 85% 12%;
+  --scr-bg: 225 55% 5%;
+  --scr-panel: 217 63% 10%;
   --scr-line: 200 90% 40%;
   --scr-cyan: 190 100% 60%;
   --scr-text: 200 60% 95%;
@@ -213,12 +213,12 @@
   --scr-red: 0 85% 60%;
   --scr-blue: 210 90% 58%;
   --scr-violet: 265 80% 70%;
-  --scr-map-top: 205 95% 45%;
-  --scr-map-bottom: 220 90% 28%;
+  --scr-map-top: 200 100% 52%;
+  --scr-map-bottom: 213 96% 35%;
   --scr-map-edge: 190 100% 75%;
   --scr-map-gold: 48 100% 65%;
   --scr-map-gold-bottom: 38 90% 45%;
-  --scr-canvas: radial-gradient(ellipse at 50% 40%, hsl(215 90% 18%), hsl(var(--scr-bg)) 75%);
+  --scr-canvas: linear-gradient(180deg, hsl(var(--scr-panel)), hsl(var(--scr-bg)) 30%);
   --scr-icon: radial-gradient(circle at 40% 25%, hsl(var(--scr-blue)), hsl(var(--scr-panel)) 80%);
   --scr-map-shadow: 0 0 14px hsl(var(--scr-cyan) / .65);
 }
@@ -234,14 +234,17 @@
 .province-header { border-bottom: 1px solid hsl(var(--scr-cyan)); background: linear-gradient(180deg, hsl(var(--scr-panel)), transparent); }
 .province-header h1 { border-bottom: 3px solid hsl(var(--scr-cyan)); }
 .province-icon { background: var(--scr-icon); box-shadow: inset 0 0 12px hsl(var(--scr-cyan) / .4); }
-.province-grid { display: grid; grid-template-columns: minmax(250px, .9fr) minmax(480px, 1.6fr) minmax(290px, 1fr); gap: 12px; }
+.province-grid { display: grid; grid-template-columns: minmax(270px, .8fr) minmax(540px, 2.3fr) minmax(280px, .8fr); gap: 16px; }
 .province-map { background-image: linear-gradient(hsl(var(--scr-line) / .1) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--scr-line) / .1) 1px, transparent 1px); background-size: 24px 24px; }
 .province-map svg { filter: drop-shadow(var(--scr-map-shadow)); }
 .province-map path { transition: fill .2s, stroke-width .2s; }
 .province-map path:focus-visible { outline: none; stroke: hsl(var(--scr-gold)); stroke-width: 3px; }
 .province-orbit { border: 2px solid hsl(var(--scr-cyan) / .6); box-shadow: 0 0 24px hsl(var(--scr-cyan) / .4), inset 0 0 24px hsl(var(--scr-line) / .4); }
 .province-detail { box-shadow: -8px 0 30px hsl(var(--scr-bg) / .8); }
-@media (min-width: 1400px) { .province-grid { grid-template-columns: minmax(280px, .9fr) minmax(600px, 1.65fr) minmax(320px, 1fr); } }
+@media (min-width: 1400px) { .province-grid { grid-template-columns: minmax(280px, .85fr) minmax(680px, 2.6fr) minmax(300px, .85fr); } }
+.province-grid > div > .scr-panel .scr-title { flex-wrap: wrap; gap: 4px; }
+.province-grid .scr-title h3 { flex-wrap: wrap; font-size: 18.2px; }
+.province-grid .scr-title h3 > span:last-child:not(:first-child) { font-size: 14px; }
 @media (max-width: 1100px) { .province-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); } .province-right { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .province-grid { display: flex; flex-direction: column; } .province-center { order: -1; } .province-right { display: flex; } }
 @media (prefers-reduced-motion: reduce) { .province-screen * { transition: none !important; animation: none !important; } }

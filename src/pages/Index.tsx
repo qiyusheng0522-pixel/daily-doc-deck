@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Activity, Building2, Stethoscope, Smartphone, ClipboardCheck, MonitorDot } from "lucide-react";
+import { ArrowRight, Activity, Building2, Stethoscope, Smartphone, MonitorDot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const ENDS = [
@@ -24,8 +24,8 @@ const ENDS = [
 ];
 
 const Index = () => (
-  <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-secondary/30">
-    <header className="container mx-auto flex items-center justify-between py-6">
+  <div className="min-h-screen bg-background">
+    <header className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 border-b px-6 py-5">
       <div className="flex items-center gap-2">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground">
           <Activity className="h-5 w-5" />
@@ -35,48 +35,34 @@ const Index = () => (
       <span className="text-sm text-muted-foreground">江苏省老年认知训练站</span>
     </header>
 
-    <main className="container mx-auto px-4 pb-16 pt-8">
-      <div className="mx-auto max-w-3xl text-center">
-        <h1 className="text-4xl font-bold tracking-tight md:text-5xl">选择您的端</h1>
-        <p className="mt-4 text-lg text-muted-foreground">
-          体检筛查、评估医生、社区护理康复、家庭与区域管理协同，实现筛查—评估—干预—转诊—随访闭环
-        </p>
+    <main className="mx-auto max-w-7xl px-6 pb-12 pt-10">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
+        <h1 className="text-3xl font-bold">工作入口</h1>
+        <span className="text-sm text-muted-foreground">老年认知健康协同服务</span>
       </div>
 
       {/* 管理端 */}
-      <Link to="/screen" className="group mx-auto mt-10 flex max-w-6xl flex-col gap-6 overflow-hidden rounded-2xl border bg-card p-8 shadow-card transition-all hover:-translate-y-1 hover:shadow-elegant md:flex-row md:items-center">
+      <section className="grid gap-5 md:grid-cols-3">
+        {ENDS.map(({ to, icon: I, grad, title, sub, items }) => (
+          <article key={to} className="flex min-w-0 flex-col rounded-lg border bg-card p-6 shadow-soft">
+            <div className={`mb-6 flex h-14 w-14 items-center justify-center rounded-lg ${grad} text-primary-foreground`}><I className="h-7 w-7" /></div>
+            <h2 className="text-xl font-semibold">{title}</h2>
+            <p className="mt-2 min-h-14 text-sm text-muted-foreground">{sub}</p>
+            <ul className="mt-4 flex-1 space-y-3 border-t pt-4 text-sm text-muted-foreground">{items.map(t => <li key={t}>{t}</li>)}</ul>
+            <Button asChild className={`mt-7 w-full ${grad} hover:opacity-90`}><Link to={to}>进入{title}<ArrowRight className="ml-auto h-4 w-4" /></Link></Button>
+          </article>
+        ))}
+      </section>
+      <section className="mt-8 flex flex-col gap-5 border-y py-7 md:flex-row md:items-center">
         <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-doctor text-primary-foreground shadow-soft">
           <MonitorDot className="h-8 w-8" />
         </div>
         <div className="flex-1">
           <h2 className="text-2xl font-semibold">区域管理端 · 驾驶舱</h2>
-          <p className="mt-2 text-muted-foreground">区域管理人员查看辖区筛查、到院转化、风险分布和随访进展</p>
-          <div className="mt-3 flex flex-wrap gap-2 text-sm">
-            {["省级视角", "市级视角", "县(区)级视角"].map((v) => (
-              <span key={v} className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">{v}</span>
-            ))}
-          </div>
+          <p className="mt-2 text-sm text-muted-foreground">辖区筛查 · 到院转化 · 风险分布 · 随访进展</p>
         </div>
-        <Button size="lg" className="bg-gradient-doctor hover:opacity-90">进入驾驶舱 <ArrowRight className="ml-1 h-4 w-4" /></Button>
-      </Link>
-
-      <div className="mx-auto mt-6 grid max-w-6xl gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {ENDS.map(({ to, icon: I, grad, dot, title, sub, desc, items }) => (
-          <Link key={to} to={to} className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card p-7 shadow-card transition-all hover:-translate-y-1 hover:shadow-elegant">
-            <div className={`absolute right-0 top-0 h-32 w-32 -translate-y-12 translate-x-12 rounded-full ${grad} opacity-10 transition-transform group-hover:scale-150`} />
-            <div className="relative flex flex-1 flex-col">
-              <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-xl ${grad} text-primary-foreground shadow-soft`}><I className="h-7 w-7" /></div>
-              <h2 className="text-xl font-semibold">{title}</h2>
-              <p className="text-sm text-primary">{sub}</p>
-              <p className="mt-2 text-sm text-muted-foreground">{desc}</p>
-              <ul className="mt-4 flex-1 space-y-2 text-sm text-muted-foreground">
-                {items.map((t) => <li key={t} className="flex items-start gap-2"><span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} /><span className="min-w-0">{t}</span></li>)}
-              </ul>
-              <Button className={`mt-6 w-full ${grad} hover:opacity-90`}>进入 <ArrowRight className="ml-1 h-4 w-4" /></Button>
-            </div>
-          </Link>
-        ))}
-      </div>
+        <div className="flex flex-wrap gap-2">{[{label:"省级",level:"province"},{label:"市级",level:"city"},{label:"县（区）级",level:"county"}].map(v => <Button key={v.level} asChild variant={v.level === "province" ? "default" : "outline"}><Link to={`/screen?level=${v.level}`}>{v.label}驾驶舱<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>)}</div>
+      </section>
     </main>
   </div>
 );
