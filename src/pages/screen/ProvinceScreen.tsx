@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import ProvinceDashboard from "./ProvinceDashboard";
 import RoleSwitcher from "@/components/RoleSwitcher";
-import { Building2, CalendarCheck, MapPin, Users, ArrowLeft, Maximize, Minimize } from "lucide-react";
+import { Building2, CalendarCheck, MapPin, Users, ArrowLeft, Maximize, Minimize, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { JS_CITIES, JS_VIEWBOX } from "@/data/jiangsuMap";
 import { CityView, CountyView } from "./LevelViews";
@@ -162,6 +162,7 @@ export default function ProvinceScreen() {
   }, [params]);
   const clock = useClock();
   const [full, setFull] = useState(false);
+  const [showIndicators, setShowIndicators] = useState(false);
   useEffect(() => { const sync = () => setFull(Boolean(document.fullscreenElement)); document.addEventListener("fullscreenchange", sync); return () => document.removeEventListener("fullscreenchange", sync); }, []);
   const toggleFullscreen = async () => { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); };
   const cs = cfg.areas[city] ?? cfg.areas[cfg.def];
@@ -201,9 +202,9 @@ export default function ProvinceScreen() {
       <main className="space-y-3 px-4 pb-4 pt-3">
         <nav className="flex flex-wrap items-center justify-between gap-3 border-b border-scr-line/40 pb-3" aria-label="管理视角">
           <div className="flex flex-wrap gap-2">{(Object.keys(LEVELS) as Level[]).map(l => <Button key={l} variant="screen" size="sm" aria-pressed={level === l} className={level === l ? "border-scr-cyan bg-scr-line/30 text-scr-cyan" : "text-scr-dim"} onClick={() => setLevel(l)}>{LEVELS[l].tab}</Button>)}</div>
-          <div className="flex gap-2"><Button variant="screen" size="sm" asChild><Link to="/"><ArrowLeft className="mr-1 h-4 w-4" />工作入口</Link></Button><Button variant="screen" size="icon" aria-label={full ? "退出全屏" : "全屏展示"} title={full ? "退出全屏" : "全屏展示"} onClick={toggleFullscreen}>{full ? <Minimize /> : <Maximize />}</Button></div>
+          <div className="flex flex-wrap gap-2">{level === "province" && <Button variant="screen" size="sm" aria-expanded={showIndicators} onClick={() => setShowIndicators(v => !v)}><ClipboardCheck className="mr-1 h-4 w-4" />监管指标</Button>}<Button variant="screen" size="sm" asChild><Link to="/"><ArrowLeft className="mr-1 h-4 w-4" />工作入口</Link></Button><Button variant="screen" size="icon" aria-label={full ? "退出全屏" : "全屏展示"} title={full ? "退出全屏" : "全屏展示"} onClick={toggleFullscreen}>{full ? <Minimize /> : <Maximize />}</Button></div>
         </nav>
-        <RegulatoryIndicators scope={level === "province" ? "江苏省" : `${city}${cfg.suffix}`} counts={level === "province" ? demoRegulatoryCounts(276000) : demoRegulatoryCounts(level === "city" ? Math.round(cs.elders * 10000) : cs.elders, cs.screen, cs.guide, level === "city" ? 86.9 : 88.2)} />
+        {(level !== "province" || showIndicators) && <RegulatoryIndicators scope={level === "province" ? "江苏省" : `${city}${cfg.suffix}`} counts={level === "province" ? demoRegulatoryCounts(276000) : demoRegulatoryCounts(level === "city" ? Math.round(cs.elders * 10000) : cs.elders, cs.screen, cs.guide, level === "city" ? 86.9 : 88.2)} />}
         {level === "province" ? <ProvinceDashboard nav={nav} onOverview={() => setNav("总体概览")} /> : level === "city" ? <CityView map={mapSection} area={city} /> : <CountyView map={mapSection} area={city} />}
       </main>
     </div>

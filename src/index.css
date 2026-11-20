@@ -245,6 +245,10 @@
 .province-grid > div > .scr-panel .scr-title { flex-wrap: wrap; gap: 4px; }
 .province-grid .scr-title h3 { flex-wrap: wrap; font-size: 18.2px; }
 .province-grid .scr-title h3 > span:last-child:not(:first-child) { font-size: 14px; }
+.province-activity-grid { grid-template-columns: minmax(320px, 1fr) minmax(540px, 2.3fr) minmax(330px, 1fr); height: calc(100vh - 220px); min-height: 1000px; }
+@media (min-width: 1600px) { .province-activity-grid { grid-template-columns: minmax(340px, 1fr) minmax(700px, 2.5fr) minmax(360px, 1fr); } }
+@media (max-width: 1200px) { .province-activity-grid { grid-template-columns: minmax(300px, 1fr) minmax(0, 1.6fr); height: auto; } .province-activity-grid > .province-right { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } .province-activity-grid > div:first-child > section:last-child { max-height: 430px; } }
+@media (max-width: 700px) { .province-activity-grid { min-height: 0; } .province-activity-grid > .province-right { display: flex; } .province-activity-grid > .province-center > section:last-child { height: 380px; flex: none; } }
 @media (max-width: 1100px) { .province-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); } .province-right { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .province-grid { display: flex; flex-direction: column; } .province-center { order: -1; } .province-right { display: flex; } }
 @media (prefers-reduced-motion: reduce) { .province-screen * { transition: none !important; animation: none !important; } }

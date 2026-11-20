@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, ArrowLeft, ArrowLeftRight, Building2, CalendarDays, CalendarCheck, ChevronRight, ClipboardCheck, Dumbbell, Layers, MapPin, Search, Users, X } from "lucide-react";
+import { ArrowLeft, ChevronRight, X } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -8,9 +8,10 @@ import { JS_CITIES, JS_VIEWBOX } from "@/data/jiangsuMap";
 import { C, Legend, Panel, axis, tip } from "./screenKit";
 import { formatValue, METRICS, metricFor, PROVINCE_ALERTS, REGION_DATA, regionalValue, RISKS, serviceTrend, type Region } from "./provinceData";
 import { demoRegulatoryCounts, INDICATORS, indicatorResult } from "./regulatoryMetrics";
+import { ProvinceSummary, ProvinceRecent, ScreeningFeed } from "./ProvinceActivityPanels";
+import { activityDays, type Period } from "./provinceActivityData";
 
 type Drill = { key: string; region?: string; period?: string; risk?: string; alert?: number };
-const ICONS = [Building2, Users, ClipboardCheck, Users, Dumbbell, ArrowLeftRight, ClipboardCheck, Users, CalendarCheck, Building2];
 const TOPICS: Record<string, string> = { "站点建设": "stations", "筛查评估": "screening", "干预训练": "intervention", "随访管理": "followup", "双向转诊": "referral", "智能体应用": "tasks", "效果评估": "completion" };
 function HoverData({ children, title, text }: { children: ReactNode; title: string; text: string }) {
   return <Tooltip><TooltipTrigger asChild>{children}</TooltipTrigger><TooltipContent className="max-w-[280px] border-scr-cyan/60 bg-scr-panel text-scr-text"><div className="font-bold text-scr-cyan">{title}</div><div className="mt-1 whitespace-normal text-xs leading-relaxed">{text}</div></TooltipContent></Tooltip>;
@@ -35,69 +36,17 @@ function Risk({ region, onDrill }: { region?: Region; onDrill: (d: Drill) => voi
     <div className="min-w-0 flex-1 space-y-0.5">{data.map(r => <HoverData key={r.name} title={`${r.name} · ${r.value}万人`} text={`占服务人群 ${r.pct}%；统计范围：${region ? region.name + "市" : "江苏省"}。`}><Button variant="screen" className="h-auto w-full flex-col items-stretch gap-0 border-transparent px-1 py-0.5 text-[15.4px]" onClick={() => onDrill({ key: "risk", region: region?.name, risk: r.name })}><span className="flex w-full items-center gap-1"><span className="h-2 w-2 shrink-0 rounded-sm" style={{ background: r.color }} /><span>{r.name}</span></span><span className="w-full text-right tabular-nums">{r.pct}%（{r.value}万）</span></Button></HoverData>)}</div>
   </div>;
 }
-const FLOW = [
-  { key: "screening", label: "筛查评估", icon: Search, bar: 25.5, display: "25.5", unit: "万人", text: "年度已完成 AD-8 认知初筛的老年人数；点击可按设区市查看明细。" },
-  { key: "risk", label: "风险分层", icon: Layers, bar: 27.6, display: "27.6", unit: "万人", text: "服务人群风险分层；风险分布明细可按设区市查看。" },
-  { key: "intervention", label: "分类干预", icon: Dumbbell, bar: 4.74, display: "4.74", unit: "万人", text: "年度接受认知训练与分级干预的老年人数。" },
-  { key: "followup", label: "随访管理", icon: Users, bar: 6.3, display: "6.3", unit: "万人", text: "年度纳入持续随访服务的人数。" },
-  { key: "referral", label: "双向转诊", icon: ArrowLeftRight, bar: 0.4317, display: "4,317", unit: "人", text: "年度登记的上转与下转服务人数。" },
-];
-function Flow({ onDrill }: { onDrill: (d: Drill) => void }) {
-  const max = Math.max(...FLOW.map(f => f.bar));
-  return <div className="flex h-full flex-col justify-center gap-1 px-1">
-    {FLOW.map(f => {
-      const width = Math.max(12, Math.sqrt(f.bar / max) * 100);
-      return <HoverData key={f.key} title={`${f.label} · ${f.display}${f.unit}`} text={f.text}>
-        <Button variant="screen" className="h-[44px] w-full justify-start gap-3 rounded-lg border-transparent bg-transparent px-2 hover:bg-scr-line/25" onClick={() => onDrill({ key: f.key })}>
-          <span className="province-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-scr-cyan/70"><f.icon className="!h-5 !w-5 text-scr-cyan" /></span>
-          <span className="min-w-0 flex-1">
-            <span className="mb-1 block text-[15.4px] leading-none text-scr-dim">{f.label}</span>
-            <span className="block h-3.5 overflow-hidden rounded-full bg-scr-line/25 shadow-[inset_0_1px_4px_hsl(var(--scr-bg)/0.9)]">
-              <span className="block h-full rounded-full" style={{ width: `${width}%`, background: "linear-gradient(90deg, hsl(var(--scr-cyan)), hsl(var(--scr-blue)))", boxShadow: "0 0 10px hsl(var(--scr-cyan) / 0.55)" }} />
-            </span>
-          </span>
-          <span className="w-[86px] shrink-0 text-right"><b className="text-lg font-black tabular-nums text-scr-text">{f.display}</b><span className="ml-1 text-xs text-scr-dim">{f.unit}</span></span>
-        </Button>
-      </HoverData>;
-    })}
-  </div>;
-}
-function MetricButton({ index, region, compact = false, onDrill }: { index: number; region?: Region; compact?: boolean; onDrill: (d: Drill) => void }) {
-  const m = METRICS[index]; const Icon = ICONS[index]; const v = region ? regionalValue(region, m.key) : m.total;
-  return <HoverData title={`${region ? region.name + "市" : "全省"} · ${m.label}`} text={`${formatValue(v, m.key)}；${m.definition}。${m.note}。统计期：2026年1—10月；演示数据。`}><Button variant="screen" className={`h-full min-h-[86px] w-full justify-start whitespace-normal rounded-lg px-2 py-2 ${compact ? "border-transparent" : "scr-panel"}`} onClick={() => onDrill({ key: m.key, region: region?.name })}>
-    <span className={`province-icon flex shrink-0 items-center justify-center rounded-full border border-scr-cyan/70 ${compact ? "h-12 w-12 shadow-[0_0_14px_hsl(var(--scr-cyan)/0.45)]" : "h-12 w-12"}`}><Icon className={`${compact ? "!h-6 !w-6" : "!h-6 !w-6"} text-scr-cyan`} /></span>
-    <div className="min-w-0 text-left"><div className="text-xs font-semibold text-scr-dim">{m.label}</div><div className={`whitespace-nowrap font-black leading-tight text-scr-cyan ${compact ? "text-[33.6px]" : "text-[36.4px]"}`}>{v.toLocaleString("zh-CN")}<span className="ml-1 text-xs font-normal text-scr-text">{m.unit}</span></div>{index === 0 && !region && <div className="text-[15.4px] text-scr-dim">目标 200 个 · 78%</div>}</div>
-  </Button></HoverData>;
-}
-
-const SHIFT: Record<string, number> = { 南京: 0.8, 苏州: 1.2, 无锡: 0.6, 宿迁: -2.1, 连云港: -1.4 };
-function Gauges({ onDrill }: { onDrill: (d: Drill) => void }) {
-  const counts = demoRegulatoryCounts(276000);
-  const items = [{ label: "初筛阳性干预指导率", v: indicatorResult(counts, "positiveGuidanceRate").value ?? 0, c: C.cyan, key: "positiveGuidanceRate" }, { label: "疑似认知障碍就诊率", v: indicatorResult(counts, "suspectedVisitRate").value ?? 0, c: C.green, key: "suspectedVisitRate" }];
-  return <div className="grid h-full grid-cols-2 divide-x divide-scr-line/40">{items.map(g => <HoverData key={g.label} title={`${g.label} · ${g.v}%`} text="全省年度统计，点击查看各设区市明细。"><button type="button" className="flex h-full flex-col items-center justify-center gap-1" onClick={() => onDrill({ key: g.key })}>
-    <div className="relative aspect-square h-[70%] max-h-[130px] min-h-[90px]"><ResponsiveContainer><PieChart><Pie isAnimationActive={false} data={[{ v: g.v }, { v: 100 - g.v }]} dataKey="v" innerRadius="74%" outerRadius="96%" startAngle={90} endAngle={-270} stroke="none"><Cell fill={g.c} /><Cell fill="hsl(var(--scr-line) / 0.35)" /></Pie></PieChart></ResponsiveContainer><b className="absolute inset-0 flex items-center justify-center text-xl font-black text-scr-text">{g.v}%</b></div>
-    <span className="text-sm text-scr-text">{g.label}</span></button></HoverData>)}</div>;
-}
-function CityBars({ city, onPick }: { city: string; onPick: (n: string) => void }) {
-  const rows = [...REGION_DATA].sort((a, b) => b.elders - a.elders); const max = rows[0].elders;
-  return <div className="flex min-h-0 flex-col rounded-md border border-scr-line/50 bg-scr-panel/60 p-2"><h4 className="mb-1 text-sm font-bold">设区市服务量</h4><div className="flex min-h-0 flex-1 flex-col justify-between">{rows.map(r => <button key={r.name} type="button" onClick={() => onPick(r.name)} className={`flex items-center gap-2 rounded px-1 py-0.5 text-[16.8px] hover:bg-scr-line/30 ${city === r.name ? "text-scr-gold" : "text-scr-text"}`}><span className="w-14 shrink-0 whitespace-nowrap text-left">{r.name}</span><span className="h-2 flex-1 overflow-hidden rounded-full bg-scr-line/25"><span className="block h-full rounded-full" style={{ width: `${r.elders / max * 100}%`, background: city === r.name ? "hsl(var(--scr-gold))" : "linear-gradient(90deg, hsl(var(--scr-blue)), hsl(var(--scr-cyan)))" }} /></span><span className="w-16 shrink-0 whitespace-nowrap text-right tabular-nums">{r.elders}万</span></button>)}</div></div>;
-}
-function Focus({ onDrill }: { onDrill: (d: Drill) => void }) {
-  const items = INDICATORS.map((i, index) => ({ label: i.short, v: String(indicatorResult(demoRegulatoryCounts(276000), i.key).value), u: "%", icon: [ClipboardCheck, Users, Building2][index], key: i.key, gold: index === 0 }));
-  return <div className="flex h-full flex-col justify-between gap-2">{items.map((f, k) => <Button key={f.label} variant="screen" className="h-auto min-h-[56px] flex-1 justify-start gap-3 rounded-lg px-3" onClick={() => onDrill({ key: f.key })}><span className="province-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-scr-cyan/70"><f.icon className="!h-5 !w-5 text-scr-cyan" /></span><span className="text-left"><span className="block text-xs text-scr-dim">{f.label}</span><b className={`text-[30.8px] font-black ${f.gold ? "text-scr-gold" : "text-scr-cyan"}`}>{f.v}</b><span className="ml-1 text-xs">{f.u}</span></span><span className="ml-auto flex h-8 items-end gap-[3px]">{[3,4,4,5,6,6,7,8].map((h, i) => <span key={i} className="w-[6px] rounded-sm" style={{ height: `${(h + k) * 9}%`, background: f.gold ? "hsl(var(--scr-gold))" : "hsl(var(--scr-cyan))" }} />)}</span></Button>)}</div>;
-}
-function RiskCompare({ region, onDrill }: { region: Region; onDrill: (d: Drill) => void }) {
-  const d = SHIFT[region.name] ?? 0.3; const base = RISKS.map(r => r.pct);
-  const city = base.map((p, i) => i === 0 ? +(p + d).toFixed(1) : i === base.length - 1 ? +(p - d).toFixed(1) : p);
-  const rows = [{ n: `${region.name}市`, v: city, r: region.name }, { n: "江苏省", v: base, r: undefined }];
-  return <div className="flex h-full flex-col justify-center gap-3"><div className="flex flex-wrap justify-center gap-3 text-[15.4px]">{RISKS.map(r => <span key={r.name} className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm" style={{ background: r.color }} />{r.name}</span>)}</div>{rows.map(row => <div key={row.n} className="flex items-center gap-2"><span className="w-16 shrink-0 whitespace-nowrap text-xs">{row.n}</span><div className="flex h-7 flex-1 overflow-hidden rounded">{row.v.map((p, i) => <HoverData key={i} title={`${row.n} · ${RISKS[i].name}`} text={`占服务人群 ${p}%`}><button type="button" onClick={() => onDrill({ key: "risk", region: row.r, risk: RISKS[i].name })} className="flex items-center justify-center text-[15.4px] font-bold text-scr-bg" style={{ width: `${p}%`, background: RISKS[i].color }}>{p >= 6 ? `${p}%` : ""}</button></HoverData>)}</div></div>)}</div>;
-}
-
 // 省级地图标签：南部城市密集，个别标签移出以免互相遮挡
 const JS_LABEL: Record<string, [number, number]> = { 苏州: [482, 500], 宿迁: [225, 158], 常州: [351, 445], 无锡: [445, 415], 镇江: [345, 370] };
 
 export default function ProvinceDashboard({ nav, onOverview }: { nav: string; onOverview: () => void }) {
   const [city, setCity] = useState("南京");
+  const [period, setPeriod] = useState<Period>(14);
+  const [updated, setUpdated] = useState(() => new Date());
+  useEffect(() => { const timer = setInterval(() => setUpdated(new Date()), 60000); return () => clearInterval(timer); }, []);
+  const activities = activityDays(1, updated);
+  const recentActivities = activities.filter(r => r.city === city);
+  const periodActivities = activityDays(period, updated).filter(r => r.city === city);
   const [hovered, setHovered] = useState<string>();
   const [drill, setDrill] = useState<Drill>();
   const [history, setHistory] = useState<Drill[]>([]);
@@ -120,17 +69,12 @@ export default function ProvinceDashboard({ nav, onOverview }: { nav: string; on
   const title = regulatoryIndicator ? `${regulatoryIndicator.short}详情` : drill?.alert !== undefined ? "重点预警详情" : drill?.risk ? `${drill.risk}人群详情` : `${selectedMetric.label}详情`;
   const next = (d: Drill) => { if (drill) setHistory(h => [...h, drill]); setSearch(""); setDrill(d); };
   return <TooltipProvider delayDuration={120}><div className="province-screen space-y-3">
-    <div className="flex flex-wrap items-center justify-between gap-2 text-[15.4px] text-scr-dim"><span>年度统计 · 2026年1—10月</span><span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-scr-gold" />演示数据 · 非实时监管数据</span></div>
-    <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">{METRICS.slice(0, 6).map((m, i) => <MetricButton key={m.key} index={i} onDrill={open} />)}</section>
-    <div className="province-grid xl:h-[calc(100vh-380px)] xl:min-h-[760px]">
-      <div className="flex min-h-0 min-w-0 flex-col gap-3">
-        <Panel title="人群风险分布" sub="N=27.6万" className="min-h-[190px] flex-[1.05]"><Risk onDrill={open} /></Panel>
-        <Panel title="服务人群趋势" sub="人数 / 万人" extra={<Button variant="screen" size="icon" className="h-6 w-6" aria-label="查看服务人群趋势详情" onClick={() => open({ key: "elders" })}><ChevronRight /></Button>} className="min-h-[200px] flex-[1.25]"><Trend population onDrill={open} /></Panel>
-        <Panel title="干预服务情况" className="min-h-[190px] flex-1"><Gauges onDrill={open} /></Panel>
-      </div>
+    <div className="flex flex-wrap items-center justify-between gap-2 text-[14px] text-scr-dim"><span>江苏省 · 13个设区市 · 156个训练站</span><span>演示汇总与动态 · 未接入实时筛查服务</span></div>
+    <div className="province-grid province-activity-grid">
+      <ProvinceSummary rows={activities} city={city} onPick={select} />
       <div className="province-center flex min-h-0 min-w-0 flex-col gap-3">
-        <Panel title="全省服务态势与区域分析" className="min-h-[500px] flex-[2.6]" extra={<div className="flex gap-1">{["江苏省", "设区市"].map(m => <Button key={m} variant="screen" size="sm" className={`h-7 px-3 text-xs ${mapMode === m ? "border-scr-cyan bg-scr-line/50 text-scr-cyan" : ""}`} onClick={() => setMapMode(m)}>{m === "江苏省" ? "地图" : "区域列表"}</Button>)}</div>}>
-          <div className="province-map relative grid h-full min-h-[460px] grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(165px,23%)]">
+        <Panel title="江苏省筛查地图" className="min-h-[520px] flex-[2]" extra={<div className="flex gap-1">{["江苏省", "设区市"].map(m => <Button key={m} variant="screen" size="sm" className={`h-7 px-3 text-xs ${mapMode === m ? "border-scr-cyan bg-scr-line/50 text-scr-cyan" : ""}`} onClick={() => setMapMode(m)}>{m === "江苏省" ? "地图" : "区域列表"}</Button>)}</div>}>
+          <div className="province-map relative grid h-full min-h-[460px] grid-cols-1 gap-2">
             <div className="relative min-h-[430px] min-w-0">
               {mapMode === "江苏省" ? <svg role="group" aria-label="江苏省设区市地图" viewBox={JS_VIEWBOX} preserveAspectRatio="xMidYMid meet" className="absolute inset-0 h-full w-full">
                 <defs><linearGradient id="provinceMapFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="hsl(var(--scr-map-top))" /><stop offset="100%" stopColor="hsl(var(--scr-map-bottom))" /></linearGradient><linearGradient id="provinceMapSelected" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="hsl(var(--scr-map-gold))" /><stop offset="100%" stopColor="hsl(var(--scr-map-gold-bottom))" /></linearGradient></defs>
@@ -140,17 +84,13 @@ export default function ProvinceDashboard({ nav, onOverview }: { nav: string; on
               </svg> : <div className="absolute inset-0 grid grid-cols-2 content-start gap-2 overflow-y-auto p-2">{REGION_DATA.map(r => <HoverData key={r.name} title={`${r.name}市`} text={`训练站 ${r.stations} 个；服务老年人 ${r.elders} 万人；随访完成率 ${r.completion}%。`}><Button variant="screen" className={`h-12 justify-between ${city === r.name ? "border-scr-gold text-scr-gold" : ""}`} onClick={() => select(r.name)}><span>{r.name}</span><b>{r.stations}个</b></Button></HoverData>)}</div>}
               {hoverRegion && <div role="tooltip" className="pointer-events-none absolute left-3 top-2 z-10 rounded border border-scr-cyan bg-scr-panel/95 p-3 text-xs"><b className="text-sm text-scr-cyan">{hoverRegion.name}市</b><div className="mt-1">训练站点：{hoverRegion.stations} 个</div><div>服务老年人：{hoverRegion.elders} 万人</div><div>随访完成率：{hoverRegion.completion}%</div></div>}
             </div>
-            <CityBars city={city} onPick={select} />
+
           </div>
         </Panel>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-y border-scr-line/40 px-3 py-2"><div><b className="text-lg text-scr-gold">{city}市</b><span className="ml-3 text-xs text-scr-dim">训练站 {region.stations} 个 · 服务 {region.elders} 万人</span></div><Button variant="screen" size="sm" onClick={() => open({key:"stations",region:city})}>区域详情<ChevronRight className="ml-1 h-4 w-4" /></Button></div>
-        <Panel title={`${city}市服务趋势`} sub="人数 / 万人" className="min-h-[200px] flex-1" extra={<Button variant="screen" size="icon" className="h-6 w-6" aria-label={`查看${city}市服务趋势详情`} onClick={() => open({key:"screening",region:city})}><ChevronRight /></Button>}><Trend region={region} onDrill={open} /></Panel>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-y border-scr-line/40 px-3 py-2"><div><b className="text-lg text-scr-gold">{city}市</b><span className="ml-3 text-[14px] text-scr-dim">训练站 {region.stations} 个 · 服务 {region.elders} 万人</span></div><Button variant="screen" size="sm" onClick={() => open({key:"stations",region:city})}>区域详情<ChevronRight className="ml-1 h-4 w-4" /></Button></div>
+        <ScreeningFeed rows={activities} city={city} onPick={select} />
       </div>
-      <div className="province-right flex min-h-0 min-w-0 flex-col gap-3">
-        <Panel title="重点关注" className="min-h-[230px] flex-[1.3]"><Focus onDrill={open} /></Panel>
-        <Panel title="预警" className="min-h-[170px] flex-1" extra={<Button variant="screen" size="sm" className="h-6 px-1 text-xs" onClick={() => open({ key: "completion", alert: -1 })}>更多<ChevronRight /></Button>}><ul className="flex h-full flex-col justify-around gap-1">{PROVINCE_ALERTS.map((a, i) => <li key={a.city}><HoverData title={`${a.city}市 · ${a.severity}`} text={`${a.text}（${a.value}）。${a.action}`}><Button variant="screen" className="h-auto min-h-[38px] w-full justify-start gap-2 whitespace-normal rounded-md border-scr-red/40 bg-scr-red/10 px-2 py-1.5 text-left" onClick={() => { select(a.city); open({ key: a.metric, region: a.city, alert: i }); }}><AlertTriangle className={`!h-5 !w-5 shrink-0 ${i === 0 ? "text-scr-red" : "text-scr-gold"}`} /><span className="min-w-0 flex-1 text-[16.8px] leading-[1.75rem]">{a.city}市{a.text} <b className="text-scr-text">{a.value}</b></span><ChevronRight className="text-scr-dim" /></Button></HoverData></li>)}</ul></Panel>
-        <Panel title="区域风险分布对比" sub="占服务人群比例" className="min-h-[170px] flex-1"><RiskCompare region={region} onDrill={open} /></Panel>
-      </div>
+      <ProvinceRecent rows={periodActivities} recentRows={recentActivities} city={city} period={period} onPeriod={setPeriod} />
     </div>
     {drill && <aside role="dialog" aria-modal="false" aria-label={title} onKeyDown={e => { if (e.key === "Escape") close(); }} className="province-detail fixed bottom-0 right-0 top-0 z-40 flex w-full max-w-[480px] flex-col border-l border-scr-cyan/60 bg-scr-bg text-scr-text">
       <header className="flex items-center gap-2 border-b border-scr-line/40 p-4">{history.length > 0 && <Button variant="screen" size="icon" aria-label="返回上一级" onClick={() => { const previous = history[history.length-1]; setDrill(previous); setHistory(h=>h.slice(0,-1)); setSearch(""); }}><ArrowLeft /></Button>}<div className="min-w-0 flex-1"><h2 className="text-lg font-bold">{title}</h2><p className="text-xs text-scr-dim">{drill.region ? `${drill.region}市` : "江苏省"} · {drill.period ?? "2026年1—10月"} · 演示数据</p></div><Button ref={closeRef} variant="screen" size="icon" aria-label="关闭详情" onClick={close}><X /></Button></header>
