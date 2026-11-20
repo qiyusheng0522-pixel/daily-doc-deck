@@ -8,6 +8,8 @@ import PatientActionSheet from "@/components/patient/PatientActionSheet";
 import { useCurrentPatient } from "@/data/patients";
 import { familyPlanTasks, familyVisibleTasks, familyTaskLabel, prescribedBedtime, familyPlanVersion, useFamilyCheckins, useSaveFamilyCheckin, MEALS, mealTaskKey, type FamilyTask } from "@/data/familyTasks";
 import { toast } from "@/hooks/use-toast";
+import CognitivePractice from "@/components/patient/CognitivePractice";
+import { practiceKind } from "@/data/homePractice";
 
 type ActiveCheckin = { task: FamilyTask; mealIndex: number | null };
 
@@ -16,6 +18,7 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
   const { data: checks = [], isLoading: loadingChecks } = useFamilyCheckins(p?.id);
   const save = useSaveFamilyCheckin();
   const [active, setActive] = useState<ActiveCheckin | null>(null);
+  const [practice, setPractice] = useState<FamilyTask | null>(null);
   const [note, setNote] = useState("");
   const [minutes, setMinutes] = useState(20);
   const [by, setBy] = useState("本人");
@@ -40,7 +43,7 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
     if (!p || !active) return;
     if (!familyPlanTasks(p).some(t => t.key === active.task.key && t.title === active.task.title)) return toast({ title: "方案已更新，请重新选择任务" });
     const meal = active.mealIndex === null ? null : MEALS[active.mealIndex];
-    const task: FamilyTask = { ...active.task, key: meal ? mealTaskKey(active.task, active.mealIndex!) : active.task.key };
+    const task: FamilyTask = { ...active.task, key: meal && active.mealIndex !== null ? mealTaskKey(active.task, active.mealIndex) : active.task.key };
     const mealNote = meal ? `${meal.name}：${note || "已用餐"}` : active.task.category === "睡眠" && sleepTime ? `入睡时间 ${sleepTime}${note ? ` · ${note}` : ""}` : note;
     try {
       await save.mutateAsync({ patient: p, task, date: day, minutes: active.task.category === "训练" ? minutes : undefined, note: mealNote, by });
@@ -75,19 +78,23 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
         {group.map(t => { const record = done(t.key); return <div key={t.key} className="rounded-lg border bg-card p-3">
           <div className="flex items-center gap-2"><div className="min-w-0 flex-1"><p className="break-words text-sm font-medium">{familyTaskLabel(t)}</p>{t.category === "睡眠" && <p className="mt-1 text-xs text-muted-foreground">{bedtime ? `${bedtime} 入睡` : "记录今晚入睡时间"}</p>}</div>
           <Button size="sm" variant={record ? "ghost" : "outline"} className="shrink-0 text-xs" onClick={() => openCheckin(t, null)}>{record ? <><CheckCircle2 className="mr-1 h-3 w-3" />已打卡</> : "打卡"}</Button></div>
+          {t.category === "训练" && <><p className="mt-2 text-xs text-muted-foreground">{t.frequency} · {t.duration}</p>{practiceKind(t) && !record && <Button className="mt-3 w-full" onClick={() => setPractice(t)}>开始{practiceKind(t) === "memory" ? "记忆配对" : "数字顺序"}</Button>}</>}
           {record && <p className="mt-2 text-xs text-muted-foreground">打卡时间 {new Date(record.created_at).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}{record.duration_min ? ` · ${record.duration_min} 分钟` : ""}{record.note ? ` · ${record.note}` : ""}</p>}
         </div>; })}
       </section>;
     })}
-    <PatientActionSheet open={!!active} onOpenChange={o => !o && setActive(null)} title={active?.mealIndex !== null && active ? `${MEALS[active.mealIndex!].name}打卡` : active?.task.category === "训练" ? "认知训练" : active ? familyTaskLabel(active.task) : "任务打卡"}>
+    <PatientActionSheet open={!!practice} onOpenChange={o => !o && setPractice(null)} title="认知练习">
+      {practice && practiceKind(practice) && <CognitivePractice kind={practiceKind(practice) ?? "memory"} onComplete={(result, elapsed) => { openCheckin(practice, null); setMinutes(elapsed); setNote(result); setPractice(null); }} />}
+    </PatientActionSheet>
+    <PatientActionSheet open={!!active} onOpenChange={o => !o && setActive(null)} title={active && active.mealIndex !== null ? `${MEALS[active.mealIndex].name}打卡` : active?.task.category === "训练" ? "认知训练打卡" : active ? familyTaskLabel(active.task) : "任务打卡"}>
       {active && <div className="space-y-3">
-        {active.mealIndex !== null ? <p className="flex items-center gap-1 text-sm text-muted-foreground"><Clock className="h-3.5 w-3.5" />{MEALS[active.mealIndex!].time} · {familyTaskLabel(active.task)}</p> : <><p className="text-sm font-medium">{familyTaskLabel(active.task)}</p>{active.task.category === "训练" && <p className="text-sm text-muted-foreground">{active.task.title}</p>}</>}
+        {active.mealIndex !== null ? <p className="flex items-center gap-1 text-sm text-muted-foreground"><Clock className="h-3.5 w-3.5" />{MEALS[active.mealIndex].time} · {familyTaskLabel(active.task)}</p> : <><p className="text-sm font-medium">{familyTaskLabel(active.task)}</p>{active.task.category === "训练" && <p className="text-sm text-muted-foreground">{active.task.title}</p>}</>}
         <div className="flex gap-2">{["本人", "家属协助"].map(v => <Button key={v} size="sm" disabled={!!done(active.mealIndex === null ? active.task.key : mealTaskKey(active.task, active.mealIndex))} variant={by === v ? "default" : "outline"} onClick={() => setBy(v)}>{v}</Button>)}</div>
-        {active.task.category === "训练" && <div><p className="mb-2 text-sm">实际训练时长</p><div className="flex gap-2">{[20,30].map(v => <Button key={v} disabled={!!done(active.task.key)} variant={minutes === v ? "default" : "outline"} onClick={() => setMinutes(v)}>{v} 分钟</Button>)}</div></div>}
+        {active.task.category === "训练" && <label className="block text-sm">实际训练时长（分钟）<Input className="mt-2" type="number" min={1} max={240} value={minutes} disabled={!!done(active.task.key)} onChange={e => setMinutes(Number(e.target.value))} /></label>}
         {active.task.category === "睡眠" && !done(active.task.key) && <label className="block text-sm">入睡时间<Input type="time" className="mt-1" value={sleepTime} onChange={e => setSleepTime(e.target.value)} /></label>}
         {done(active.mealIndex === null ? active.task.key : mealTaskKey(active.task, active.mealIndex)) && <p className="text-xs text-muted-foreground">打卡时间：{new Date(done(active.mealIndex === null ? active.task.key : mealTaskKey(active.task, active.mealIndex))?.created_at ?? "").toLocaleString("zh-CN")}</p>}
         <label className="block text-sm">{active.mealIndex !== null ? "菜品 / 用餐情况" : "备注"}<Textarea className="mt-1" value={note} readOnly={!!done(active.mealIndex === null ? active.task.key : mealTaskKey(active.task, active.mealIndex))} maxLength={1000} onChange={e => setNote(e.target.value)} placeholder={active.mealIndex !== null ? "记录吃了什么、食量如何" : "记录执行情况或需要反馈的问题"} /></label>
-        {done(active.mealIndex === null ? active.task.key : mealTaskKey(active.task, active.mealIndex)) ? <p className="text-sm text-success">本餐已打卡</p> : <Button className="w-full" disabled={save.isPending || !day} onClick={submit}>{save.isPending ? "保存中…" : "确认打卡"}</Button>}
+        {done(active.mealIndex === null ? active.task.key : mealTaskKey(active.task, active.mealIndex)) ? <p className="text-sm text-success">已完成打卡</p> : <Button className="w-full" disabled={save.isPending || !day || (active.task.category === "训练" && (!Number.isInteger(minutes) || minutes < 1 || minutes > 240))} onClick={submit}>{save.isPending ? "保存中…" : "确认打卡"}</Button>}
       </div>}
     </PatientActionSheet>
   </div>;

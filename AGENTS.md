@@ -1,5 +1,5 @@
 <!-- AGENT-MEMORY:BEGIN -->
-- FamilyTasks shares confirmed-plan tasks across home/tasks/plan with server-validated daily/version check-ins, preventing prescription drift.
+- FamilyTasks shares confirmed-plan tasks and practice check-ins across home/tasks/plan; games never change risk or prescriptions.
 - Patient-data reads require protected program membership and restrictive SELECT guards, so permissive write policies cannot reopen reads.
 - Shared detail score coloring uses scalePresentation reference bands, not patient risk; keep binary screening and unvalidated scales out of invented three-tier cutoffs, because single scores cannot diagnose or determine referral eligibility.
 - Community upward requests use request_upward_referral and doctor review uses review_upward_referral; approval_status is independent of hospital reception, preserving legacy referrals and community intervention. Subscribe both ends to referral changes so approval and reception read back live.

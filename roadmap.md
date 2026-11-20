@@ -14,6 +14,7 @@ Roles: doctor=上级指导中心(鼓楼记忆门诊), nurse=评估师/治疗管�
 - [x] Rule tests: AD-8 ≥2 positive; reassess 1y/6m/3m. Verified nurse 上转 → doctor queue in browser.
 
 ## Open
+- [x] Family end: removed community screening panel and fabricated risk/commerce content; saved assessments → clinician risk with expandable results → eligible home plan goals/details. Matching memory/attention practice prepares existing persistent check-in with actual time and performer. Signed-in memory round, family-assisted save/reload and risk/plan navigation verified; temporary check-in removed. Route changes now reset scroll so risk heading is visible. Existing demo-name identity unchanged.
 - [x] Pending AD-8 now excludes assessed patients despite stale requests; closed stale tasks without deleting 16 existing answers. Directory defaults to 全部 (32), 初筛 and pending work both contain 6 unassessed patients with zero answer records; family cannot re-request completed screening. Removed visible parenthesized example markers from shared patients/history/documents/tasks and updated seed sources. Signed-in tabs, pending empty detail and retained completed history verified; 18 targeted tests passed.
 - [x] Community entry order verified: 全部患者、待评估患者、风险患者、待训练患者、待宣教、待随访. Added 18 independent shared screening examples (6 pending, 3 negative, 3 positive/ungraded, 2 each low/medium/high); 12 saved AD-8 answer totals match. Signed-in directory, all six scenario actions and AD-8 opening verified; home/all directory both 32. All-patient count now includes pending screening; 16 targeted tests passed. Existing patients/plans unchanged.
 - [x] Simplified community directory into compact screening/risk tabs, focused result/risk filters, expandable source/gender/reception filters and horizontal rows with direct actions. Signed-in browser checked result/combined filters, assessment/training/detail links, preselected education recipient and intake opening; 15 tests passed. No patient results or stored stages changed.
@@ -37,7 +38,7 @@ Roles: doctor=上级指导中心(鼓楼记忆门诊), nurse=评估师/治疗管�
 - [x] Link AI plans to saved patient self-assessment questionnaires; doctor-assisted completion and family readback verified with four saved questionnaires. Test answers removed; AI generation itself not invoked.
 - [x] Doctor home simplified; mid/high-risk AI treatment confirmation centralized in plans with risk-specific service categories; patient files keep reception and referral/training/plan history. Reception and confirmation verified signed in; new AI output not invoked during verification.
 - [x] Provincial screen: reference layout, data hover details, metric/topic drilldowns, map-linked regional trends and detail interactions; verified desktop/mobile and drilldown navigation.
-- [ ] Patient end: AD-8 self-test questionnaire, cognitive training check-in (pages still use old structure with replaced wording).
+- [x] Patient end: professional screening stays outside family self-assessments; home cognitive practice and check-in now share the prescribed task flow.
 - [x] Community home replaced by requested four modules; AD-8 screening and doctor-confirmed training execution stay in patient detail.
 - [ ] Nurse education / handover pages: rework content beyond wording.
 

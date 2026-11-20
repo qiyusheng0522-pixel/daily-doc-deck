@@ -1,14 +1,15 @@
 import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
-import { Home, ClipboardList, Bot, Utensils, User, ArrowLeft, Bell, Wifi, Signal, BatteryFull } from "lucide-react";
+import { Home, ClipboardList, Bot, Brain, User, ArrowLeft, Bell, Wifi, Signal, BatteryFull } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import RoleSwitcher from "@/components/RoleSwitcher";
 import { usePatientsRealtime } from "@/data/patients";
+import { useEffect, useRef } from "react";
 
 const tabs = [
   { to: "/patient", icon: Home, label: "首页", end: true },
   { to: "/patient/assessment", icon: ClipboardList, label: "评估" },
   { to: "/patient/ai", icon: Bot, label: "AI 助手", center: true },
-  { to: "/patient/plan", icon: Utensils, label: "方案" },
+  { to: "/patient/plan", icon: Brain, label: "方案" },
   { to: "/patient/profile", icon: User, label: "我的" },
 ];
 
@@ -19,11 +20,14 @@ const titleMap: Record<string, string> = {
   "/patient/plan": "健康方案",
   "/patient/profile": "我的",
   "/patient/tasks": "家庭任务",
+  "/patient/risk": "我的评估与风险",
 };
 
 const PatientLayout = () => {
   usePatientsRealtime();
   const location = useLocation();
+  const content = useRef<HTMLElement>(null);
+  useEffect(() => { content.current?.scrollTo({ top: 0 }); }, [location.pathname]);
   const title = titleMap[location.pathname] ?? "首页";
   const hideHeader = location.pathname === "/patient" || location.pathname === "/patient/ai" || location.pathname === "/patient/profile";
 
@@ -60,7 +64,7 @@ const PatientLayout = () => {
               </header>
             )}
 
-            <main className="flex-1 overflow-y-auto pb-20">
+            <main ref={content} className="flex-1 overflow-y-auto pb-20">
               <Outlet />
             </main>
 
