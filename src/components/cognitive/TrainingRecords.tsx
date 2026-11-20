@@ -3,7 +3,7 @@ import { Brain, Crosshair, Route, Images, Grid3x3, ShoppingCart, Monitor, Person
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { patientTrainingCheckins, type PatientTrainingCheckin } from "@/data/trainingSources";
+import { patientTrainingCheckins, patientTrainingSummary, type PatientTrainingCheckin } from "@/data/trainingSources";
 
 type Rec = { id: string; trained_on: string; training_time?: string | null; domain: string; activity: string; setting: string; duration_min: number; completion: string; feedback?: string | null; record_type?: string | null };
 
@@ -61,6 +61,19 @@ function Row({ r, device }: { r: Rec; device: boolean }) {
 
 const PERIODS = [["30", "近1个月"], ["90", "近3个月"], ["all", "全部"]] as const;
 
+function PatientTrainingRow({ record }: { record: PatientTrainingCheckin }) {
+  const summary = patientTrainingSummary(record);
+  const Icon = iconFor({ id: record.id, trained_on: record.recorded_on, domain: "", activity: summary.content, setting: "居家", duration_min: record.duration_min ?? 0, completion: "完成" });
+  return <article className="flex gap-4 border-b py-3 last:border-0">
+    <div className="flex h-16 w-24 shrink-0 items-center justify-center rounded-lg bg-muted/70 text-primary"><Icon className="h-8 w-8" /></div>
+    <div className="min-w-0 flex-1">
+      <div className="flex items-start justify-between gap-2"><h4 title={summary.content} className="min-w-0 truncate text-base font-semibold">{summary.content}</h4><span className="flex shrink-0 items-center gap-1 rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-medium text-success"><CheckCircle2 className="h-3.5 w-3.5" />已完成</span></div>
+      <p className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground"><CalendarDays className="h-3.5 w-3.5 shrink-0" /><span>{record.recorded_on}{summary.time ? ` ${summary.time}` : ""}</span><span className="mx-1 text-border">|</span><span>{record.duration_min === null ? "时长未记录" : `${record.duration_min} 分钟`}</span></p>
+      <p className="mt-1 text-sm text-muted-foreground">难度：{summary.difficulty ?? "未记录"}</p>
+    </div>
+  </article>;
+}
+
 export default function TrainingRecords({ trainings, onAdd, familyCheckins, familyLoading, familyError }: { trainings: Rec[]; onAdd?: () => void; familyCheckins?: PatientTrainingCheckin[]; familyLoading?: boolean; familyError?: boolean }) {
   const [period, setPeriod] = useState<string>("30");
   const since = period === "all" ? "" : new Date(Date.now() - Number(period) * 864e5).toLocaleDateString("en-CA");
@@ -70,7 +83,7 @@ export default function TrainingRecords({ trainings, onAdd, familyCheckins, fami
     <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-3"><h2 className="flex items-center gap-2 text-xl font-bold"><Dumbbell className="h-6 w-6 text-primary" />训练记录（{rows.length + family.length}）</h2><div className="flex items-center gap-2"><select aria-label="时间范围" value={period} onChange={e => setPeriod(e.target.value)} className="h-10 rounded-lg border bg-card px-3 text-sm">{PERIODS.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select>{onAdd && <Button onClick={onAdd}><Plus className="mr-1 h-4 w-4" />添加训练站记录</Button>}</div></div>
     <div className="grid items-start gap-5 xl:grid-cols-2">
       <section className="min-w-0"><div className="flex items-center gap-2 border-b pb-3"><Monitor className="h-5 w-5 text-primary" /><h3 className="text-lg font-bold">训练站-训练记录（{rows.length}）</h3></div>{rows.length ? rows.map(r => <div key={r.id}><p className="mt-3 text-xs text-primary">{r.record_type ?? "非设备干预"}</p><Row r={r} device={r.record_type === "设备训练"} /></div>) : <p className="py-6 text-sm text-muted-foreground">暂无训练站记录</p>}</section>
-      <section className="min-w-0"><div className="flex items-center gap-2 border-b pb-3"><PersonStanding className="h-5 w-5 text-secondary-foreground" /><h3 className="text-lg font-bold">患者打卡训练记录（{family.length}）</h3></div>{familyLoading ? <p className="py-6 text-sm text-muted-foreground">读取患者打卡…</p> : familyError ? <p className="py-6 text-sm text-destructive">打卡记录读取失败，请稍后重试。</p> : family.length ? family.map(r => <article key={r.id} className="space-y-2 border-b py-4 last:border-0"><div className="flex items-start gap-2"><Brain className="mt-1 h-5 w-5 shrink-0 text-primary" /><h4 className="min-w-0 flex-1 break-words text-base font-semibold">{r.title}</h4><span className="shrink-0 rounded bg-success/10 px-2 py-1 text-xs text-success">已打卡</span></div><p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"><CalendarDays className="h-4 w-4" />{r.recorded_on}<span>· {r.duration_min == null ? "时长未记录" : `${r.duration_min} 分钟`}</span><span>· {r.recorded_by}</span></p>{r.note && <p className="break-words text-sm leading-relaxed">{r.note}</p>}<p className="text-xs text-muted-foreground">提交时间：{new Date(r.created_at).toLocaleString("zh-CN")}</p></article>) : <p className="py-6 text-sm text-muted-foreground">暂无患者认知训练打卡</p>}</section>
+      <section className="min-w-0"><div className="flex items-center gap-2 border-b pb-3"><PersonStanding className="h-5 w-5 text-secondary-foreground" /><h3 className="text-lg font-bold">患者打卡训练记录（{family.length}）</h3></div>{familyLoading ? <p className="py-6 text-sm text-muted-foreground">读取患者打卡…</p> : familyError ? <p className="py-6 text-sm text-destructive">打卡记录读取失败，请稍后重试。</p> : family.length ? family.map(r => <PatientTrainingRow key={r.id} record={r} />) : <p className="py-6 text-sm text-muted-foreground">暂无患者认知训练打卡</p>}</section>
     </div>
   </section>;
   const device = rows.filter(t => t.record_type === "设备训练"), other = rows.filter(t => t.record_type !== "设备训练");
