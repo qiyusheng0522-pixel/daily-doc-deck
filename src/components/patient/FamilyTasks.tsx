@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2, Moon, Utensils, Brain, Clock } from "lucide-react";
+import { CheckCircle2, Moon, Utensils, Brain, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,7 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
   const save = useSaveFamilyCheckin();
   const [active, setActive] = useState<ActiveCheckin | null>(null);
   const [practice, setPractice] = useState<FamilyTask | null>(null);
+  const [taskIndex, setTaskIndex] = useState(0);
   const [note, setNote] = useState("");
   const [minutes, setMinutes] = useState(20);
   const [by, setBy] = useState("本人");
@@ -34,6 +35,10 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
   const mealRecords = nutritionTask ? MEALS.map((_, i) => done(mealTaskKey(nutritionTask, i))) : [];
   const completed = otherTasks.filter(t => done(t.key)).length + mealRecords.filter(Boolean).length;
   const total = otherTasks.length + (nutritionTask ? MEALS.length : 0);
+  const slides: ActiveCheckin[] = [...otherTasks.map(task => ({ task, mealIndex: null })), ...(nutritionTask ? MEALS.map((_, mealIndex) => ({ task: nutritionTask, mealIndex })) : [])];
+  const slide = slides[taskIndex % (slides.length || 1)];
+  const slideKey = slide ? slide.mealIndex === null ? slide.task.key : mealTaskKey(slide.task, slide.mealIndex) : "";
+  const slideRecord = done(slideKey);
   const openCheckin = (task: FamilyTask, mealIndex: number | null) => {
     const record = done(mealIndex === null ? task.key : mealTaskKey(task, mealIndex));
     setActive({ task, mealIndex });
@@ -52,9 +57,13 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
   };
   if (isLoading || loadingChecks) return <p className="text-sm text-muted-foreground">读取任务…</p>;
   return <div className="space-y-3">
+    {compact && <div className="space-y-3">
+      <div className="flex items-center gap-2"><Clock className="h-5 w-5 text-primary" /><h2 className="flex-1 text-lg font-semibold">今日任务</h2><span className="text-xs text-primary">{completed}/{total}</span><Button variant="ghost" size="icon" className="h-8 w-8" aria-label="上一个任务" disabled={slides.length < 2} onClick={() => setTaskIndex(i => (i+slides.length-1)%slides.length)}><ChevronLeft className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="h-8 w-8" aria-label="下一个任务" disabled={slides.length < 2} onClick={() => setTaskIndex(i => (i+1)%slides.length)}><ChevronRight className="h-4 w-4" /></Button></div>
+      {slide && <div className="space-y-3 border-t pt-3"><div className="flex items-start gap-3"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">{slide.task.category === "训练" ? <Brain className="h-6 w-6" /> : slide.task.category === "睡眠" ? <Moon className="h-6 w-6" /> : <Utensils className="h-6 w-6" />}</span><div className="min-w-0 flex-1"><p className="text-sm font-semibold">{slide.mealIndex !== null ? MEALS[slide.mealIndex].name : slide.task.category === "训练" ? "认知训练" : "睡眠打卡"}</p><p className="mt-1 text-xs text-primary">{slide.mealIndex !== null ? MEALS[slide.mealIndex].time : slide.task.frequency}</p></div><span className={`shrink-0 rounded px-2 py-1 text-[15.4px] ${slideRecord ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>{slideRecord ? "已完成" : "待完成"}</span></div><p className="line-clamp-2 text-xs text-muted-foreground">{familyTaskLabel(slide.task)}</p><div className="flex gap-2">{!slideRecord && practiceKind(slide.task) && <Button className="flex-1" onClick={() => setPractice(slide.task)}>开始练习</Button>}<Button className="flex-1" variant={practiceKind(slide.task) && !slideRecord ? "outline" : "default"} onClick={() => openCheckin(slide.task,slide.mealIndex)}>{slideRecord ? "查看打卡" : "去打卡"}</Button></div></div>}
+    </div>}
     {!compact && <div className="space-y-2 border-b pb-4"><label className="text-xs text-muted-foreground">执行日期<Input type="date" className="mt-1" value={day} onChange={e => setDay(e.target.value)} /></label><p className="text-sm">已打卡 {completed}/{total}</p><Progress value={total ? completed / total * 100 : 0} /></div>}
     {!tasks.length && <p className="py-5 text-sm text-muted-foreground">暂无可执行的家庭任务，等待医生确认含营养、睡眠或家庭训练的方案。</p>}
-    {nutritionTask && <section className="space-y-2">
+    {!compact && nutritionTask && <section className="space-y-2">
       <h3 className="flex items-center gap-2 text-sm font-semibold"><Utensils className="h-4 w-4 text-primary" />饮食打卡</h3>
       {MEALS.map((meal, i) => { const record = mealRecords[i]; return <div key={meal.name} className="flex items-center gap-3 rounded-lg border bg-card p-3">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10"><Utensils className="h-5 w-5 text-primary" /></div>
@@ -69,7 +78,7 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
         </div>
       </div>; })}
     </section>}
-    {(["睡眠", "训练"] as const).map(category => {
+    {!compact && (["睡眠", "训练"] as const).map(category => {
       const group = otherTasks.filter(t => t.category === category);
       if (!group.length) return null;
       const Icon = category === "睡眠" ? Moon : Brain;
