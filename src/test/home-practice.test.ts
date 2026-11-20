@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { cognitiveRiskLevel, practiceKind, dailyPractice } from "@/data/homePractice";
+import { cognitiveRiskLevel, practiceKind, dailyPractice, homeExercises } from "@/data/homePractice";
 describe("家庭认知练习与风险", () => {
+  it("家庭训练同时提供多种游戏及方案对应的专项练习", () => {
+    expect(homeExercises({category:"训练",title:"日历待办、物品回忆、模拟购物"}).map(x => x.id)).toEqual(["memory-fruit","memory-nature","recall","calendar","shopping"]);
+    expect(homeExercises({category:"营养",title:"物品回忆"})).toEqual([]);
+    expect(homeExercises({category:"训练",title:"语言交流"})).toEqual([]);
+  });
   it("每日轮换同类游戏，同一天保持一致且不替换无关方案", () => {
     const task = { category: "训练" as const, title: "记忆配对" };
     expect(dailyPractice(task, "2026-11-20")).toEqual({kind:"memory",variant:1,name:"自然图案配对"});

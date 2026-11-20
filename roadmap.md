@@ -14,6 +14,7 @@ Roles: doctor=上级指导中心(鼓楼记忆门诊), nurse=评估师/治疗管�
 - [x] Rule tests: AD-8 ≥2 positive; reassess 1y/6m/3m. Verified nurse 上转 → doctor queue in browser.
 
 ## Open
+- [x] Patient: removed homepage consultation/messages; added multi-game and recall/calendar/shopping specialty chooser tied to existing plans. Assessment uses compact project rows and plan has training/check-in/care tabs. Signed-in questionnaire opening, five exercise choices, recall/shopping completion and prepared check-in verified; stored plans/risks unchanged.
 - [x] Patient homepage: floating shortcuts and join-group sheet; daily compatible game variants and risk report with health directory/confirmed-plan goals. Signed-in navigation, game completion and prepared check-in verified; 17 tests pass. Existing prescription frequency and risk unchanged.
 - [ ] Join-group QR image: awaiting user's actual QR image; sheet explicitly shows pending provision rather than a fabricated code.
 - [x] Community detail: separate station training and category=训练 family check-ins with shared time filtering, performer/time/notes, combined counts and recent activity. Added 4 station and 2 family records each for 周春华/王建国 without changing plans. Signed-in station 12 + family 2 readback, entry sheet and matching family-side record verified; 11 tests pass.

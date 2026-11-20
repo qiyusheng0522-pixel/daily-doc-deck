@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useScaleAssessments } from "@/data/patients";
 import { SELF_QUESTIONNAIRES, latestSelfAssessments, questionnaireTotal, selfAssessmentConcerns } from "../../../supabase/functions/_shared/selfAssessment";
-import { Moon, Utensils, Footprints, Heart, CloudRain } from "lucide-react";
+import { Moon, Utensils, Footprints, Heart, CloudRain, CheckCircle2, ChevronRight } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 export default function SelfAssessmentForm({ patientId, assisted = false, familyList = false, onComplete }: { patientId: string; assisted?: boolean; familyList?: boolean; onComplete?: () => void }) {
@@ -41,15 +41,14 @@ export default function SelfAssessmentForm({ patientId, assisted = false, family
     </section>)}
     <Button className="w-full" disabled={saving || questionnaireTotal(current, answers) === null} onClick={save}>{saving ? "保存中…" : "保存本份评估"}</Button>
   </div>;
-  if (familyList) return <div className="space-y-4">
-    <div className="bg-gradient-primary p-4 text-primary-foreground"><h2 className="text-2xl font-bold">评估中心</h2><p className="mt-1 text-sm">老年综合评估 · 共 {SELF_QUESTIONNAIRES.length} 项</p></div>
+  if (familyList) return <div className="space-y-5">
+    <div className="border-b bg-primary/5 px-1 pb-5 pt-3"><p className="text-xs text-primary">我的认知健康</p><h2 className="mt-1 text-2xl font-bold">健康评估</h2><p className="mt-2 text-sm text-muted-foreground">睡眠 · 营养 · 跌倒 · 精神心理</p></div>
     <div className="flex items-center gap-3"><Progress className="flex-1" value={latest.filter(x => x.record).length * 100 / SELF_QUESTIONNAIRES.length} /><span className="shrink-0 text-xs text-muted-foreground">已填 {latest.filter(x => x.record).length}/{SELF_QUESTIONNAIRES.length}</span></div>
     {latest.every(x => x.record) && onComplete && <Button className="w-full" onClick={onComplete}>评估已完成 · 查看当前风险</Button>}
-    <h3 className="text-lg font-semibold">健康问卷 <span className="text-sm text-destructive">必填</span></h3>
-    {latest.map(({ questionnaire:q, record }, i) => { const Icon = [Moon, Utensils, Footprints, Heart, CloudRain][i] ?? Heart; return <section key={q.id} className="relative flex items-center gap-3 rounded-lg border bg-card p-3 shadow-sm">
-      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Icon className="h-7 w-7" /></div>
-      <div className="min-w-0 flex-1"><h4 className="text-base font-semibold">{q.name}</h4><p className="mt-1 text-xs text-muted-foreground">{record ? `${new Date(record.created_at).toLocaleDateString("zh-CN")} · ${record.total} 分` : `约 ${q.minutes} 分钟`}</p></div>
-      <Button size="sm" className="shrink-0 px-2 text-xs" onClick={() => { setActive(q.id); setAnswers({}); }}>{record ? "再次评估" : "去填写"}</Button>
+    <div className="flex items-center justify-between"><h3 className="text-lg font-semibold">我的评估项目</h3><span className="text-xs text-muted-foreground">{SELF_QUESTIONNAIRES.length} 项问卷</span></div>
+    {latest.map(({ questionnaire:q, record }, i) => { const Icon = [Moon, Utensils, Footprints, Heart, CloudRain, CheckCircle2, ChevronRight][i] ?? Heart; return <section key={q.id} className="relative flex items-start gap-3 rounded-lg border bg-card p-4">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Icon className="h-7 w-7" /></div>
+      <div className="min-w-0 flex-1"><h4 className="text-sm font-semibold">{q.name}</h4><p className="mt-1 text-xs text-muted-foreground">{record ? `${new Date(record.created_at).toLocaleDateString("zh-CN")} · ${record.total} 分` : `约 ${q.minutes} 分钟`}</p><div className="mt-3 flex items-center justify-between gap-2"><span className={`flex items-center gap-1 text-xs ${record ? "text-success" : "text-muted-foreground"}`}>{record && <CheckCircle2 className="h-3.5 w-3.5" />}{record ? "已完成" : "待填写"}</span><Button size="sm" variant="ghost" className="h-8 px-1 text-xs text-primary" onClick={() => { setActive(q.id); setAnswers({}); }}>{record ? "重新填写" : "开始评估"}<ChevronRight className="ml-1 h-4 w-4" /></Button></div></div>
     </section>; })}
   </div>;
   return <div className="space-y-2">

@@ -9,7 +9,9 @@ import { useCurrentPatient } from "@/data/patients";
 import { familyPlanTasks, familyVisibleTasks, familyTaskLabel, prescribedBedtime, familyPlanVersion, useFamilyCheckins, useSaveFamilyCheckin, MEALS, mealTaskKey, type FamilyTask } from "@/data/familyTasks";
 import { toast } from "@/hooks/use-toast";
 import CognitivePractice from "@/components/patient/CognitivePractice";
-import { practiceKind, dailyPractice } from "@/data/homePractice";
+import { practiceKind, dailyPractice, homeExercises, type HomeExercise } from "@/data/homePractice";
+
+import SpecialtyPractice from "@/components/patient/SpecialtyPractice";
 
 type ActiveCheckin = { task: FamilyTask; mealIndex: number | null };
 
@@ -19,6 +21,8 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
   const save = useSaveFamilyCheckin();
   const [active, setActive] = useState<ActiveCheckin | null>(null);
   const [practice, setPractice] = useState<FamilyTask | null>(null);
+  const [exercise, setExercise] = useState<HomeExercise | null>(null);
+  const [chooser, setChooser] = useState<FamilyTask | null>(null);
   const [taskIndex, setTaskIndex] = useState(0);
   const [note, setNote] = useState("");
   const [minutes, setMinutes] = useState(20);
@@ -40,7 +44,7 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
   const slideKey = slide ? slide.mealIndex === null ? slide.task.key : mealTaskKey(slide.task, slide.mealIndex) : "";
   const slideRecord = done(slideKey);
   const slidePractice = slide ? dailyPractice(slide.task, day) : null;
-  const currentPractice = practice ? dailyPractice(practice, day) : null;
+
   const openCheckin = (task: FamilyTask, mealIndex: number | null) => {
     const record = done(mealIndex === null ? task.key : mealTaskKey(task, mealIndex));
     setActive({ task, mealIndex });
@@ -61,7 +65,7 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
   return <div className="space-y-3">
     {compact && <div className="space-y-3">
       <div className="flex items-center gap-2"><Clock className="h-5 w-5 text-primary" /><h2 className="flex-1 text-lg font-semibold">今日任务</h2><span className="text-xs text-primary">{completed}/{total}</span><Button variant="ghost" size="icon" className="h-8 w-8" aria-label="上一个任务" disabled={slides.length < 2} onClick={() => setTaskIndex(i => (i+slides.length-1)%slides.length)}><ChevronLeft className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="h-8 w-8" aria-label="下一个任务" disabled={slides.length < 2} onClick={() => setTaskIndex(i => (i+1)%slides.length)}><ChevronRight className="h-4 w-4" /></Button></div>
-      {slide && <div className="space-y-3 border-t pt-3"><div className="flex items-start gap-3"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">{slide.task.category === "训练" ? <Brain className="h-6 w-6" /> : slide.task.category === "睡眠" ? <Moon className="h-6 w-6" /> : <Utensils className="h-6 w-6" />}</span><div className="min-w-0 flex-1"><p className="text-sm font-semibold">{slide.mealIndex !== null ? MEALS[slide.mealIndex].name : slide.task.category === "训练" ? "认知训练" : "睡眠打卡"}</p><p className="mt-1 text-xs text-primary">{slide.mealIndex !== null ? MEALS[slide.mealIndex].time : slide.task.frequency}</p></div><span className={`shrink-0 rounded px-2 py-1 text-[15.4px] ${slideRecord ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>{slideRecord ? "已完成" : "待完成"}</span></div><p className="line-clamp-2 text-xs text-muted-foreground">{slideRecord?.note && slide.task.category === "训练" ? slideRecord.note.split("，")[0] : slidePractice?.name ?? familyTaskLabel(slide.task)}</p><div className="flex gap-2">{!slideRecord && practiceKind(slide.task) && <Button className="flex-1" onClick={() => setPractice(slide.task)}>开始练习</Button>}<Button className="flex-1" variant={practiceKind(slide.task) && !slideRecord ? "outline" : "default"} onClick={() => openCheckin(slide.task,slide.mealIndex)}>{slideRecord ? "查看打卡" : "去打卡"}</Button></div></div>}
+      {slide && <div className="space-y-3 border-t pt-3"><div className="flex items-start gap-3"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">{slide.task.category === "训练" ? <Brain className="h-6 w-6" /> : slide.task.category === "睡眠" ? <Moon className="h-6 w-6" /> : <Utensils className="h-6 w-6" />}</span><div className="min-w-0 flex-1"><p className="text-sm font-semibold">{slide.mealIndex !== null ? MEALS[slide.mealIndex].name : slide.task.category === "训练" ? "认知训练" : "睡眠打卡"}</p><p className="mt-1 text-xs text-primary">{slide.mealIndex !== null ? MEALS[slide.mealIndex].time : slide.task.frequency}</p></div><span className={`shrink-0 rounded px-2 py-1 text-[15.4px] ${slideRecord ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>{slideRecord ? "已完成" : "待完成"}</span></div><p className="line-clamp-2 text-xs text-muted-foreground">{slideRecord?.note && slide.task.category === "训练" ? slideRecord.note.split("，")[0] : slidePractice?.name ?? familyTaskLabel(slide.task)}</p><div className="flex gap-2">{!slideRecord && homeExercises(slide.task).length > 0 && <Button className="flex-1" onClick={() => setChooser(slide.task)}>开始练习</Button>}<Button className="flex-1" variant={practiceKind(slide.task) && !slideRecord ? "outline" : "default"} onClick={() => openCheckin(slide.task,slide.mealIndex)}>{slideRecord ? "查看打卡" : "去打卡"}</Button></div></div>}
     </div>}
     {!compact && <div className="space-y-2 border-b pb-4"><label className="text-xs text-muted-foreground">执行日期<Input type="date" className="mt-1" value={day} onChange={e => setDay(e.target.value)} /></label><p className="text-sm">已打卡 {completed}/{total}</p><Progress value={total ? completed / total * 100 : 0} /></div>}
     {!tasks.length && <p className="py-5 text-sm text-muted-foreground">暂无可执行的家庭任务，等待医生确认含营养、睡眠或家庭训练的方案。</p>}
@@ -89,13 +93,16 @@ export default function FamilyTasks({ compact = false }: { compact?: boolean }) 
         {group.map(t => { const record = done(t.key); return <div key={t.key} className="rounded-lg border bg-card p-3">
           <div className="flex items-center gap-2"><div className="min-w-0 flex-1"><p className="break-words text-sm font-medium">{dailyPractice(t, day)?.name ?? familyTaskLabel(t)}</p>{t.category === "睡眠" && <p className="mt-1 text-xs text-muted-foreground">{bedtime ? `${bedtime} 入睡` : "记录今晚入睡时间"}</p>}</div>
           <Button size="sm" variant={record ? "ghost" : "outline"} className="shrink-0 text-xs" onClick={() => openCheckin(t, null)}>{record ? <><CheckCircle2 className="mr-1 h-3 w-3" />已打卡</> : "打卡"}</Button></div>
-          {t.category === "训练" && <><p className="mt-2 text-xs text-muted-foreground">{t.frequency} · {t.duration}</p>{practiceKind(t) && !record && <Button className="mt-3 w-full" onClick={() => setPractice(t)}>开始{dailyPractice(t, day)?.name}</Button>}</>}
+          {t.category === "训练" && <><p className="mt-2 text-xs text-muted-foreground">{t.frequency} · {t.duration}</p>{homeExercises(t).length > 0 && <Button className="mt-3 w-full" variant="secondary" onClick={() => setChooser(t)}>选择游戏 / 专项训练</Button>}</>}
           {record && <p className="mt-2 text-xs text-muted-foreground">打卡时间 {new Date(record.created_at).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}{record.duration_min ? ` · ${record.duration_min} 分钟` : ""}{record.note ? ` · ${record.note}` : ""}</p>}
         </div>; })}
       </section>;
     })}
+    <PatientActionSheet open={!!chooser} onOpenChange={o => !o && setChooser(null)} title="游戏与专项训练">
+      {chooser && <div className="grid grid-cols-2 gap-3">{homeExercises(chooser).map(item => <Button key={item.id} variant="outline" className="h-auto min-h-28 flex-col items-start gap-2 whitespace-normal p-3 text-left" onClick={() => { setPractice(chooser); setExercise(item); setChooser(null); }}><Brain className="h-7 w-7 text-primary" /><span className="text-sm font-semibold">{item.name}</span><span className="text-xs text-muted-foreground">{item.domain}</span></Button>)}</div>}
+    </PatientActionSheet>
     <PatientActionSheet open={!!practice} onOpenChange={o => !o && setPractice(null)} title="认知练习">
-      {practice && practiceKind(practice) && <CognitivePractice kind={practiceKind(practice) ?? "memory"} variant={currentPractice?.variant} name={currentPractice?.name} onComplete={(result, elapsed) => { openCheckin(practice, null); setMinutes(elapsed); setNote(result); setPractice(null); }} />}
+      {practice && exercise && (exercise.kind === "memory" || exercise.kind === "attention" ? <CognitivePractice key={exercise.id} kind={exercise.kind} variant={exercise.variant} name={exercise.name} onComplete={(result, elapsed) => { openCheckin(practice, null); setMinutes(elapsed); setNote(result); setPractice(null); }} /> : <SpecialtyPractice key={exercise.id} exercise={exercise} onComplete={(result, elapsed) => { openCheckin(practice, null); setMinutes(elapsed); setNote(result); setPractice(null); }} />)}
     </PatientActionSheet>
     <PatientActionSheet open={!!active} onOpenChange={o => !o && setActive(null)} title={active && active.mealIndex !== null ? `${MEALS[active.mealIndex].name}打卡` : active?.task.category === "训练" ? "认知训练打卡" : active ? familyTaskLabel(active.task) : "任务打卡"}>
       {active && <div className="space-y-3">
