@@ -6,6 +6,13 @@ const base: TableAdvice = { summary: "s", focus: [], followup: { cycle: "", reas
   interventions: [{ category: "睡眠", actions: ["规律作息"], frequency: "每日", duration: "长期" }] };
 
 describe("plan table", () => {
+  it("旧方案展示原有随访中的生活管理和家庭作业，不造新建议", () => {
+    const plan = {...base, interventions:undefined, followup:{cycle:"每月",reassess:"6个月",items:["家庭作业：物品回忆，每周1—2次", "每月询问睡眠时长", "核对血压记录"]}};
+    const rows = planRows(plan);
+    expect(rows.filter(r => r.group === "家庭作业").map(r => r.content)).toEqual(["家庭作业：物品回忆，每周1—2次"]);
+    expect(rows.filter(r => r.group === "危险因子与生活方式干预").map(r => r.content)).toEqual(["每月询问睡眠时长", "核对血压记录"]);
+    expect(plan.interventions).toBeUndefined();
+  });
   it("expands training and interventions into the three groups", () => {
     const rows = planRows(base);
     expect(rows.map(r => r.group)).toEqual(["非药物干预类", "危险因子与生活方式干预"]);

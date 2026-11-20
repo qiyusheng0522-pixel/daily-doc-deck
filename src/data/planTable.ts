@@ -22,6 +22,16 @@ export function planRows(plan: TableAdvice | null): PlanRow[] {
     const group = groupOf(i.category);
     for (const a of i.actions.filter(x => x.trim())) rows.push({ group, name: i.category, content: a, freq: [i.frequency, i.duration].filter(Boolean).join("，"), mode: group === "家庭作业" ? "家属协助并记录" : group === "非药物干预类" ? "站内小组" : "健康宣教与随访", enabled: true });
   }
+  // Legacy plans carry these instructions in prose; expose the saved text, not new advice.
+  if (!plan.interventions?.length) {
+    for (const content of plan.followup?.items ?? []) {
+      const group = /家庭作业|家庭任务|居家训练/.test(content) ? "家庭作业" : /睡眠|血压|服药|营养|食欲|体重|跌倒|情绪/.test(content) ? "危险因子与生活方式干预" : null;
+      if (group) rows.push({group,name:group === "家庭作业" ? "居家练习" : "健康管理",content,freq:"按原方案安排",mode:group === "家庭作业" ? "家属协助并记录" : "健康宣教与随访",enabled:true});
+    }
+    if (!rows.some(r => r.group === "危险因子与生活方式干预")) {
+      for (const content of plan.caregiver_tips ?? []) if (/睡眠|作息|营养|饮食|安全|血压/.test(content)) rows.push({group:"危险因子与生活方式干预",name:"生活照护",content,freq:"按原方案安排",mode:"家属协助",enabled:true});
+    }
+  }
   return rows;
 }
 
