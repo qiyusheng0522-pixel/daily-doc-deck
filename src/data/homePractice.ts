@@ -9,3 +9,11 @@ export function practiceKind(task: Pick<FamilyTask, "title" | "category">): Prac
 export function cognitiveRiskLevel(risk: string | null | undefined) {
   return risk === "低风险" || risk === "中风险" || risk === "高风险" ? risk : null;
 }
+export function dailyPractice(task: Pick<FamilyTask, "title" | "category">, date: string) {
+  const kind = practiceKind(task);
+  if (!kind) return null;
+  const day = Math.floor(Date.parse(`${date}T00:00:00Z`) / 86400000);
+  if (!Number.isFinite(day)) return null;
+  const variant = Math.abs(day % 2);
+  return { kind, variant, name: kind === "memory" ? (variant ? "自然图案配对" : "水果记忆配对") : (variant ? "数字倒序" : "数字顺序") };
+}
