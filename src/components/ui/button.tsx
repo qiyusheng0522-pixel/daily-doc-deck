@@ -16,6 +16,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         screen: "border border-scr-line/60 bg-scr-line/10 text-scr-text hover:border-scr-cyan hover:bg-scr-line/30 focus-visible:ring-scr-cyan",
+        screenQuiet: "border border-transparent bg-transparent text-scr-dim hover:bg-scr-line/15 hover:text-scr-text focus-visible:ring-scr-cyan aria-pressed:bg-scr-line/20 aria-pressed:text-scr-cyan",
       },
       size: {
         default: "h-10 px-4 py-2",

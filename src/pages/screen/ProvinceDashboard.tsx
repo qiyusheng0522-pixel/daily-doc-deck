@@ -73,7 +73,7 @@ export default function ProvinceDashboard({ nav, onOverview }: { nav: string; on
     <div className="province-grid province-activity-grid">
       <ProvinceSummary rows={activities} city={city} onPick={select} />
       <div className="province-center flex min-h-0 min-w-0 flex-col gap-3">
-        <Panel title="江苏省筛查地图" className="min-h-[520px] flex-[2]" extra={<div className="flex gap-1">{["江苏省", "设区市"].map(m => <Button key={m} variant="screen" size="sm" className={`h-7 px-3 text-xs ${mapMode === m ? "border-scr-cyan bg-scr-line/50 text-scr-cyan" : ""}`} onClick={() => setMapMode(m)}>{m === "江苏省" ? "地图" : "区域列表"}</Button>)}</div>}>
+        <Panel title="江苏省筛查地图" className="min-h-[520px] flex-[2]" extra={<div className="screen-segments flex gap-1">{["江苏省", "设区市"].map(m => <Button key={m} variant="screenQuiet" size="sm" aria-pressed={mapMode === m} className="h-7 px-3 text-[14px]" onClick={() => setMapMode(m)}>{m === "江苏省" ? "地图" : "区域列表"}</Button>)}</div>}>
           <div className="province-map relative grid h-full min-h-[460px] grid-cols-1 gap-2">
             <div className="relative min-h-[430px] min-w-0">
               {mapMode === "江苏省" ? <svg role="group" aria-label="江苏省设区市地图" viewBox={JS_VIEWBOX} preserveAspectRatio="xMidYMid meet" className="absolute inset-0 h-full w-full">
@@ -87,7 +87,7 @@ export default function ProvinceDashboard({ nav, onOverview }: { nav: string; on
 
           </div>
         </Panel>
-        <div className="flex flex-wrap items-center justify-between gap-2 border-y border-scr-line/40 px-3 py-2"><div><b className="text-lg text-scr-gold">{city}市</b><span className="ml-3 text-[14px] text-scr-dim">训练站 {region.stations} 个 · 服务 {region.elders} 万人</span></div><Button variant="screen" size="sm" onClick={() => open({key:"stations",region:city})}>区域详情<ChevronRight className="ml-1 h-4 w-4" /></Button></div>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-y border-scr-line/40 px-3 py-2"><div><b className="text-lg text-scr-gold">{city}市</b><span className="ml-3 text-[14px] text-scr-dim">训练站 {region.stations} 个 · 服务 {region.elders} 万人</span></div><Button variant="screenQuiet" size="sm" onClick={() => open({key:"stations",region:city})}>区域详情<ChevronRight className="ml-1 h-4 w-4" /></Button></div>
         <ScreeningFeed rows={activities} city={city} onPick={select} />
       </div>
       <ProvinceRecent rows={periodActivities} recentRows={recentActivities} city={city} period={period} onPeriod={setPeriod} />

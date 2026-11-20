@@ -190,19 +190,19 @@ export default function ProvinceScreen() {
 
   );
   return (
-    <div className="province-screen min-h-screen bg-scr-bg text-scr-text">
+    <div className={`province-screen min-h-screen bg-scr-bg text-scr-text ${level === "province" ? "province-clean" : ""}`}>
       <RoleSwitcher position="bottom-4 right-4" />
       {/* Header */}
-      <header className="province-header grid items-center gap-2 px-4 py-3 xl:grid-cols-[1fr_2.6fr_1fr]">
-        <Link to="/" className="flex items-center gap-2 text-sm font-bold"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-scr-red text-scr-gold">★</span>{cfg.org}</Link>
-        <h1 className="scr-glow pb-2 text-center text-xl font-black xl:text-[35px]">{cfg.title}</h1>
+      <header className={`province-header grid items-center gap-2 px-4 py-3 ${level === "province" ? "xl:grid-cols-[1fr_auto]" : "xl:grid-cols-[1fr_2.6fr_1fr]"}`}>
+        {level !== "province" && <Link to="/" className="flex items-center gap-2 text-sm font-bold"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-scr-red text-scr-gold">★</span>{cfg.org}</Link>}
+        <h1 className={`pb-2 text-xl font-bold xl:text-[28px] ${level === "province" ? "text-left" : "scr-glow text-center"}`}>{cfg.title}</h1>
         <div className="flex items-center justify-end gap-2 text-xs text-scr-dim"><CalendarCheck className="h-4 w-4" /><span className="tabular-nums">{clock}</span></div>
       </header>
 
       <main className="space-y-3 px-4 pb-4 pt-3">
         <nav className="flex flex-wrap items-center justify-between gap-3 border-b border-scr-line/40 pb-3" aria-label="管理视角">
-          <div className="flex flex-wrap gap-2">{(Object.keys(LEVELS) as Level[]).map(l => <Button key={l} variant="screen" size="sm" aria-pressed={level === l} className={level === l ? "border-scr-cyan bg-scr-line/30 text-scr-cyan" : "text-scr-dim"} onClick={() => setLevel(l)}>{LEVELS[l].tab}</Button>)}</div>
-          <div className="flex flex-wrap gap-2">{level === "province" && <Button variant="screen" size="sm" aria-expanded={showIndicators} onClick={() => setShowIndicators(v => !v)}><ClipboardCheck className="mr-1 h-4 w-4" />监管指标</Button>}<Button variant="screen" size="sm" asChild><Link to="/"><ArrowLeft className="mr-1 h-4 w-4" />工作入口</Link></Button><Button variant="screen" size="icon" aria-label={full ? "退出全屏" : "全屏展示"} title={full ? "退出全屏" : "全屏展示"} onClick={toggleFullscreen}>{full ? <Minimize /> : <Maximize />}</Button></div>
+          <div className="screen-segments flex flex-wrap gap-1" >{(Object.keys(LEVELS) as Level[]).map(l => <Button key={l} variant={level === "province" ? "screenQuiet" : "screen"} size="sm" aria-pressed={level === l} onClick={() => setLevel(l)}>{LEVELS[l].tab}</Button>)}</div>
+          <div className="flex flex-wrap gap-1">{level === "province" && <Button variant="screenQuiet" size="sm" aria-expanded={showIndicators} aria-pressed={showIndicators} onClick={() => setShowIndicators(v => !v)}><ClipboardCheck className="mr-1 h-4 w-4" />监管指标</Button>}<Button variant={level === "province" ? "screenQuiet" : "screen"} size="sm" asChild><Link to="/"><ArrowLeft className="mr-1 h-4 w-4" />工作入口</Link></Button><Button variant={level === "province" ? "screenQuiet" : "screen"} size="icon" aria-label={full ? "退出全屏" : "全屏展示"} title={full ? "退出全屏" : "全屏展示"} onClick={toggleFullscreen}>{full ? <Minimize /> : <Maximize />}</Button></div>
         </nav>
         {(level !== "province" || showIndicators) && <RegulatoryIndicators scope={level === "province" ? "江苏省" : `${city}${cfg.suffix}`} counts={level === "province" ? demoRegulatoryCounts(276000) : demoRegulatoryCounts(level === "city" ? Math.round(cs.elders * 10000) : cs.elders, cs.screen, cs.guide, level === "city" ? 86.9 : 88.2)} />}
         {level === "province" ? <ProvinceDashboard nav={nav} onOverview={() => setNav("总体概览")} /> : level === "city" ? <CityView map={mapSection} area={city} /> : <CountyView map={mapSection} area={city} />}
