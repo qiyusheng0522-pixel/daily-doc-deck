@@ -21,7 +21,6 @@ const META: Record<TableGroup, { icon: React.ElementType; desc: string; tone: st
 };
 const day = (d?: string | null) => (d ? new Date(d).toLocaleDateString("en-CA") : "—");
 export const planWeeks = (plan: TableAdvice | null) => plan?.cycle_weeks ?? (Number(plan?.summary?.match(/(\d+)\s*周/)?.[1]) || 8);
-const planBasis = (plan: TableAdvice) => [...(plan.doctor_assessments ?? []), ...(plan.self_assessments ?? [])].map(s => `${s.name.replace(/[（(].*$/, "")} ${s.total}`).join("、") || "—";
 
 export default function PlanRecords({ p, role }: { p: Patient; role: "doctor" | "community" }) {
   const navigate = useNavigate();
@@ -71,9 +70,9 @@ export default function PlanRecords({ p, role }: { p: Patient; role: "doctor" | 
     <Card className="rounded-2xl border-0 p-5 shadow-soft">
       <p className="mb-3 flex items-center gap-2 text-xl font-bold"><History className="h-6 w-6 text-primary" />历史方案记录 <span className="text-base font-normal text-muted-foreground">（{history.length}）</span></p>
       <div className="overflow-hidden rounded-xl border"><table className="w-full text-sm">
-        <thead className="bg-primary/5 text-left"><tr>{["生成时间", "方案名称", "依据量表", "方案周期", "操作"].map(h => <th key={h} className={cn("px-5 py-2.5 font-semibold", (h === "方案周期" || h === "操作") && "text-center")}>{h}</th>)}</tr></thead>
-        <tbody>{history.length === 0 ? <tr><td colSpan={5} className="px-5 py-6 text-center text-muted-foreground">后续方案调整将保留在此</td></tr> : history.map(h => { const hp = h.plan as unknown as TableAdvice & { title?: string }; return <tr key={h.id} className="border-t">
-          <td className="px-5 py-3">{day(h.created_at)}</td><td className="px-5 py-3">{hp.title ?? "非药物干预类治疗方案"}</td><td className="px-5 py-3">{planBasis(hp)}</td><td className="px-5 py-3 text-center">{planWeeks(hp)}周</td>
+        <thead className="bg-primary/5 text-left"><tr>{["生成时间", "方案名称", "方案周期", "操作"].map(h => <th key={h} className={cn("px-5 py-2.5 font-semibold", (h === "方案周期" || h === "操作") && "text-center")}>{h}</th>)}</tr></thead>
+        <tbody>{history.length === 0 ? <tr><td colSpan={4} className="px-5 py-6 text-center text-muted-foreground">后续方案调整将保留在此</td></tr> : history.map(h => { const hp = h.plan as unknown as TableAdvice & { title?: string }; return <tr key={h.id} className="border-t">
+          <td className="px-5 py-3">{day(h.created_at)}</td><td className="px-5 py-3">{hp.title ?? "非药物干预类治疗方案"}</td><td className="px-5 py-3 text-center">{planWeeks(hp)}周</td>
           <td className="px-5 py-3 text-center"><button type="button" className="font-medium text-primary underline underline-offset-4" onClick={() => setOpen(h.id)}>查看详情</button></td></tr>; })}</tbody>
       </table></div>
     </Card>
