@@ -92,10 +92,10 @@ export default function TrainingRecords({ trainings, onAdd, familyCheckins, fami
       </div>
     </div>
     <div className="grid gap-4 lg:grid-cols-2">
-      {col("设备训练记录", Monitor, device, true, "暂无认知训练设备同步的记录")}
-      {col("非设备干预记录", PersonStanding, other, false, "暂无非设备干预记录")}
+      {col("设备训练记录", Monitor, device, true, "完成设备训练后同步记录")}
+      {col("非设备干预记录", PersonStanding, other, false, "完成训练后登记执行情况")}
     </div>
   </section>
-  {familyCheckins !== undefined && <section className="min-w-0 border-t p-5"><div className="flex items-center gap-2 border-b pb-3"><PersonStanding className="h-5 w-5 text-primary" /><h3 className="text-lg font-bold">患者打卡训练记录（{family.length}）</h3></div>{familyLoading ? <p className="py-6 text-sm text-muted-foreground">读取患者打卡…</p> : familyError ? <p className="py-6 text-sm text-destructive">打卡记录读取失败，请稍后重试。</p> : family.length ? family.map(r => <PatientTrainingRow key={r.id} record={r} />) : <p className="py-6 text-sm text-muted-foreground">暂无患者认知训练打卡</p>}</section>}
+  {familyCheckins !== undefined && <section className="min-w-0 border-t p-5"><div className="flex items-center gap-2 border-b pb-3"><PersonStanding className="h-5 w-5 text-primary" /><h3 className="text-lg font-bold">患者打卡训练记录（{family.length}）</h3></div>{familyLoading ? <p className="py-6 text-sm text-muted-foreground">读取患者打卡…</p> : familyError ? <p className="py-6 text-sm text-destructive">打卡记录读取失败，请稍后重试。</p> : family.length ? family.map(r => <PatientTrainingRow key={r.id} record={r} />) : <p className="py-6 text-sm text-muted-foreground">完成居家练习后在家庭端打卡</p>}</section>}
   </div>;
 }

@@ -284,7 +284,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   );
   const visitCard = (role === "doctor" || role === "community") && <Card className="p-4 shadow-soft">
     <Head icon={FileText} title={`诊断记录（${visitDocs.length}）`} action={role === "doctor" && <Button size="sm" variant="ghost" className="h-7 text-sm text-primary" onClick={() => setVisitOpen(true)}><Camera className="mr-1 h-4 w-4" />拍照上传</Button>} />
-    {visitDocs.length === 0 ? <p className="text-sm text-muted-foreground">{role === "doctor" ? "可拍照上传院内就诊单、门诊病历、检查报告等，社区端同步查看" : "暂无医生上传的诊疗记录"}</p>
+    {visitDocs.length === 0 ? <p className="text-sm text-muted-foreground">{role === "doctor" ? "可拍照上传院内就诊单、门诊病历、检查报告等，社区端同步查看" : "医生上传诊疗记录后同步查看"}</p>
       : <div className="space-y-3">{visitDocs.map((d) => { const doc = d as typeof d & { title?: string | null; extracted_text?: string | null }; return <div key={d.id} className="flex gap-4 rounded-xl border p-3">
           {d.url ? <a href={d.url} target="_blank" rel="noreferrer" className="shrink-0"><img src={d.url} alt={doc.title ?? "诊疗记录"} className="h-40 w-32 rounded-lg border object-cover object-top" /></a> : <div className="h-40 w-32 shrink-0 rounded-lg bg-muted" />}
           <div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-2"><p className="font-semibold">{doc.title ?? "诊疗记录"}</p><span className="text-sm text-muted-foreground">{new Date(d.created_at).toLocaleDateString("zh-CN")} · {d.uploaded_by ?? "评估医生"}</span></div>
@@ -308,14 +308,14 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       <p className="mt-2 text-[14px] text-muted-foreground">量表分值参考，不等同综合风险或诊断；MMSE需结合教育程度，MoCA需结合教育校正。</p>
       <div className="mt-3 rounded-lg bg-primary/5 p-2.5 text-sm">
         <span className="text-muted-foreground">{p.ai_risk ? "模型分析风险等级：" : "智能体初步风险等级："}</span>
-        {(() => { const r = p.cognitive_risk ?? (p.ai_risk as { risk?: string } | null)?.risk ?? aiRisk; return r ? <span className={`rounded-full px-2 py-0.5 text-sm ${riskTone(r as Patient["cognitive_risk"])}`}>{r}</span> : "量表不足，暂无"; })()}
+        {(() => { const r = p.cognitive_risk ?? (p.ai_risk as { risk?: string } | null)?.risk ?? aiRisk; return r ? <span className={`rounded-full px-2 py-0.5 text-sm ${riskTone(r as Patient["cognitive_risk"])}`}>{r}</span> : "待完成进一步评估"; })()}
       </div>
     </Card>
   );
   const referralCard = (
     <Card className="p-4 shadow-soft">
       <Head icon={Repeat} title="平台转诊记录" />
-      {myRefs.length === 0 ? <p className="text-sm text-muted-foreground">暂无转诊</p> : myRefs.map((r) => (
+      {myRefs.length === 0 ? <p className="text-sm text-muted-foreground">按评估与服务需要办理转诊</p> : myRefs.map((r) => (
         <div key={r.id} className="mb-2 rounded-lg border p-3 text-sm">
           <p className="font-medium">{r.direction} · {r.from_hospital} → {r.to_community} <span className="text-muted-foreground">({r.approval_status === "已转出" && r.status === "已接收" ? "上级医院已接收" : r.approval_status ?? r.status})</span></p>
           <p className="text-muted-foreground">{r.reason}</p>
@@ -420,7 +420,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
               </Card>
               <Card className="flex-1 rounded-2xl border-0 p-5 shadow-soft">
                 <Head icon={Clock} title="近期动态" badge={<span className="ml-2 text-sm font-normal text-muted-foreground">最近2天</span>} action={<More to="training" />} />
-                {recent.length === 0 ? <p className="text-sm text-muted-foreground">暂无记录</p> : <ol className="text-sm">
+                {recent.length === 0 ? <p className="text-sm text-muted-foreground">建档完成，等待初筛评估</p> : <ol className="text-sm">
                   {recent.map((r, i) => <li key={i} className="relative flex gap-4 pb-3 pl-6 last:pb-0">{i < recent.length - 1 && <span className="absolute left-[5px] top-3 h-full w-0.5 bg-primary/15" />}<span className={`absolute left-0 top-1.5 h-3 w-3 rounded-full ${i === 0 ? "bg-primary" : "bg-primary/30"}`} /><span className="w-28 shrink-0 tabular-nums">{r.at}</span><span className="min-w-0 truncate">{r.text}</span></li>)}
                 </ol>}
               </Card>
@@ -429,9 +429,9 @@ export default function CognitiveDetail({ role }: { role: Role }) {
               <Head icon={ShieldCheck} title="关键记录" />
               <div className="flex-1 space-y-3">
               <KeyRow icon={BarChart3} title="量表评估" sub={`医生评 MMSE ${p.mmse ?? "—"}/30 · MoCA ${p.moca ?? "—"}/30`} to="scale" />
-              <KeyRow icon={ClipboardCheck} title="方案记录" sub={advice?.summary ? (planConfirmed(p) ? "当前方案已确认" : "当前方案待审核") : "暂无方案"} to="plan" />
+              <KeyRow icon={ClipboardCheck} title="方案记录" sub={advice?.summary ? (planConfirmed(p) ? "当前方案已确认" : "当前方案待审核") : "评估后制定方案"} to="plan" />
               <KeyRow icon={Dumbbell} title="训练记录" sub={role === "community" ? `近7天 ${week} 次 · 训练站 ${trainings.length} 条 · 患者打卡 ${familyTrainings.length} 条` : `近7天 ${week} 次 · 累计 ${trainings.length} 次`} to="training" />
-              <KeyRow icon={Repeat} title="转诊记录" sub={myRefs.length ? `共 ${myRefs.length} 次 · 最近：${myRefs[0].direction}（${myRefs[0].approval_status ?? myRefs[0].status}）` : "暂无转诊"} to="referral" />
+              <KeyRow icon={Repeat} title="转诊记录" sub={myRefs.length ? `共 ${myRefs.length} 次 · 最近：${myRefs[0].direction}（${myRefs[0].approval_status ?? myRefs[0].status}）` : "按评估与服务需要办理"} to="referral" />
               </div>
             </Card>
           </div>
@@ -445,7 +445,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
         </div></div>
         {role === "nurse" && <Card className="p-4 shadow-soft">
           <p className="mb-2 text-sm font-semibold">已推送宣教</p>
-          {edu.length === 0 ? <p className="text-sm text-muted-foreground">暂无</p> : edu.map((e) => (
+          {edu.length === 0 ? <p className="text-sm text-muted-foreground">可按健康需求推送宣教</p> : edu.map((e) => (
             <div key={e.id} className="flex justify-between border-b py-1.5 text-sm last:border-0">
               <span>{e.education_items?.title}</span><span className="text-muted-foreground">{e.status}</span>
             </div>
