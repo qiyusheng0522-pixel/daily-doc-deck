@@ -1,4 +1,5 @@
 <!-- AGENT-MEMORY:BEGIN -->
+- Province primary charts and SVG geographic map share ScreenChart/ECharts with ResizeObserver and disposal, so rendering, tooltip styling and lifecycle stay consistent; scrolling feeds pause for interaction/reduced motion and reset on changed aggregate evidence without fabricating live clinical events.
 - All three mandated regulatory rates use regulatoryMetrics evidence-based, person-deduplicated cohorts; shared RegulatoryIndicators renders counts and definitions across levels, because screening positivity, assessed suspicion and formal visits are distinct events. Demo aggregates must stay explicitly labeled until source evidence is connected.
 - Province cockpit uses shared illustrative activity aggregates for summary, regional ranking/feed and linked period charts, separating screening positivity, pending assessment and three assessed risk levels; keep demo labels and no inferred diagnoses. Map dominates the grid; ProvinceScreen owns level/fullscreen controls and expandable mandated indicators so navigation and definitions remain available.
 <!-- AGENT-MEMORY:END -->
