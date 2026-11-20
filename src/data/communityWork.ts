@@ -1,9 +1,9 @@
 import { planConfirmed } from "@/data/cognitive";
-import { filterCommunityPatients } from "@/data/communityReception";
+import { filterCommunityPatients, pendingCommunityReferral } from "@/data/communityReception";
 import type { Patient, Referral, NurseTask, Followup } from "@/data/patients";
 
 export const AD8_REQUEST = "AD-8 初筛评估申请";
-export type WorkKind = "待评估" | "待宣教" | "待随访" | "待训练";
+export type WorkKind = "待评估" | "待宣教" | "待随访" | "待训练" | "待接收";
 export type CommunityWork = { id: string; patientId: string; kind: WorkKind; title: string; time: string; to: string };
 type Training = { patient_id: string; activity: string; trained_on: string; completion: string };
 type PlanTraining = { activity: string; frequency?: string; setting?: string; dates?: string[]; date?: string };
@@ -36,6 +36,10 @@ export function communityWorkQueues(patients: Patient[], referrals: Referral[], 
   const training = community.filter(p => trainingDueToday(p, trainings, today).length > 0);
   const name = (id: string) => community.find(p => p.id === id)?.name ?? "患者";
   const list: CommunityWork[] = [
+    ...community.flatMap(p => {
+      const referral = pendingCommunityReferral(referrals, p.id);
+      return referral ? [{ id: `receive-${p.id}`, patientId: p.id, kind: "待接收" as const, title: `${p.name} · 上级下转待接收`, time: referral.created_at.slice(0, 10), to: "/community/patients?tab=new" }] : [];
+    }),
     ...assessment.map(p => ({ id: `assessment-${p.id}`, patientId: p.id, kind: "待评估" as const, title: `${p.name} · AD-8 初筛评估`, time: "待评估", to: `/community/patients/${p.id}?tab=scale&action=ad8` })),
     ...education.map(t => ({ id: `education-${t.id}`, patientId: t.patient_id, kind: "待宣教" as const, title: `${name(t.patient_id)} · ${t.title}`, time: t.due_text ?? "待宣教", to: `/community/education?task=${t.id}` })),
     ...followup.map(f => ({ id: `followup-${f.id}`, patientId: f.patient_id, kind: "待随访" as const, title: `${name(f.patient_id)} · ${f.item}`, time: f.status, to: `/community/followup?patient=${f.patient_id}` })),

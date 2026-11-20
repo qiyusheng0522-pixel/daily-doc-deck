@@ -1,10 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { AD8_REQUEST, communityWorkQueues, trainingDueToday } from "@/data/communityWork";
-import type { Patient, NurseTask, Followup } from "@/data/patients";
+import type { Patient, NurseTask, Followup, Referral } from "@/data/patients";
 
 const patient = (id: string, patch: Partial<Patient> = {}) => ({ id, name: id, community_stage: "新接收", cognitive_risk: "中风险", ad8: null, source: "小市社区", gender: "女", ai_plan: null, ...patch } as Patient);
 const trainingPatient = (frequency: string) => patient("训练", { ad8: 2, ai_plan_at: "2026-11-18T00:00:00Z", ai_plan_confirmed_at: "2026-11-19T00:00:00Z", ai_plan: { cycle_weeks: 8, training: [{ activity: "记忆训练", frequency, setting: "站内小组" }] } });
 describe("社区工作台共享任务", () => {
+  it("原有下转待接收事项保留并按患者去重，去处理进入待接收名单", () => {
+    const referral = { id: "r1", patient_id: "接收", direction: "下转", status: "待接收", created_at: "2026-11-20" } as Referral;
+    const queues = communityWorkQueues([patient("接收", { ad8: 3 })], [referral, { ...referral, id: "r2" }], [], [], [], "2026-11-20");
+    expect(queues.list).toHaveLength(1);
+    expect(queues.list[0].kind).toBe("待接收");
+    expect(queues.list[0].to).toBe("/community/patients?tab=new");
+  });
   it("待评估包含社区未初筛建档与家庭申请，重复申请按人去重", () => {
     const tasks = ["1", "2"].map(id => ({ id, patient_id: "家庭", kind: "待办", status: "待执行", title: AD8_REQUEST } as NurseTask));
     const queues = communityWorkQueues([patient("社区"), patient("家庭", { ad8: 1 }), patient("已评估", { ad8: 2 })], [], tasks, [], [], "2026-11-20");
