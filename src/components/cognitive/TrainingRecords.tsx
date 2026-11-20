@@ -3,6 +3,7 @@ import { Brain, Crosshair, Route, Images, Grid3x3, ShoppingCart, Monitor, Person
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { patientTrainingCheckins, type PatientTrainingCheckin } from "@/data/trainingSources";
 
 type Rec = { id: string; trained_on: string; training_time?: string | null; domain: string; activity: string; setting: string; duration_min: number; completion: string; feedback?: string | null; record_type?: string | null };
 
@@ -60,10 +61,18 @@ function Row({ r, device }: { r: Rec; device: boolean }) {
 
 const PERIODS = [["30", "近1个月"], ["90", "近3个月"], ["all", "全部"]] as const;
 
-export default function TrainingRecords({ trainings, onAdd }: { trainings: Rec[]; onAdd?: () => void }) {
+export default function TrainingRecords({ trainings, onAdd, familyCheckins, familyLoading, familyError }: { trainings: Rec[]; onAdd?: () => void; familyCheckins?: PatientTrainingCheckin[]; familyLoading?: boolean; familyError?: boolean }) {
   const [period, setPeriod] = useState<string>("30");
   const since = period === "all" ? "" : new Date(Date.now() - Number(period) * 864e5).toLocaleDateString("en-CA");
   const rows = trainings.filter(t => t.trained_on >= since);
+  const family = patientTrainingCheckins(familyCheckins ?? [], since);
+  if (familyCheckins !== undefined) return <section className="space-y-4 p-5">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-3"><h2 className="flex items-center gap-2 text-xl font-bold"><Dumbbell className="h-6 w-6 text-primary" />训练记录（{rows.length + family.length}）</h2><div className="flex items-center gap-2"><select aria-label="时间范围" value={period} onChange={e => setPeriod(e.target.value)} className="h-10 rounded-lg border bg-card px-3 text-sm">{PERIODS.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select>{onAdd && <Button onClick={onAdd}><Plus className="mr-1 h-4 w-4" />添加训练站记录</Button>}</div></div>
+    <div className="grid items-start gap-5 xl:grid-cols-2">
+      <section className="min-w-0"><div className="flex items-center gap-2 border-b pb-3"><Monitor className="h-5 w-5 text-primary" /><h3 className="text-lg font-bold">训练站-训练记录（{rows.length}）</h3></div>{rows.length ? rows.map(r => <div key={r.id}><p className="mt-3 text-xs text-primary">{r.record_type ?? "非设备干预"}</p><Row r={r} device={r.record_type === "设备训练"} /></div>) : <p className="py-6 text-sm text-muted-foreground">暂无训练站记录</p>}</section>
+      <section className="min-w-0"><div className="flex items-center gap-2 border-b pb-3"><PersonStanding className="h-5 w-5 text-secondary-foreground" /><h3 className="text-lg font-bold">患者打卡训练记录（{family.length}）</h3></div>{familyLoading ? <p className="py-6 text-sm text-muted-foreground">读取患者打卡…</p> : familyError ? <p className="py-6 text-sm text-destructive">打卡记录读取失败，请稍后重试。</p> : family.length ? family.map(r => <article key={r.id} className="space-y-2 border-b py-4 last:border-0"><div className="flex items-start gap-2"><Brain className="mt-1 h-5 w-5 shrink-0 text-primary" /><h4 className="min-w-0 flex-1 break-words text-base font-semibold">{r.title}</h4><span className="shrink-0 rounded bg-success/10 px-2 py-1 text-xs text-success">已打卡</span></div><p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"><CalendarDays className="h-4 w-4" />{r.recorded_on}<span>· {r.duration_min == null ? "时长未记录" : `${r.duration_min} 分钟`}</span><span>· {r.recorded_by}</span></p>{r.note && <p className="break-words text-sm leading-relaxed">{r.note}</p>}<p className="text-xs text-muted-foreground">提交时间：{new Date(r.created_at).toLocaleString("zh-CN")}</p></article>) : <p className="py-6 text-sm text-muted-foreground">暂无患者认知训练打卡</p>}</section>
+    </div>
+  </section>;
   const device = rows.filter(t => t.record_type === "设备训练"), other = rows.filter(t => t.record_type !== "设备训练");
   const col = (title: string, Icon: React.ElementType, list: Rec[], isDevice: boolean, empty: string) => <section className="overflow-hidden rounded-2xl border bg-card">
     <div className="flex items-center justify-between bg-primary/5 px-4 py-2"><p className="flex items-center gap-2 text-lg font-bold"><Icon className="h-6 w-6 text-primary" />{title}（{list.length}）</p><Ring value={completionRate(list, isDevice)} label={isDevice ? "平均完成率" : "完成率"} /></div>

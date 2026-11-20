@@ -60,7 +60,7 @@ export function prescribedBedtime(tasks: FamilyTask[]): string | null {
   return null;
 }
 export function useFamilyCheckins(patientId?: string) {
-  return useQuery({ queryKey: ["family-checkins", patientId], enabled: !!patientId, queryFn: async () => {
+  return useQuery({ queryKey: ["family-checkins", patientId], enabled: !!patientId, refetchInterval: 15000, queryFn: async () => {
     const { data, error } = await supabase.from("family_task_checkins").select("*").eq("patient_id", patientId ?? "").order("created_at", { ascending: false });
     if (error) throw error;
     return data ?? [];

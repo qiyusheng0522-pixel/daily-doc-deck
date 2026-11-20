@@ -31,6 +31,8 @@ import { scalePresentation, type PresentedScale } from "@/data/scalePresentation
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AD8_REQUEST } from "@/data/communityWork";
+import { useFamilyCheckins } from "@/data/familyTasks";
+import { patientTrainingCheckins } from "@/data/trainingSources";
 
 type Role = "doctor" | "nurse" | "community";
 
@@ -68,6 +70,8 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const [grade, setGrade] = useState<null | { risk: "低风险" | "中风险" | "高风险"; refer: boolean; plan: string }>(null);
   const [saving, setSaving] = useState(false);
   const { data: trainings = [] } = useTrainingRecords(id);
+  const { data: checkins = [], isLoading: checkinsLoading, isError: checkinsError } = useFamilyCheckins(role === "community" ? id : undefined);
+  const familyTrainings = role === "community" ? patientTrainingCheckins(checkins) : [];
   const { data: docs = [] } = usePatientDocuments(id);
   const [upDept, setUpDept] = useState<(typeof DIAG_DEPTS)[number]>(DIAG_DEPTS[0]);
   const [upDoc, setUpDoc] = useState<string>(DEPT_DOCTORS[DIAG_DEPTS[0]][0]);
@@ -239,6 +243,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const advice = p.ai_plan as Advice | null;
   const recent = [
     ...trainings.map((t) => ({ at: `${t.trained_on}`, text: `${t.domain} · ${t.activity}（${t.duration_min} 分钟）` })),
+    ...familyTrainings.map(t => ({ at: t.recorded_on, text: `患者打卡 · ${t.title}（${t.duration_min ?? "未记录"} 分钟）` })),
     ...myRefs.map((r) => ({ at: r.created_at?.slice(0, 10) ?? "", text: `${r.direction}：${r.from_hospital} → ${r.to_community}（${r.approval_status ?? r.status}）` })),
     ...docs.map((d) => ({ at: d.created_at.slice(0, 10), text: `上传${d.kind}` })),
   ].filter((x) => x.at).sort((a, b) => b.at.localeCompare(a.at)).filter((x, _i, arr) => (new Date(arr[0].at).getTime() - new Date(x.at).getTime()) <= 864e5).slice(0, 4);
@@ -321,7 +326,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       ))}
     </Card>
   );
-  const trainingCard = <TrainingRecords trainings={trainings as never} onAdd={role === "community" ? () => setAddTraining(true) : undefined} />;
+  const trainingCard = <TrainingRecords trainings={trainings} familyCheckins={role === "community" ? checkins : undefined} familyLoading={checkinsLoading} familyError={checkinsError} onAdd={role === "community" ? () => setAddTraining(true) : undefined} />;
   const KeyRow = ({ icon: Icon, title, sub, to }: { icon: typeof User; title: string; sub: string; to: string }) => (
     <button type="button" onClick={() => setTab(to)} className="flex w-full items-center gap-3 rounded-2xl border bg-card p-4 text-left transition-colors hover:bg-muted/50">
       <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><Icon className="h-7 w-7" /></span>
@@ -329,7 +334,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
       <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
     </button>
   );
-  const week = trainings.filter((t) => Date.now() - new Date(t.trained_on).getTime() < 7 * 864e5).length;
+  const week = [...trainings.map(t => t.trained_on), ...familyTrainings.map(t => t.recorded_on)].filter(date => Date.now() - new Date(date).getTime() < 7 * 864e5).length;
 
   return (
     <div className="flex flex-col overflow-hidden bg-muted/30" style={{ height: 768 }}>
@@ -425,7 +430,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
               <div className="flex-1 space-y-3">
               <KeyRow icon={BarChart3} title="量表评估" sub={`医生评 MMSE ${p.mmse ?? "—"}/30 · MoCA ${p.moca ?? "—"}/30`} to="scale" />
               <KeyRow icon={ClipboardCheck} title="方案记录" sub={advice?.summary ? (planConfirmed(p) ? "当前方案已确认" : "当前方案待审核") : "暂无方案"} to="plan" />
-              <KeyRow icon={Dumbbell} title="训练记录" sub={`近7天 ${week} 次 · 累计 ${trainings.length} 次`} to="training" />
+              <KeyRow icon={Dumbbell} title="训练记录" sub={role === "community" ? `近7天 ${week} 次 · 训练站 ${trainings.length} 条 · 患者打卡 ${familyTrainings.length} 条` : `近7天 ${week} 次 · 累计 ${trainings.length} 次`} to="training" />
               <KeyRow icon={Repeat} title="转诊记录" sub={myRefs.length ? `共 ${myRefs.length} 次 · 最近：${myRefs[0].direction}（${myRefs[0].approval_status ?? myRefs[0].status}）` : "暂无转诊"} to="referral" />
               </div>
             </Card>
