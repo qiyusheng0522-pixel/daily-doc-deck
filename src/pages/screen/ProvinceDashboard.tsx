@@ -42,7 +42,6 @@ export default function ProvinceDashboard({ nav, onOverview }: { nav: string; on
   const [updated, setUpdated] = useState(() => new Date());
   useEffect(() => { const timer = setInterval(() => setUpdated(new Date()), 60000); return () => clearInterval(timer); }, []);
   const activities = activityDays(1, updated);
-  const recentActivities = activities.filter(r => r.city === city);
   const periodActivities = activityDays(period, updated).filter(r => r.city === city);
   const [hovered, setHovered] = useState<string>();
   const [drill, setDrill] = useState<Drill>();
@@ -82,7 +81,7 @@ export default function ProvinceDashboard({ nav, onOverview }: { nav: string; on
         <div className="flex flex-wrap items-center justify-between gap-2 border-y border-scr-line/40 px-3 py-2"><div><b className="text-lg text-scr-gold">{city}市</b><span className="ml-3 text-[16.8px] text-scr-dim">训练站 {region.stations} 个 · 服务 {region.elders} 万人</span></div><Button variant="screenQuiet" size="sm" onClick={() => open({key:"stations",region:city})}>区域详情<ChevronRight className="ml-1 h-4 w-4" /></Button></div>
         <ScreeningFeed rows={activities} city={city} onPick={select} />
       </div>
-      <ProvinceRecent rows={periodActivities} recentRows={recentActivities} city={city} period={period} onPeriod={setPeriod} />
+      <ProvinceRecent rows={periodActivities} recentRows={activities} city={city} period={period} onPeriod={setPeriod} />
     </div>
     {drill && <aside role="dialog" aria-modal="false" aria-label={title} onKeyDown={e => { if (e.key === "Escape") close(); }} className="province-detail fixed bottom-0 right-0 top-0 z-40 flex w-full max-w-[480px] flex-col border-l border-scr-cyan/60 bg-scr-bg text-scr-text">
       <header className="flex items-center gap-2 border-b border-scr-line/40 p-4">{history.length > 0 && <Button variant="screen" size="icon" aria-label="返回上一级" onClick={() => { const previous = history[history.length-1]; setDrill(previous); setHistory(h=>h.slice(0,-1)); setSearch(""); }}><ArrowLeft /></Button>}<div className="min-w-0 flex-1"><h2 className="text-lg font-bold">{title}</h2><p className="text-xs text-scr-dim">{drill.region ? `${drill.region}市` : "江苏省"} · {drill.period ?? "2026年1—10月"} · 演示数据</p></div><Button ref={closeRef} variant="screen" size="icon" aria-label="关闭详情" onClick={close}><X /></Button></header>

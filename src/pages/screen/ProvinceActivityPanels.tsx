@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Activity as ActivityIcon, ChevronRight } from "lucide-react";
+import { Activity as ActivityIcon, Brain, ChevronRight, HeartHandshake, Hospital, ShieldCheck, ShieldAlert, Users, UserCheck, Search, type LucideIcon } from "lucide-react";
 import ScreenChart, { chartColors } from "./ScreenChart";
 import { Button } from "@/components/ui/button";
 import { C, Panel } from "./screenKit";
@@ -12,14 +12,47 @@ const DIMENSIONS = [
   { name: "时间定向", value: 79 }, { name: "即时记忆", value: 80 }, { name: "延迟记忆", value: 51 }, { name: "注意力", value: 90 },
 ];
 
-export function ProvinceSummary({ rows, city, onPick }: { rows: Activity[]; city: string; onPick: (city: string) => void }) {
+function ScreenMetric({ name, value, unit, icon: Icon }: { name: string; value: number | string; unit?: string; icon: LucideIcon }) {
+  return <div className="screen-metric flex min-w-0 items-center gap-3">
+    <span className="screen-metric-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-full" aria-hidden="true"><Icon className="!h-6 !w-6" strokeWidth={1.6} /></span>
+    <div className="min-w-0"><b className="screen-metric-value block whitespace-nowrap text-[33.6px] font-bold leading-tight tabular-nums text-scr-text">{value}{unit && <span className="ml-1 text-[16.8px] font-normal text-scr-dim">{unit}</span>}</b><span className="mt-1 block text-[16.8px] leading-relaxed text-scr-dim">{name}</span></div>
+  </div>;
+}
+
+function ProvinceCoreIndicators() {
+  const [expandedIndicator, setExpandedIndicator] = useState<IndicatorKey>();
+  const provinceCounts = demoRegulatoryCounts(276000);
+  const selectedIndicator = INDICATORS.find(i => i.key === expandedIndicator);
+  const icons = [Brain, HeartHandshake, Hospital];
+  return <Panel title="全省核心监管指标" sub="年度累计" className="shrink-0">
+    <div className="divide-y divide-scr-line/20">{INDICATORS.map((indicator, index) => {
+      const result = indicatorResult(provinceCounts, indicator.key);
+      return <Button key={indicator.key} variant="screenQuiet" aria-expanded={expandedIndicator === indicator.key} className="h-auto w-full justify-start whitespace-normal rounded-none px-1 py-3 text-left" onClick={() => setExpandedIndicator(expandedIndicator === indicator.key ? undefined : indicator.key)}>
+        <ScreenMetric name={["认知初筛率", "阳性干预指导率", "疑似人群就诊率"][index]} value={result.value === null ? "—" : `${result.value}%`} icon={icons[index]} />
+      </Button>;
+    })}</div>
+    {selectedIndicator && <div className="space-y-2 border-t border-scr-line/20 py-3 text-[16.8px] leading-relaxed" aria-label="监管指标统计口径"><p>分子：{selectedIndicator.numeratorRule}</p><p>分母：{selectedIndicator.denominatorRule}</p><p className="text-scr-dim">{selectedIndicator.note}</p></div>}
+    <p className="pt-2 text-[16.8px] text-scr-dim">江苏省 · 2026年1—10月 · 按人去重 · 演示数据</p>
+  </Panel>;
+}
+
+function ProvinceScreeningOverview({ rows }: { rows: Activity[] }) {
   const totals = activityTotals(rows);
+  return <Panel title="全省筛查概览" sub="近24小时" className="shrink-0">
+    <div className="grid grid-cols-2 gap-x-3 gap-y-5 py-3">{[
+      { name: "筛查人数", value: totals.screened, icon: Users },
+      { name: "低风险", value: totals.low, icon: ShieldCheck },
+      { name: "中风险", value: totals.medium, icon: ActivityIcon },
+      { name: "高风险", value: totals.high, icon: ShieldAlert },
+    ].map(item => <ScreenMetric key={item.name} {...item} unit="人" />)}</div>
+    <p className="border-t border-scr-line/30 pt-2 text-[16.8px] text-scr-dim">分级新增按评估结果统计 · 阳性待评估 {totals.pending} 人</p>
+  </Panel>;
+}
+
+export function ProvinceSummary({ rows, city, onPick }: { rows: Activity[]; city: string; onPick: (city: string) => void }) {
   const ranking = [...new Set(rows.map(r => r.city))].map(name => ({ name, community: rows.find(r => r.city === name)?.community, ...activityTotals(rows.filter(r => r.city === name)) })).sort((a, b) => b.screened - a.screened);
   return <div className="flex min-h-0 min-w-0 flex-col gap-3">
-    <Panel title="全省筛查概览" sub="近24小时" className="shrink-0">
-      <div className="grid grid-cols-4 gap-1 py-3 text-center">{[{ name: "筛查人数", value: totals.screened, cls: "text-scr-cyan" }, { name: "低风险", value: totals.low, cls: "text-scr-green" }, { name: "中风险", value: totals.medium, cls: "text-scr-gold" }, { name: "高风险", value: totals.high, cls: "text-scr-red" }].map(item => <div key={item.name}><b className={`block text-[33.6px] font-black tabular-nums ${item.cls}`}>{item.value}</b><span className="mt-1 block text-[16.8px] text-scr-dim">{item.name}</span></div>)}</div>
-      <p className="border-t border-scr-line/30 pt-2 text-[16.8px] text-scr-dim">分级新增按评估结果统计 · 阳性待评估 {totals.pending} 人</p>
-    </Panel>
+    <ProvinceCoreIndicators />
     <Panel title="认知功能维度分布" sub="正常表现占比" className="min-h-[330px] flex-1">
       <div className="h-full min-h-[285px]"><ScreenChart label="认知功能维度分布" option={{ radar: { indicator: DIMENSIONS.map(d => ({ name: d.name, max: 100 })), radius: "62%", center: ["50%", "51%"], axisName: { color: chartColors().text, fontSize: 17 }, splitLine: { lineStyle: { color: chartColors().line, opacity: .35 } }, splitArea: { show: false } }, series: [{ type: "radar", data: [{ value: DIMENSIONS.map(d => d.value), name: "正常表现占比" }], symbolSize: 6, lineStyle: { color: chartColors().cyan, width: 2 }, itemStyle: { color: chartColors().cyan }, areaStyle: { color: chartColors().cyan, opacity: .15 } }] }} /></div>
     </Panel>
@@ -56,31 +89,25 @@ export function ScreeningFeed({ rows, city, onPick }: { rows: Activity[]; city: 
 
 export function ProvinceRecent({ rows, recentRows, city, period, onPeriod }: { rows: Activity[]; recentRows: Activity[]; city: string; period: Period; onPeriod: (period: Period) => void }) {
   const [distribution, setDistribution] = useState<"risk" | "concern">("risk");
-  const [expandedIndicator, setExpandedIndicator] = useState<IndicatorKey>();
-  const provinceCounts = demoRegulatoryCounts(276000);
-  const selectedIndicator = INDICATORS.find(i => i.key === expandedIndicator);
-  const totals = activityTotals(rows), recent = activityTotals(recentRows), trend = activityTrend(rows);
+  const totals = activityTotals(rows), trend = activityTrend(rows);
   const risks = [{ name: "低风险", value: totals.low }, { name: "中风险", value: totals.medium }, { name: "高风险", value: totals.high }, { name: "待进一步评估", value: totals.pending }];
   const data = distribution === "risk" ? risks : concernDistribution(rows);
   const colors = distribution === "risk" ? [C.green, C.gold, C.red, C.blue] : COLORS;
   const denominator = data.reduce((sum, r) => sum + r.value, 0);
   return <div className="province-right flex min-h-0 min-w-0 flex-col gap-3">
-    <Panel title="全省核心监管指标" sub="年度累计" className="shrink-0">
-      <div className="divide-y divide-scr-line/20">{INDICATORS.map((indicator, index) => {
-        const result = indicatorResult(provinceCounts, indicator.key);
-        return <Button key={indicator.key} variant="screenQuiet" aria-expanded={expandedIndicator === indicator.key} className="h-auto w-full justify-between gap-3 whitespace-normal rounded-none px-1 py-3 text-left" onClick={() => setExpandedIndicator(expandedIndicator === indicator.key ? undefined : indicator.key)}>
-          <span className="text-[20.16px] text-scr-text">{["认知初筛率", "阳性干预指导率", "疑似人群就诊率"][index]}</span>
-          <b className="shrink-0 text-[33.6px] tabular-nums text-scr-text">{result.value === null ? "—" : `${result.value}%`}</b>
-        </Button>;
-      })}</div>
-      {selectedIndicator && <div className="space-y-2 border-t border-scr-line/20 py-3 text-[16.8px] leading-relaxed" aria-label="监管指标统计口径"><p>分子：{selectedIndicator.numeratorRule}</p><p>分母：{selectedIndicator.denominatorRule}</p><p className="text-scr-dim">{selectedIndicator.note}</p></div>}
-      <p className="pt-2 text-[16.8px] text-scr-dim">江苏省 · 2026年1—10月 · 按人去重 · 演示数据</p>
-    </Panel>
+    <ProvinceScreeningOverview rows={recentRows} />
     <Panel title={`${period === 1 ? "今日" : `近${period}日`}筛查趋势`} sub={`${city}市 · 人`} className="min-h-[290px] flex-1">
       <div className="screen-segments mb-3 flex flex-wrap gap-1" aria-label="趋势统计周期">{PERIODS.map(p => <Button key={p} variant="screenQuiet" size="sm" aria-pressed={period === p} className={`h-7 px-2 text-[16.8px] ${period === p ? "text-scr-cyan" : "text-scr-dim"}`} onClick={() => onPeriod(p)}>{p === 1 ? "24小时" : `${p}日`}</Button>)}</div>
       <div className="h-[calc(100%-48px)] min-h-[200px]"><ScreenChart label="区域筛查趋势" option={{ grid: { top: 12, bottom: 30, left: 36, right: 8 }, tooltip: { trigger: "axis" }, xAxis: { type: "category", data: trend.map(d => d.date), axisLabel: { color: chartColors().dim, fontSize: 17 }, axisLine: { lineStyle: { color: chartColors().line } }, axisTick: { show: false } }, yAxis: { type: "value", axisLabel: { color: chartColors().dim, fontSize: 17 }, splitLine: { lineStyle: { color: chartColors().line, opacity: .2 } } }, series: [{ type: "bar", name: "筛查人数", data: trend.map(d => d.screened), barMaxWidth: 22, itemStyle: { color: chartColors().cyan, borderRadius: [3,3,0,0] } }, { type: "bar", name: "初筛阳性", data: trend.map(d => d.positive), barMaxWidth: 22, itemStyle: { color: chartColors().blue, borderRadius: [3,3,0,0] } }] }} /></div>
     </Panel>
-    <Panel title="筛查结果" sub={`近${period === 1 ? "24小时" : `${period}日`}`} className="shrink-0"><div className="grid grid-cols-2 gap-3 px-2 py-2">{[{ name: "初筛阴性", v: totals.negative, cls: "text-scr-green" }, { name: "初筛阳性", v: totals.positive, cls: "text-scr-red" }, { name: "已完成风险分级", v: totals.low + totals.medium + totals.high, cls: "text-scr-cyan" }, { name: "待进一步评估", v: totals.pending, cls: "text-scr-gold" }].map(r => <div key={r.name}><b className={`block text-[30px] font-black ${r.cls}`}>{r.v}<span className="ml-1 text-[16.8px] font-normal text-scr-dim">人</span></b><span className="text-[16.8px] text-scr-dim">{r.name}</span></div>)}</div></Panel>
+    <Panel title="筛查结果" sub={`近${period === 1 ? "24小时" : `${period}日`}`} className="shrink-0">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-5 py-3">{[
+        { name: "初筛阴性", value: totals.negative, icon: ShieldCheck },
+        { name: "初筛阳性", value: totals.positive, icon: ShieldAlert },
+        { name: "已完成风险分级", value: totals.low + totals.medium + totals.high, icon: UserCheck },
+        { name: "待进一步评估", value: totals.pending, icon: Search },
+      ].map(item => <ScreenMetric key={item.name} {...item} unit="人" />)}</div>
+    </Panel>
     <Panel title="区域分布" sub={`${city}市`} className="min-h-[370px] flex-[1.2]">
       <div className="screen-segments flex gap-1" aria-label="分布类别">{[{ key: "risk" as const, name: "认知风险" }, { key: "concern" as const, name: "关注项" }].map(item => <Button key={item.key} variant="screenQuiet" size="sm" aria-pressed={distribution === item.key} className={`h-7 px-3 text-[16.8px] ${distribution === item.key ? "text-scr-cyan" : "text-scr-dim"}`} onClick={() => setDistribution(item.key)}>{item.name}</Button>)}</div>
       <div className="relative h-[210px]"><ScreenChart label="区域风险与关注项分布" option={{ series: [{ type: "pie", radius: ["56%", "88%"], center: ["50%", "50%"], label: { show: false }, itemStyle: { borderWidth: 2, borderColor: chartColors().panel }, data: data.map((r, i) => ({ ...r, itemStyle: { color: i % 2 === 0 ? chartColors().cyan : chartColors().blue, opacity: 1 - i * .16 } })) }] }} /><div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><b className="text-[33.6px] text-scr-text">{denominator}</b><span className="text-[16.8px] text-scr-dim">初筛阳性</span></div></div>
