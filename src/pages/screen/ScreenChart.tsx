@@ -2,6 +2,13 @@ import { useEffect, useRef } from "react";
 import * as echarts from "echarts";
 import type { EChartsOption } from "echarts";
 
+export function staticChartOption(option: EChartsOption): EChartsOption {
+  const withoutTransitions = <T extends object>(entry: T) => ({ ...entry, animation: false, stateAnimation: { duration: 0, delay: 0 } });
+  const series = option.series ? (Array.isArray(option.series) ? option.series : [option.series]).map(withoutTransitions) : undefined;
+  const geo = option.geo ? (Array.isArray(option.geo) ? option.geo : [option.geo]).map(withoutTransitions) : undefined;
+  return { ...option, animation: false, animationDuration: 0, animationDurationUpdate: 0, ...(series ? { series } : {}), ...(geo ? { geo } : {}) };
+}
+
 export function chartColors() {
   const root = document.querySelector(".province-clean") ?? document.documentElement;
   const css = getComputedStyle(root);
@@ -29,7 +36,12 @@ export default function ScreenChart({ option, label, onSelect }: { option: EChar
   }, []);
   useEffect(() => {
     const c = chartColors();
-    chart.current?.setOption({ textStyle: { color: c.text, fontSize: 17 }, animation: false, tooltip: { backgroundColor: c.panel, borderColor: c.line, textStyle: { color: c.text, fontSize: 17 } }, ...option }, true);
+    const instance = chart.current;
+    if (!instance || instance.isDisposed()) return;
+    // Global animation:false does not disable ECharts emphasis/select transitions.
+    // Stop any in-flight gradient interpolation before replacing its displayables.
+    instance.getZr().storage.traverse(element => element.stopAnimation());
+    instance.setOption(staticChartOption({ textStyle: { color: c.text, fontSize: 17 }, tooltip: { backgroundColor: c.panel, borderColor: c.line, textStyle: { color: c.text, fontSize: 17 } }, ...option }), { notMerge: true, lazyUpdate: false });
   }, [option]);
   return <div ref={host} role="img" aria-label={label} className="h-full min-h-0 w-full" />;
 }
