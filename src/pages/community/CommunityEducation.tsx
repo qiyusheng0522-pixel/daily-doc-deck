@@ -8,22 +8,16 @@ import { toast } from "@/hooks/use-toast";
 import ActionSheet from "@/components/nurse/ActionSheet";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEducationItems, usePatients, usePushEducation } from "@/data/patients";
-
-const todos = [
-  { stage: "新建档", color: "bg-accent/10 text-accent border-accent/30", todos: [
-    { title: "家庭血压监测 · 单人推送", patient: "张伟 · 小市社区", content: "《家庭血压监测要点》", due: "今日 16:00" },
-  ] },
-  { stage: "随访中", color: "bg-warning/10 text-warning border-warning/30", todos: [
-    { title: "护脑饮食(MIND)指南 · 多人推送", patient: "认知训练小组 · 12 人", content: "《低盐低脂饮食建议》", due: "明日 10:00" },
-  ] },
-  { stage: "复诊期", color: "bg-success/10 text-success border-success/30", todos: [
-    { title: "认知训练居家坚持 · 单人推送", patient: "刘秀英 · 小市社区", content: "《居家认知训练小贴士》", due: "明日 09:00" },
-  ] },
-];
-
-
+import { useCommunityWork } from "@/data/useCommunityWork";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 
 const CommunityEducation = () => {
+  const work = useCommunityWork();
+  const qc = useQueryClient();
+  const [params] = useSearchParams();
+  const [activeTask, setActiveTask] = useState<string | null>(null);
   const [tab, setTab] = useState<"todo" | "library">("todo");
   const { data: library = [] } = useEducationItems();
   const { data: patients = [] } = usePatients("community");
@@ -33,13 +27,13 @@ const CommunityEducation = () => {
   const [picked, setPicked] = useState<string[]>([]);
   const [q, setQ] = useState("");
   const [lq, setLq] = useState("");
-  const open = (c: { id: string; title: string }, m: "single" | "batch") => { setTarget(c); setMode(m); setPicked([]); setQ(""); };
+  const open = (c: { id: string; title: string }, m: "single" | "batch") => { setTarget(c); setMode(m); if (!activeTask) setPicked([]); setQ(""); };
   const toggle = (id: string) => setPicked((p) => mode === "single" ? [id] : p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
   const shown = patients.filter((p) => !q || p.name.includes(q));
   const confirm = () => {
     if (!target) return;
     push.mutate({ patientIds: picked, itemId: target.id }, {
-      onSuccess: () => { toast({ title: mode === "single" ? "已推送" : `已批量推送 ${picked.length} 人`, description: target.title }); setTarget(null); },
+      onSuccess: async () => { const task = work.education.find(t => t.id === activeTask); if (task && picked.includes(task.patient_id)) { const { error } = await supabase.from("nurse_tasks").update({ status: "已完成" }).eq("id", task.id); if (error) toast({ title: "已推送，待办更新失败", description: error.message }); await qc.invalidateQueries({ queryKey: ["nurse-tasks"] }); setActiveTask(null); } toast({ title: mode === "single" ? "已推送" : `已批量推送 ${picked.length} 人`, description: target.title }); setTarget(null); },
       onError: (e) => toast({ title: "推送失败", description: (e as Error).message, variant: "destructive" }),
     });
   };
@@ -60,43 +54,14 @@ const CommunityEducation = () => {
         ))}
       </div>
 
-      {tab === "todo" && (
-        <>
-          <Card className="bg-gradient-card p-3 shadow-soft">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold">宣教待办</p>
-                <p className="mt-0.5 text-[15.4px] text-muted-foreground">按随访阶段自动推送</p>
-              </div>
-              <Badge variant="destructive" className="h-5">{todos.length} 待办</Badge>
-            </div>
-          </Card>
-
-          {todos.map((s) => (
-            <Card key={s.stage} className="overflow-hidden">
-              <div className={`flex items-center justify-between border-b px-4 py-2 ${s.color.split(" ").slice(0, 2).join(" ")}`}>
-                <span className="text-xs font-semibold">{s.stage}</span>
-                <Badge variant="outline" className="h-4 border-current text-[14px]">{s.todos.length} 项</Badge>
-              </div>
-              <div className="divide-y">
-                {s.todos.map((t, i) => (
-                  <div key={i} className="px-4 py-3">
-                    <p className="truncate text-sm font-medium">{t.title}</p>
-                    <p className="mt-0.5 truncate text-[15.4px] text-muted-foreground">{t.patient}</p>
-                    <p className="mt-1 truncate text-[15.4px] text-foreground/70">📖 {t.content}</p>
-                    <div className="mt-2 flex items-center justify-between">
-                      <span className="text-[14px] text-muted-foreground">截止 {t.due}</span>
-                      <Button size="sm" className="h-7 bg-gradient-community text-xs" onClick={() => toast({ title: "已推送", description: t.title })}>
-                        <Send className="mr-1 h-3 w-3" />立即推送
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          ))}
-        </>
-      )}
+      {tab === "todo" && <section className="space-y-3">
+        <h3 className="text-base font-semibold">宣教待办（{work.education.length}）</h3>
+        {!work.education.length && <p className="text-sm text-muted-foreground">暂无待宣教任务</p>}
+        {work.education.filter(t => !params.get("task") || t.id === params.get("task")).map(t => <Card key={t.id} className="flex items-center gap-3 p-4">
+          <div className="min-w-0 flex-1"><p className="font-semibold">{work.community.find(p => p.id === t.patient_id)?.name} · {t.title}</p><p className="mt-1 text-sm text-muted-foreground">{t.due_text ?? "待宣教"}</p></div>
+          <Button variant="outline" onClick={() => { setActiveTask(t.id); setPicked([t.patient_id]); setMode("single"); setTab("library"); }}>去处理</Button>
+        </Card>)}
+      </section>}
 
       {tab === "library" && (
         <Card className="overflow-hidden">

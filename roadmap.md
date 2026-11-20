@@ -14,6 +14,7 @@ Roles: doctor=上级指导中心(鼓楼记忆门诊), nurse=评估师/治疗管�
 - [x] Rule tests: AD-8 ≥2 positive; reassess 1y/6m/3m. Verified nurse 上转 → doctor queue in browser.
 
 ## Open
+- [x] Community workstation: shared four-kind queues and list counts; family request opens community AD-8; deferred intake/save/reload removes assessed patient from pending list. 17 tests passed; temporary records removed. Only explicitly dated/weekday/daily confirmed-plan training is due; undated weekly frequencies are not scheduled. Existing family demo identity remains, no new real-name verification service.
 - [x] Doctor workstation: shared pending-plan and actually-reviewed patient queues; entry/list counts verified as 1 pending and 3 reviewed, both patient links opened; 20 targeted tests passed.
 - [x] Regulatory dashboard: three mandated person-based rates with numerator/denominator and expandable definitions across province/city/county; separate formal visits from consultation and assessed suspicion from positivity. 17 targeted tests and browser detail/three-level checks passed. Figures explicitly remain demonstration aggregates, not connected health-management or visit data.
 - [x] Shared home/tasks/plan checklist derives nutrition/sleep/home training from confirmed model plans, including old plan prose; daily/version check-ins persist with notes and performer. Removed medication tasks and all points; assessment shows four reference-style cards without concern tags. Signed-in save/reload and questionnaire open verified; 91 tests passed. No new model inference or patient-plan changes.

@@ -1,8 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Sparkles, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { useFollowups, sourceLabel, type FollowupStatus } from "@/data/patients";
+import { useCommunityWork } from "@/data/useCommunityWork";
 
 const statusStyle: Record<FollowupStatus, string> = {
   "待随访": "bg-primary/10 text-primary",
@@ -14,11 +15,16 @@ type Props = {
   chatBase: string; // e.g. "/nurse/chat/patient" or "/community/chat/patient"
   gradientClass?: string; // banner gradient
   accentText?: string; // text-primary | text-accent
+  communityOnly?: boolean;
 };
 
-const FollowupScreen = ({ chatBase, gradientClass = "bg-gradient-nurse", accentText = "text-primary" }: Props) => {
+const FollowupScreen = ({ chatBase, gradientClass = "bg-gradient-nurse", accentText = "text-primary", communityOnly = false }: Props) => {
   const navigate = useNavigate();
-  const { data: followups = [], isLoading } = useFollowups();
+  const { data: allFollowups = [], isLoading } = useFollowups();
+  const work = useCommunityWork();
+  const [params] = useSearchParams();
+  const communityIds = new Set(work.community.map(p => p.id));
+  const followups = allFollowups.filter(f => (!communityOnly || communityIds.has(f.patient_id)) && (!communityOnly || !params.get("pending") || f.status !== "已完成") && (!communityOnly || !params.get("patient") || f.patient_id === params.get("patient")));
 
   const count = (s: FollowupStatus) => followups.filter((f) => f.status === s).length;
   const stats = { total: followups.length, pending: count("待随访"), recheck: count("需复访"), done: count("已完成") };

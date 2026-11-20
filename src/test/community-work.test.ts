@@ -1,0 +1,35 @@
+import { describe, expect, it } from "vitest";
+import { AD8_REQUEST, communityWorkQueues, trainingDueToday } from "@/data/communityWork";
+import type { Patient, NurseTask, Followup } from "@/data/patients";
+
+const patient = (id: string, patch: Partial<Patient> = {}) => ({ id, name: id, community_stage: "新接收", cognitive_risk: "中风险", ad8: null, source: "小市社区", gender: "女", ai_plan: null, ...patch } as Patient);
+const trainingPatient = (frequency: string) => patient("训练", { ad8: 2, ai_plan_at: "2026-11-18T00:00:00Z", ai_plan_confirmed_at: "2026-11-19T00:00:00Z", ai_plan: { cycle_weeks: 8, training: [{ activity: "记忆训练", frequency, setting: "站内小组" }] } });
+describe("社区工作台共享任务", () => {
+  it("待评估包含社区未初筛建档与家庭申请，重复申请按人去重", () => {
+    const tasks = ["1", "2"].map(id => ({ id, patient_id: "家庭", kind: "待办", status: "待执行", title: AD8_REQUEST } as NurseTask));
+    const queues = communityWorkQueues([patient("社区"), patient("家庭", { ad8: 1 }), patient("已评估", { ad8: 2 })], [], tasks, [], [], "2026-11-20");
+    expect(queues.assessment.map(p => p.id)).toEqual(["社区", "家庭"]);
+    expect(queues.list.filter(t => t.kind === "待评估")).toHaveLength(2);
+  });
+  it("今天只排方案明确日期、星期或每日的站内训练，不把每周次数臆定为今天", () => {
+    expect(trainingDueToday(trainingPatient("2026-11-20"), [], "2026-11-20")).toHaveLength(1);
+    expect(trainingDueToday(trainingPatient("每周五"), [], "2026-11-20")).toHaveLength(1);
+    expect(trainingDueToday(trainingPatient("每周一"), [], "2026-11-20")).toHaveLength(0);
+    expect(trainingDueToday(trainingPatient("每日"), [], "2026-11-20")).toHaveLength(1);
+    expect(trainingDueToday(trainingPatient("每周1–3次"), [], "2026-11-20")).toHaveLength(0);
+  });
+  it("未确认、未来、过期方案及今日已完成训练不进入待训练", () => {
+    const p = trainingPatient("每日");
+    expect(trainingDueToday({ ...p, ai_plan_confirmed_at: null }, [], "2026-11-20")).toHaveLength(0);
+    expect(trainingDueToday(p, [], "2026-11-17")).toHaveLength(0);
+    expect(trainingDueToday(p, [], "2027-01-20")).toHaveLength(0);
+    expect(trainingDueToday(p, [{ patient_id: p.id, activity: "记忆训练", trained_on: "2026-11-20", completion: "完成" }], "2026-11-20")).toHaveLength(0);
+  });
+  it("首页总清单等于待评估、待宣教、待随访、待训练任务总和", () => {
+    const queues = communityWorkQueues([patient("社区"), trainingPatient("每日")], [], [{ id: "宣教", patient_id: "社区", title: "认知宣教", kind: "宣教", status: "待执行" } as NurseTask], [{ id: "随访", patient_id: "社区", item: "认知随访", status: "待随访" } as Followup], [], "2026-11-20");
+    expect(queues.list).toHaveLength(4);
+    expect(queues.list.map(t => t.kind)).toEqual(["待评估", "待宣教", "待随访", "待训练"]);
+    expect(queues.list.length).toBe(queues.assessment.length + queues.education.length + queues.followup.length + queues.training.length);
+    expect(queues.list[0].to).toContain("action=ad8");
+  });
+});

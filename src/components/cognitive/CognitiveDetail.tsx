@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState, type ReactNode } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Brain, Send, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ import { RISK_PLAN, suggestRisk } from "@/data/cognitive";
 import { scalePresentation, type PresentedScale } from "@/data/scalePresentation";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { AD8_REQUEST } from "@/data/communityWork";
 
 type Role = "doctor" | "nurse" | "community";
 
@@ -53,6 +54,7 @@ const DURATION_OPTIONS = [10, 15, 20, 30, 45];
 export default function CognitiveDetail({ role }: { role: Role }) {
   const { id = "" } = useParams();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const { data: p, isLoading } = usePatient(id);
   const { data: referrals = [] } = useReferrals();
   const { data: edu = [] } = usePatientEducation(id);
@@ -80,8 +82,11 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const [addTraining, setAddTraining] = useState(false);
   const [scaleFocus, setScaleFocus] = useState<string | null>(null);
   const [visitOpen, setVisitOpen] = useState(false);
-  const [tab, setTab] = useState<string>("overview");
+  const [tab, setTab] = useState<string>(params.get("tab") ?? "overview");
   const [edit, setEdit] = useState<null | { kind: "profile" | "assess"; v: Record<string, string> }>(null);
+  useEffect(() => {
+    if (role === "community" && p && params.get("action") === "ad8") setAd8(AD8_ITEMS.map(() => false));
+  }, [role, p?.id, params]);
 
   if (isLoading) return <p className="p-6 text-sm text-muted-foreground">加载中…</p>;
   if (!p) return <p className="p-6 text-sm text-muted-foreground">未找到该患者档案</p>;
@@ -170,10 +175,14 @@ export default function CognitiveDetail({ role }: { role: Role }) {
     if (!ad8) return;
     const total = ad8.filter(Boolean).length;
     setSaving(true);
-    await supabase.from("scale_assessments").insert({ patient_id: p.id, scale: "ad8", items: Object.fromEntries(AD8_ITEMS.map((t, i) => [t, ad8[i] ? 1 : 0])), total, assessed_by: "社区护理康复" });
+    const { error: assessmentError } = await supabase.from("scale_assessments").insert({ patient_id: p.id, scale: "ad8", items: Object.fromEntries(AD8_ITEMS.map((t, i) => [t, ad8[i] ? 1 : 0])), total, assessed_by: "社区护理康复" });
+    if (assessmentError) { setSaving(false); return toast({ title: "保存失败", description: assessmentError.message }); }
     const { error } = await supabase.from("patients").update({ ad8: total }).eq("id", p.id);
     setSaving(false);
     if (error) return toast({ title: "保存失败", description: error.message });
+    const { error: taskError } = await supabase.from("nurse_tasks").update({ status: "已完成" }).eq("patient_id", p.id).eq("title", AD8_REQUEST).eq("status", "待执行");
+    if (taskError) toast({ title: "评估已保存，申请状态更新失败", description: taskError.message });
+    qc.invalidateQueries({ queryKey: ["nurse-tasks"] }); qc.invalidateQueries({ queryKey: ["scale-assessments"] }); qc.invalidateQueries({ queryKey: ["patient-by-name"] });
     qc.invalidateQueries({ queryKey: ["patient", p.id] }); qc.invalidateQueries({ queryKey: ["patients"] }); setAd8(null);
     toast({ title: `AD-8 初筛 ${total} 分`, description: total >= 2 ? "阳性：建议进一步 MMSE/MoCA 评估，中高风险开具上转单" : "阴性：健康宣教，每年复评" });
   };
