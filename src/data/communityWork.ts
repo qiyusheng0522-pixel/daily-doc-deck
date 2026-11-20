@@ -30,7 +30,7 @@ export function communityWorkQueues(patients: Patient[], referrals: Referral[], 
   const community = filterCommunityPatients(patients, referrals, { reception: "全部患者", risk: "全部", source: "全部", gender: "全部", query: "" });
   const ids = new Set(community.map(p => p.id));
   const pending = tasks.filter(t => ids.has(t.patient_id) && t.status === "待执行");
-  const assessment = community.filter(p => p.ad8 == null || pending.some(t => t.patient_id === p.id && t.title === AD8_REQUEST));
+  const assessment = community.filter(p => p.ad8 == null);
   const education = pending.filter(t => t.kind === "宣教");
   const followup = followups.filter(f => ids.has(f.patient_id) && f.status !== "已完成");
   const training = community.filter(p => trainingDueToday(p, trainings, today).length > 0);

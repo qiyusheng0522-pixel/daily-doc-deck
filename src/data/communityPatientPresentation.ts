@@ -1,11 +1,18 @@
 import { communityScreeningAbnormal } from "@/data/communityReception";
 
 export type ScreeningFilter = "全部" | "待评估" | "阴性" | "阳性";
+export type CommunityCategory = "all" | "screen" | "risk";
 type ScreeningPatient = { id: string; ad8?: number | null; cognitive_risk?: string | null };
 
-export function matchesScreeningFilter(p: ScreeningPatient, filter: ScreeningFilter, pendingIds: Set<string>): boolean {
+export function matchesCommunityCategory(p: ScreeningPatient, category: CommunityCategory): boolean {
+  if (category === "screen") return p.ad8 == null;
+  if (category === "risk") return communityScreeningAbnormal(p);
+  return true;
+}
+
+export function matchesScreeningFilter(p: ScreeningPatient, filter: ScreeningFilter): boolean {
   if (filter === "全部") return true;
-  if (filter === "待评估") return pendingIds.has(p.id) || p.ad8 == null;
+  if (filter === "待评估") return p.ad8 == null;
   if (filter === "阴性") return p.ad8 != null && !communityScreeningAbnormal(p);
   return communityScreeningAbnormal(p);
 }

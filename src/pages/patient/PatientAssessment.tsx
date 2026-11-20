@@ -14,7 +14,7 @@ export default function PatientAssessment() {
   const qc = useQueryClient();
   const requested = tasks.some(t => t.patient_id === patient?.id && t.title === AD8_REQUEST && t.status === "待执行");
   const request = async () => {
-    if (!patient || requested) return;
+    if (!patient || requested || patient.ad8 != null) return;
     setSaving(true);
     if (!patient.community_stage) {
       const { error } = await supabase.from("patients").update({ community_stage: "新接收" }).eq("id", patient.id);
@@ -28,7 +28,7 @@ export default function PatientAssessment() {
   if (isLoading) return <p className="p-4 text-sm text-muted-foreground">加载中…</p>;
   if (!patient) return <p className="p-4 text-sm text-muted-foreground">未找到患者档案</p>;
   return <div className="space-y-4 p-4">
-    <section className="space-y-2 border-b pb-4"><p className="text-base font-semibold">社区认知初筛</p><p className="text-sm text-muted-foreground">{patient.name} · 小市社区</p><Button disabled={saving || requested} onClick={request}>{requested ? "已申请，待社区评估" : saving ? "提交中…" : "申请社区评估"}</Button></section>
+    <section className="space-y-2 border-b pb-4"><p className="text-base font-semibold">社区认知初筛</p><p className="text-sm text-muted-foreground">{patient.name} · 小市社区</p><Button disabled={saving || requested || patient.ad8 != null} onClick={request}>{patient.ad8 != null ? "已完成社区初筛" : requested ? "已申请，待社区评估" : saving ? "提交中…" : "申请社区评估"}</Button></section>
     <SelfAssessmentForm patientId={patient.id} familyList />
   </div>;
 }

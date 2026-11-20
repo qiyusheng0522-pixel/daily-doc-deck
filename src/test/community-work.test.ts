@@ -20,9 +20,15 @@ describe("社区工作台共享任务", () => {
   });
   it("待评估包含社区未初筛建档与家庭申请，重复申请按人去重", () => {
     const tasks = ["1", "2"].map(id => ({ id, patient_id: "家庭", kind: "待办", status: "待执行", title: AD8_REQUEST } as NurseTask));
-    const queues = communityWorkQueues([patient("社区"), patient("家庭", { ad8: 1 }), patient("已评估", { ad8: 2 })], [], tasks, [], [], "2026-11-20");
+    const queues = communityWorkQueues([patient("社区"), patient("家庭"), patient("已评估", { ad8: 2 })], [], tasks, [], [], "2026-11-20");
     expect(queues.assessment.map(p => p.id)).toEqual(["社区", "家庭"]);
     expect(queues.list.filter(t => t.kind === "待评估")).toHaveLength(2);
+  });
+  it("已完成初筛即使残留申请任务也不生成复评场景", () => {
+    const task = { id: "old", patient_id: "完成", kind: "待办", status: "待执行", title: AD8_REQUEST } as NurseTask;
+    const queues = communityWorkQueues([patient("完成", { ad8: 1 })], [], [task], [], [], "2026-11-20");
+    expect(queues.assessment).toHaveLength(0);
+    expect(queues.list).toHaveLength(0);
   });
   it("今天只排方案明确日期、星期或每日的站内训练，不把每周次数臆定为今天", () => {
     expect(trainingDueToday(trainingPatient("2026-11-20"), [], "2026-11-20")).toHaveLength(1);
