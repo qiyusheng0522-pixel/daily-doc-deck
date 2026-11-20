@@ -193,9 +193,9 @@ export default function ProvinceScreen() {
     <div className={`province-screen min-h-screen bg-scr-bg text-scr-text ${level === "province" ? "province-clean" : ""}`}>
       <RoleSwitcher position="bottom-4 right-4" />
       {/* Header */}
-      <header className={`province-header grid items-center gap-2 px-4 py-3 ${level === "province" ? "xl:grid-cols-[1fr_auto]" : "xl:grid-cols-[1fr_2.6fr_1fr]"}`}>
+      <header className={`province-header grid items-center gap-2 px-4 py-3 ${level === "province" ? "province-centered-header" : "xl:grid-cols-[1fr_2.6fr_1fr]"}`}>
         {level !== "province" && <Link to="/" className="flex items-center gap-2 text-sm font-bold"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-scr-red text-scr-gold">★</span>{cfg.org}</Link>}
-        <h1 className={`pb-2 text-xl font-bold xl:text-[28px] ${level === "province" ? "text-left" : "scr-glow text-center"}`}>{cfg.title}</h1>
+        <h1 className={`pb-2 text-xl font-bold xl:text-[28px] ${level === "province" ? "province-system-title text-center" : "scr-glow text-center"}`}>{cfg.title}</h1>
         <div className="flex items-center justify-end gap-2 text-xs text-scr-dim"><CalendarCheck className="h-4 w-4" /><span className="tabular-nums">{clock}</span></div>
       </header>
 

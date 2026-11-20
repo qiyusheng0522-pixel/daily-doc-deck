@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from "react";
-import { Activity as ActivityIcon, Brain, Info, ArrowUp, ArrowDown, Minus, ChevronRight, HeartHandshake, Hospital, ShieldCheck, ShieldAlert, Users, UserCheck, Search, type LucideIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Activity as ActivityIcon, Brain, Info, ArrowUp, ArrowDown, Minus, HeartHandshake, Hospital, ShieldCheck, ShieldAlert, Users, UserCheck, Search, type LucideIcon } from "lucide-react";
 import ScreenChart, { chartColors } from "./ScreenChart";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { C, Panel } from "./screenKit";
-import { activityRanking, activityTotals, activityTrend, concernDistribution, PERIODS, type Activity, type Period } from "./provinceActivityData";
+import { Panel } from "./screenKit";
+import RollingCount from "./RollingCount";
+import { activityRanking, activityTotals, activityTrend, PERIODS, type Activity, type Period } from "./provinceActivityData";
 import { demoRegulatoryCounts, INDICATORS, indicatorResult } from "./regulatoryMetrics";
 
-const COLORS = [C.cyan, C.green, C.gold, C.red];
 const DIMENSIONS = [
   { name: "语言表达", value: 64 }, { name: "物体认知", value: 81 }, { name: "计算能力", value: 89 },
   { name: "时间定向", value: 79 }, { name: "即时记忆", value: 80 }, { name: "延迟记忆", value: 51 }, { name: "注意力", value: 90 },
@@ -16,7 +16,7 @@ const DIMENSIONS = [
 function ScreenMetric({ name, value, unit, icon: Icon }: { name: string; value: number | string; unit?: string; icon: LucideIcon }) {
   return <div className="screen-metric flex min-w-0 items-center gap-3">
     <span className="screen-metric-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-full" aria-hidden="true"><Icon className="!h-6 !w-6" strokeWidth={1.6} /></span>
-    <div className="min-w-0"><b className="screen-metric-value block whitespace-nowrap text-[33.6px] font-bold leading-tight tabular-nums text-scr-text">{value}{unit && <span className="ml-1 text-[16.8px] font-normal text-scr-dim">{unit}</span>}</b><span className="mt-1 block text-[16.8px] leading-relaxed text-scr-dim">{name}</span></div>
+    <div className="min-w-0"><b className="screen-metric-value flex items-baseline whitespace-nowrap text-[33.6px] font-bold leading-tight tabular-nums text-scr-text">{typeof value === "number" ? <RollingCount value={value} /> : value}{unit && <span className="ml-1 text-[16.8px] font-normal text-scr-dim">{unit}</span>}</b><span className="mt-1 block text-[16.8px] leading-relaxed text-scr-dim">{name}</span></div>
   </div>;
 }
 
@@ -77,8 +77,7 @@ export function ProvinceSummary({ rows, previousRows, city, onPick }: { rows: Ac
 }
 
 export function ScreeningFeed({ rows, city, onPick }: { rows: Activity[]; city: string; onPick: (city: string) => void }) {
-  const [selectedOnly, setSelectedOnly] = useState(false);
-  const shown = selectedOnly ? rows.filter(r => r.city === city) : rows;
+  const shown = rows;
   const scroller = useRef<HTMLDivElement>(null);
   const paused = useRef(false);
   const signature = shown.map(r => `${r.city}:${r.time}:${r.screened}:${r.low}:${r.medium}:${r.high}`).join("|");
@@ -93,20 +92,16 @@ export function ScreeningFeed({ rows, city, onPick }: { rows: Activity[]; city: 
     }, 35);
     return () => clearInterval(timer);
   }, []);
-  return <Panel title="筛查动态" sub="近24小时" className="min-h-[280px] flex-1" extra={<Button variant="screenQuiet" size="sm" aria-pressed={selectedOnly} className="h-7 px-2 text-[16.8px]" onClick={() => setSelectedOnly(v => !v)}>{selectedOnly ? `${city}市` : "全省"}</Button>}>
-    <div ref={scroller} tabIndex={0} aria-label="自动滚动筛查动态" onMouseEnter={() => { paused.current = true; }} onMouseLeave={() => { paused.current = false; }} onFocus={() => { paused.current = true; }} onBlur={() => { paused.current = false; }} className="h-full overflow-y-auto overscroll-contain">{shown.map((r, index) => <Button key={`${r.city}-${r.time}`} variant="screenQuiet" className={`h-auto w-full justify-start gap-3 whitespace-normal rounded-none border-x-0 border-t-0 px-3 py-3 text-left ${r.city === city ? "bg-scr-line/15" : ""}`} onClick={() => onPick(r.city)}>
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center"><ActivityIcon className="!h-5 !w-5 text-scr-cyan" /></span>
-      <span className="min-w-0 flex-1"><span className="flex flex-wrap items-center justify-between gap-2"><b className="text-[20.16px] text-scr-text">{r.community}</b><span className="text-[16.8px] text-scr-dim">{r.time.slice(11)}{index === 0 ? " · 最近更新" : ""}</span></span><span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[16.8px]"><span className="text-scr-cyan">新增筛查 {r.screened} 人</span><span className="text-scr-green">低风险 +{r.low}</span><span className="text-scr-gold">中风险 +{r.medium}</span><span className="text-scr-red">高风险 +{r.high}</span><span className="text-scr-dim">待进一步评估 {r.pending}</span></span></span><ChevronRight className="!h-4 !w-4 shrink-0 text-scr-dim" />
+  return <Panel title="筛查动态" sub="近24小时" className="min-h-[280px] flex-1">
+    <div ref={scroller} tabIndex={0} aria-label="自动滚动筛查动态" onMouseEnter={() => { paused.current = true; }} onMouseLeave={() => { paused.current = false; }} onFocus={() => { paused.current = true; }} onBlur={() => { paused.current = false; }} className="h-full overflow-y-auto overscroll-contain">{shown.map(r => <Button key={`${r.city}-${r.time}`} variant="screenQuiet" className={`h-auto min-h-[88px] w-full justify-start whitespace-normal rounded-none border-x-0 border-t-0 px-3 py-3 text-left ${r.city === city ? "bg-scr-line/15" : ""}`} onClick={() => onPick(r.city)}>
+      <span className="screen-feed-row grid w-full min-w-0 items-center gap-x-4 gap-y-2"><b className="text-[20.16px] text-scr-text">{r.city === "南京" ? "小市社区 · 南京" : `${r.city}市`}</b><span className="text-[16.8px] text-scr-text">新增筛查 <b className="tabular-nums">{r.screened}</b> 人</span><span className="text-[16.8px] text-scr-text">低风险 +{r.low}</span><span className="text-[16.8px] text-scr-text">中风险 +{r.medium}</span><span className="text-[16.8px] text-scr-text">高风险 +{r.high}</span></span>
     </Button>)}</div>
   </Panel>;
 }
 
 export function ProvinceRecent({ rows, recentRows, city, period, onPeriod }: { rows: Activity[]; recentRows: Activity[]; city: string; period: Period; onPeriod: (period: Period) => void }) {
-  const [distribution, setDistribution] = useState<"risk" | "concern">("risk");
   const totals = activityTotals(rows), trend = activityTrend(rows);
-  const risks = [{ name: "低风险", value: totals.low }, { name: "中风险", value: totals.medium }, { name: "高风险", value: totals.high }, { name: "待进一步评估", value: totals.pending }];
-  const data = distribution === "risk" ? risks : concernDistribution(rows);
-  const colors = distribution === "risk" ? [C.green, C.gold, C.red, C.blue] : COLORS;
+  const data = [{ name: "低风险", value: totals.low }, { name: "中风险", value: totals.medium }, { name: "高风险", value: totals.high }];
   const denominator = data.reduce((sum, r) => sum + r.value, 0);
   return <div className="province-right flex min-h-0 min-w-0 flex-col gap-3">
     <ProvinceScreeningOverview rows={recentRows} />
@@ -122,11 +117,9 @@ export function ProvinceRecent({ rows, recentRows, city, period, onPeriod }: { r
         { name: "待进一步评估", value: totals.pending, icon: Search },
       ].map(item => <ScreenMetric key={item.name} {...item} unit="人" />)}</div>
     </Panel>
-    <Panel title="区域分布" sub={`${city}市`} className="min-h-[370px] flex-[1.2]">
-      <div className="screen-segments flex gap-1" aria-label="分布类别">{[{ key: "risk" as const, name: "认知风险" }, { key: "concern" as const, name: "关注项" }].map(item => <Button key={item.key} variant="screenQuiet" size="sm" aria-pressed={distribution === item.key} className={`h-7 px-3 text-[16.8px] ${distribution === item.key ? "text-scr-cyan" : "text-scr-dim"}`} onClick={() => setDistribution(item.key)}>{item.name}</Button>)}</div>
-      <div className="relative h-[210px]"><ScreenChart label="区域风险与关注项分布" option={{ series: [{ type: "pie", radius: ["56%", "88%"], center: ["50%", "50%"], label: { show: true, position: "inside", formatter: "{d}%", color: chartColors().text, fontSize: 17, fontWeight: 600 }, itemStyle: { borderWidth: 2, borderColor: chartColors().panel }, data: data.map((r, i) => ({ ...r, itemStyle: { color: i % 2 === 0 ? chartColors().cyan : chartColors().blue, opacity: 1 - i * .16 } })) }] }} /><div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><b className="text-[33.6px] text-scr-text">{denominator}</b><span className="text-[16.8px] text-scr-dim">初筛阳性</span></div></div>
-      <div className="grid grid-cols-2 gap-x-2 gap-y-2 text-[16.8px]">{data.map((r, i) => <div key={r.name} className="flex flex-wrap items-center gap-1"><span className="h-2 w-2 rounded-sm" style={{ background: colors[i] }} /><span className="text-scr-dim">{r.name}</span><b>{denominator ? Math.round(r.value / denominator * 100) : 0}%</b></div>)}</div>
-      <p className="mt-2 text-[16.8px] text-scr-dim">{distribution === "concern" ? "主要关注项分布，不代表临床诊断" : "筛查阳性不等于已确定风险等级"}</p>
+    <Panel title="区域风险分布" sub={`${city}市`} className="min-h-[370px] flex-[1.2]">
+      <div className="relative h-[240px]"><ScreenChart label="区域风险分布" option={{ series: [{ type: "pie", radius: ["56%", "88%"], center: ["50%", "50%"], label: { show: true, position: "inside", formatter: "{d}%", color: chartColors().text, fontSize: 17, fontWeight: 600 }, itemStyle: { borderWidth: 2, borderColor: chartColors().panel }, data: data.map((r, i) => ({ ...r, itemStyle: { color: i % 2 === 0 ? chartColors().cyan : chartColors().blue, opacity: 1 - i * .2 } })) }] }} /><div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><b className="text-[33.6px] text-scr-text">{denominator}</b><span className="text-[16.8px] text-scr-dim">已完成风险分级</span></div></div>
+      <div className="space-y-3 text-[16.8px]">{data.map(r => <div key={r.name} className="flex items-center justify-between gap-2"><span className="text-scr-dim">{r.name}</span><span className="tabular-nums text-scr-text">{r.value} 人 <b className="ml-3">{denominator ? Math.round(r.value / denominator * 100) : 0}%</b></span></div>)}</div>
     </Panel>
   </div>;
 }
