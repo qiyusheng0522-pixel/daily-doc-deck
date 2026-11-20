@@ -43,7 +43,8 @@ function ProvinceCoreIndicators() {
   </Panel>;
 }
 
-function RankingValue({ value, change }: { value: number; change: number }) {
+function RankingValue({ value, change }: { value: number; change: number | null }) {
+  if (change === null) return <span className="whitespace-nowrap tabular-nums" title="前24小时数据未提供，暂不比较">{value}</span>;
   const Icon = change > 0 ? ArrowUp : change < 0 ? ArrowDown : Minus;
   const description = change === 0 ? "与前24小时持平" : `较前24小时${change > 0 ? "增加" : "减少"}${Math.abs(change)}人`;
   return <span className="inline-flex items-center justify-end gap-1 whitespace-nowrap tabular-nums" title={description}>{value}<Icon aria-label={description} className="!h-3 !w-3 text-scr-dim" strokeWidth={2} /></span>;
@@ -62,7 +63,7 @@ function ProvinceScreeningOverview({ rows }: { rows: Activity[] }) {
   </Panel>;
 }
 
-export function ProvinceSummary({ rows, previousRows, city, onPick }: { rows: Activity[]; previousRows: Activity[]; city: string; onPick: (city: string) => void }) {
+export function ProvinceSummary({ rows, previousRows, city, onPick }: { rows: Activity[]; previousRows?: Activity[]; city: string; onPick: (city: string) => void }) {
   const ranking = activityRanking(rows, previousRows);
   return <div className="flex min-h-0 min-w-0 flex-col gap-3">
     <ProvinceCoreIndicators />

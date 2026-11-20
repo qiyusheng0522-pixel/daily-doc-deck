@@ -2,6 +2,21 @@ import { describe, expect, it } from "vitest";
 import { activityDays, activityTotals, activityTrend, concernDistribution, activityRanking } from "../pages/screen/provinceActivityData";
 
 describe("province demonstration aggregates", () => {
+  it("retains current counts without inventing changes when previous data is missing", () => {
+    const row = activityDays(1, new Date(2026, 10, 20))[0];
+    for (const previous of [undefined, null, []]) {
+      const ranking = activityRanking([row], previous);
+      expect(ranking[0].screened).toBe(row.screened);
+      expect(ranking[0].changes.screened).toBeNull();
+    }
+    expect(activityRanking(undefined, undefined)).toEqual([]);
+    expect(activityRanking(null, null)).toEqual([]);
+  });
+  it("does not treat a missing regional baseline as zero", () => {
+    const rows = activityDays(1, new Date(2026, 10, 20));
+    const ranking = activityRanking([rows[0]], [rows[1]]);
+    expect(ranking[0].changes.low).toBeNull();
+  });
   it("compares every ranking measure to the preceding 24 hours", () => {
     const row = activityDays(1, new Date(2026, 10, 20))[0];
     const ranking = activityRanking([{ ...row, screened: 50, low: 10, medium: 5, high: 2 }], [{ ...row, screened: 40, low: 12, medium: 5, high: 1 }]);
