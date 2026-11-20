@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Activity as ActivityIcon, Brain, ChevronRight, HeartHandshake, Hospital, ShieldCheck, ShieldAlert, Users, UserCheck, Search, type LucideIcon } from "lucide-react";
+import { Activity as ActivityIcon, Brain, Info, ArrowUp, ArrowDown, Minus, ChevronRight, HeartHandshake, Hospital, ShieldCheck, ShieldAlert, Users, UserCheck, Search, type LucideIcon } from "lucide-react";
 import ScreenChart, { chartColors } from "./ScreenChart";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { C, Panel } from "./screenKit";
-import { activityTotals, activityTrend, concernDistribution, PERIODS, type Activity, type Period } from "./provinceActivityData";
-import { demoRegulatoryCounts, INDICATORS, indicatorResult, type IndicatorKey } from "./regulatoryMetrics";
+import { activityRanking, activityTotals, activityTrend, concernDistribution, PERIODS, type Activity, type Period } from "./provinceActivityData";
+import { demoRegulatoryCounts, INDICATORS, indicatorResult } from "./regulatoryMetrics";
 
 const COLORS = [C.cyan, C.green, C.gold, C.red];
 const DIMENSIONS = [
@@ -20,20 +21,32 @@ function ScreenMetric({ name, value, unit, icon: Icon }: { name: string; value: 
 }
 
 function ProvinceCoreIndicators() {
-  const [expandedIndicator, setExpandedIndicator] = useState<IndicatorKey>();
   const provinceCounts = demoRegulatoryCounts(276000);
-  const selectedIndicator = INDICATORS.find(i => i.key === expandedIndicator);
   const icons = [Brain, HeartHandshake, Hospital];
   return <Panel title="全省核心监管指标" sub="年度累计" className="shrink-0">
-    <div className="divide-y divide-scr-line/20">{INDICATORS.map((indicator, index) => {
-      const result = indicatorResult(provinceCounts, indicator.key);
-      return <Button key={indicator.key} variant="screenQuiet" aria-expanded={expandedIndicator === indicator.key} className="h-auto w-full justify-start whitespace-normal rounded-none px-1 py-3 text-left" onClick={() => setExpandedIndicator(expandedIndicator === indicator.key ? undefined : indicator.key)}>
-        <ScreenMetric name={["认知初筛率", "阳性干预指导率", "疑似人群就诊率"][index]} value={result.value === null ? "—" : `${result.value}%`} icon={icons[index]} />
-      </Button>;
+    <div className="grid grid-cols-3 divide-x divide-scr-line/20 py-4">{INDICATORS.map((indicator, index) => {
+      const result = indicatorResult(provinceCounts, indicator.key), Icon = icons[index];
+      const name = ["认知初筛率", "阳性干预指导率", "疑似人群就诊率"][index];
+      return <div key={indicator.key} className="flex min-w-0 flex-col items-center gap-3 px-2 text-center">
+        <span className="screen-metric-icon flex h-11 w-11 items-center justify-center rounded-full" aria-hidden="true"><Icon className="!h-6 !w-6" strokeWidth={1.6} /></span>
+        <b className="whitespace-nowrap text-[30px] font-bold leading-tight tabular-nums text-scr-text">{result.value === null ? "—" : `${result.value}%`}</b>
+        <span className="flex min-w-0 flex-col items-center justify-center gap-2 text-[16.8px] leading-relaxed text-scr-dim"><span className="min-h-[50px]">{name}</span>
+          <Tooltip><TooltipTrigger asChild><Button variant="screenQuiet" size="icon" aria-label={`${name}计算规则`} className="!h-6 !w-6 shrink-0 rounded-full"><Info className="!h-4 !w-4" /></Button></TooltipTrigger>
+            <TooltipContent side="right" className="max-w-[420px] border-scr-line bg-scr-panel p-4 text-[16.8px] leading-relaxed text-scr-text">
+              <div className="space-y-2"><b>{name} · 计算规则</b><p>计算公式：分子 ÷ 分母 × 100%</p><p>分子：{indicator.numeratorRule}</p><p>分母：{indicator.denominatorRule}</p><p>当前人数：{result.numerator.toLocaleString()} / {result.denominator.toLocaleString()} 人</p><p>{indicator.note}</p></div>
+            </TooltipContent>
+          </Tooltip>
+        </span>
+      </div>;
     })}</div>
-    {selectedIndicator && <div className="space-y-2 border-t border-scr-line/20 py-3 text-[16.8px] leading-relaxed" aria-label="监管指标统计口径"><p>分子：{selectedIndicator.numeratorRule}</p><p>分母：{selectedIndicator.denominatorRule}</p><p className="text-scr-dim">{selectedIndicator.note}</p></div>}
-    <p className="pt-2 text-[16.8px] text-scr-dim">江苏省 · 2026年1—10月 · 按人去重 · 演示数据</p>
+    <p className="border-t border-scr-line/20 pt-2 text-[16.8px] text-scr-dim">江苏省 · 2026年1—10月 · 按人去重</p>
   </Panel>;
+}
+
+function RankingValue({ value, change }: { value: number; change: number }) {
+  const Icon = change > 0 ? ArrowUp : change < 0 ? ArrowDown : Minus;
+  const description = change === 0 ? "与前24小时持平" : `较前24小时${change > 0 ? "增加" : "减少"}${Math.abs(change)}人`;
+  return <span className="inline-flex items-center justify-end gap-1 whitespace-nowrap tabular-nums" title={description}>{value}<Icon aria-label={description} className="!h-3 !w-3 text-scr-dim" strokeWidth={2} /></span>;
 }
 
 function ProvinceScreeningOverview({ rows }: { rows: Activity[] }) {
@@ -49,15 +62,15 @@ function ProvinceScreeningOverview({ rows }: { rows: Activity[] }) {
   </Panel>;
 }
 
-export function ProvinceSummary({ rows, city, onPick }: { rows: Activity[]; city: string; onPick: (city: string) => void }) {
-  const ranking = [...new Set(rows.map(r => r.city))].map(name => ({ name, community: rows.find(r => r.city === name)?.community, ...activityTotals(rows.filter(r => r.city === name)) })).sort((a, b) => b.screened - a.screened);
+export function ProvinceSummary({ rows, previousRows, city, onPick }: { rows: Activity[]; previousRows: Activity[]; city: string; onPick: (city: string) => void }) {
+  const ranking = activityRanking(rows, previousRows);
   return <div className="flex min-h-0 min-w-0 flex-col gap-3">
     <ProvinceCoreIndicators />
     <Panel title="认知功能维度分布" sub="正常表现占比" className="min-h-[330px] flex-1">
-      <div className="h-full min-h-[285px]"><ScreenChart label="认知功能维度分布" option={{ radar: { indicator: DIMENSIONS.map(d => ({ name: d.name, max: 100 })), radius: "62%", center: ["50%", "51%"], axisName: { color: chartColors().text, fontSize: 17 }, splitLine: { lineStyle: { color: chartColors().line, opacity: .35 } }, splitArea: { show: false } }, series: [{ type: "radar", data: [{ value: DIMENSIONS.map(d => d.value), name: "正常表现占比" }], symbolSize: 6, lineStyle: { color: chartColors().cyan, width: 2 }, itemStyle: { color: chartColors().cyan }, areaStyle: { color: chartColors().cyan, opacity: .15 } }] }} /></div>
+      <div className="h-full min-h-[285px]"><ScreenChart label="认知功能维度分布" option={{ radar: { indicator: DIMENSIONS.map(d => ({ name: `${d.name} ${d.value}%`, max: 100 })), radius: "62%", center: ["50%", "51%"], axisName: { color: chartColors().text, fontSize: 17 }, splitLine: { lineStyle: { color: chartColors().line, opacity: .35 } }, splitArea: { show: false } }, series: [{ type: "radar", data: [{ value: DIMENSIONS.map(d => d.value), name: "正常表现占比" }], symbolSize: 6, lineStyle: { color: chartColors().cyan, width: 2 }, itemStyle: { color: chartColors().cyan }, areaStyle: { color: chartColors().cyan, opacity: .15 } }] }} /></div>
     </Panel>
     <Panel title="筛查区域排行" sub="近24小时" className="min-h-[310px] flex-1">
-      <div className="h-full min-h-0 overflow-auto"><table className="w-full text-[16.8px]"><thead className="sticky top-0 z-10 bg-scr-panel text-scr-dim"><tr>{["筛查区域", "总数", "低", "中", "高"].map(label => <th key={label} className="px-1 py-2 text-right font-normal first:text-left">{label}</th>)}</tr></thead><tbody>{ranking.map((r, index) => <tr key={r.name} className={`border-t border-scr-line/20 ${city === r.name ? "bg-scr-line/20" : ""}`}><td className="py-1"><Button variant="screenQuiet" className={`h-auto w-full justify-start gap-2 border-transparent px-1 py-2 text-[16.8px] ${city === r.name ? "text-scr-gold" : ""}`} onClick={() => onPick(r.name)}><span className="text-scr-dim">{index + 1}</span>{r.name === "南京" ? "小市社区 · 南京" : `${r.name}市`}</Button></td><td className="px-1 text-right tabular-nums text-scr-cyan">{r.screened}</td><td className="px-1 text-right text-scr-green">{r.low}</td><td className="px-1 text-right text-scr-gold">{r.medium}</td><td className="px-1 text-right text-scr-red">{r.high}</td></tr>)}</tbody></table></div>
+      <div className="h-full min-h-0 overflow-auto"><table className="w-full text-[16.8px]"><thead className="sticky top-0 z-10 bg-scr-panel text-scr-dim"><tr>{["筛查区域", "总数", "低", "中", "高"].map(label => <th key={label} className="px-1 py-2 text-right font-normal first:text-left">{label}</th>)}</tr></thead><tbody>{ranking.map((r, index) => <tr key={r.name} className={`border-t border-scr-line/20 ${city === r.name ? "bg-scr-line/20" : ""}`}><td className="py-1"><Button variant="screenQuiet" className={`h-auto w-full justify-start gap-2 border-transparent px-1 py-2 text-[16.8px] ${city === r.name ? "text-scr-gold" : ""}`} onClick={() => onPick(r.name)}><span className="text-scr-dim">{index + 1}</span>{r.name === "南京" ? "小市社区 · 南京" : `${r.name}市`}</Button></td><td className="px-1 text-right tabular-nums text-scr-cyan"><RankingValue value={r.screened} change={r.changes.screened} /></td><td className="px-1 text-right text-scr-green"><RankingValue value={r.low} change={r.changes.low} /></td><td className="px-1 text-right text-scr-gold"><RankingValue value={r.medium} change={r.changes.medium} /></td><td className="px-1 text-right text-scr-red"><RankingValue value={r.high} change={r.changes.high} /></td></tr>)}</tbody></table></div>
     </Panel>
   </div>;
 }
@@ -79,7 +92,7 @@ export function ScreeningFeed({ rows, city, onPick }: { rows: Activity[]; city: 
     }, 35);
     return () => clearInterval(timer);
   }, []);
-  return <Panel title="筛查动态" sub="演示动态" className="min-h-[280px] flex-1" extra={<Button variant="screenQuiet" size="sm" aria-pressed={selectedOnly} className="h-7 px-2 text-[16.8px]" onClick={() => setSelectedOnly(v => !v)}>{selectedOnly ? `${city}市` : "全省"}</Button>}>
+  return <Panel title="筛查动态" sub="近24小时" className="min-h-[280px] flex-1" extra={<Button variant="screenQuiet" size="sm" aria-pressed={selectedOnly} className="h-7 px-2 text-[16.8px]" onClick={() => setSelectedOnly(v => !v)}>{selectedOnly ? `${city}市` : "全省"}</Button>}>
     <div ref={scroller} tabIndex={0} aria-label="自动滚动筛查动态" onMouseEnter={() => { paused.current = true; }} onMouseLeave={() => { paused.current = false; }} onFocus={() => { paused.current = true; }} onBlur={() => { paused.current = false; }} className="h-full overflow-y-auto overscroll-contain">{shown.map((r, index) => <Button key={`${r.city}-${r.time}`} variant="screenQuiet" className={`h-auto w-full justify-start gap-3 whitespace-normal rounded-none border-x-0 border-t-0 px-3 py-3 text-left ${r.city === city ? "bg-scr-line/15" : ""}`} onClick={() => onPick(r.city)}>
       <span className="flex h-8 w-8 shrink-0 items-center justify-center"><ActivityIcon className="!h-5 !w-5 text-scr-cyan" /></span>
       <span className="min-w-0 flex-1"><span className="flex flex-wrap items-center justify-between gap-2"><b className="text-[20.16px] text-scr-text">{r.community}</b><span className="text-[16.8px] text-scr-dim">{r.time.slice(11)}{index === 0 ? " · 最近更新" : ""}</span></span><span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[16.8px]"><span className="text-scr-cyan">新增筛查 {r.screened} 人</span><span className="text-scr-green">低风险 +{r.low}</span><span className="text-scr-gold">中风险 +{r.medium}</span><span className="text-scr-red">高风险 +{r.high}</span><span className="text-scr-dim">待进一步评估 {r.pending}</span></span></span><ChevronRight className="!h-4 !w-4 shrink-0 text-scr-dim" />
@@ -110,9 +123,9 @@ export function ProvinceRecent({ rows, recentRows, city, period, onPeriod }: { r
     </Panel>
     <Panel title="区域分布" sub={`${city}市`} className="min-h-[370px] flex-[1.2]">
       <div className="screen-segments flex gap-1" aria-label="分布类别">{[{ key: "risk" as const, name: "认知风险" }, { key: "concern" as const, name: "关注项" }].map(item => <Button key={item.key} variant="screenQuiet" size="sm" aria-pressed={distribution === item.key} className={`h-7 px-3 text-[16.8px] ${distribution === item.key ? "text-scr-cyan" : "text-scr-dim"}`} onClick={() => setDistribution(item.key)}>{item.name}</Button>)}</div>
-      <div className="relative h-[210px]"><ScreenChart label="区域风险与关注项分布" option={{ series: [{ type: "pie", radius: ["56%", "88%"], center: ["50%", "50%"], label: { show: false }, itemStyle: { borderWidth: 2, borderColor: chartColors().panel }, data: data.map((r, i) => ({ ...r, itemStyle: { color: i % 2 === 0 ? chartColors().cyan : chartColors().blue, opacity: 1 - i * .16 } })) }] }} /><div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><b className="text-[33.6px] text-scr-text">{denominator}</b><span className="text-[16.8px] text-scr-dim">初筛阳性</span></div></div>
+      <div className="relative h-[210px]"><ScreenChart label="区域风险与关注项分布" option={{ series: [{ type: "pie", radius: ["56%", "88%"], center: ["50%", "50%"], label: { show: true, position: "inside", formatter: "{d}%", color: chartColors().text, fontSize: 17, fontWeight: 600 }, itemStyle: { borderWidth: 2, borderColor: chartColors().panel }, data: data.map((r, i) => ({ ...r, itemStyle: { color: i % 2 === 0 ? chartColors().cyan : chartColors().blue, opacity: 1 - i * .16 } })) }] }} /><div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><b className="text-[33.6px] text-scr-text">{denominator}</b><span className="text-[16.8px] text-scr-dim">初筛阳性</span></div></div>
       <div className="grid grid-cols-2 gap-x-2 gap-y-2 text-[16.8px]">{data.map((r, i) => <div key={r.name} className="flex flex-wrap items-center gap-1"><span className="h-2 w-2 rounded-sm" style={{ background: colors[i] }} /><span className="text-scr-dim">{r.name}</span><b>{denominator ? Math.round(r.value / denominator * 100) : 0}%</b></div>)}</div>
-      <p className="mt-2 text-[16.8px] text-scr-dim">{distribution === "concern" ? "主要关注项演示分布，不代表临床诊断" : "筛查阳性不等于已确定风险等级"}</p>
+      <p className="mt-2 text-[16.8px] text-scr-dim">{distribution === "concern" ? "主要关注项分布，不代表临床诊断" : "筛查阳性不等于已确定风险等级"}</p>
     </Panel>
   </div>;
 }

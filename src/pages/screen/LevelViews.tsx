@@ -70,7 +70,7 @@ export function CityView({ map, area }: { map: ReactNode; area: string }) {
         { label: "接收上转", value: "312", unit: "人", sub: "本年累计", icon: ArrowLeftRight },
         { label: "确诊率", value: "86.5%", sub: "270 / 312", icon: Brain },
         { label: "平均确诊时长", value: "4.2", unit: "天", sub: "上转至出具诊断", icon: Clock },
-        { label: "疑似认知障碍就诊率", value: `${indicatorResult(demoRegulatoryCounts(32100, 93.6, 92.1, 86.9), "suspectedVisitRate").value}%`, sub: "正式就诊 / 基层综合评估疑似 · 演示", icon: CheckCircle2 },
+        { label: "疑似认知障碍就诊率", value: `${indicatorResult(demoRegulatoryCounts(32100, 93.6, 92.1, 86.9), "suspectedVisitRate").value}%`, sub: "正式就诊 / 基层综合评估疑似", icon: CheckCircle2 },
       ]} />
       <div className="province-grid">
         <div className="flex flex-col gap-3">
@@ -152,7 +152,7 @@ export function CityView({ map, area }: { map: ReactNode; area: string }) {
                   <td className="py-1">{i + 1}</td><td>{q.d}</td>
                   {(["initialScreeningRate", "positiveGuidanceRate", "suspectedVisitRate"] as const).map(key => { const result = indicatorResult(counts, key); return <td key={key}>{result.value}%<span className="block text-[15.4px] text-scr-dim">{result.numerator.toLocaleString()} / {result.denominator.toLocaleString()} 人</span></td>; })}
                   <td className={q.cert < 100 ? "text-scr-gold" : ""}>{q.cert}%</td>
-                  <td className="text-xs text-scr-dim">按人去重 · 演示</td>
+                  <td className="text-xs text-scr-dim">按人去重</td>
                 </tr>
               );
             })}

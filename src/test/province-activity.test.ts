@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { activityDays, activityTotals, activityTrend, concernDistribution } from "../pages/screen/provinceActivityData";
+import { activityDays, activityTotals, activityTrend, concernDistribution, activityRanking } from "../pages/screen/provinceActivityData";
 
 describe("province demonstration aggregates", () => {
+  it("compares every ranking measure to the preceding 24 hours", () => {
+    const row = activityDays(1, new Date(2026, 10, 20))[0];
+    const ranking = activityRanking([{ ...row, screened: 50, low: 10, medium: 5, high: 2 }], [{ ...row, screened: 40, low: 12, medium: 5, high: 1 }]);
+    expect(ranking[0].changes.screened).toBe(10);
+    expect(ranking[0].changes.low).toBe(-2);
+    expect(ranking[0].changes.medium).toBe(0);
+    expect(ranking[0].changes.high).toBe(1);
+  });
   const now = new Date(2026, 10, 20, 12, 56);
   it("keeps positive screening separate from three assessed risk levels", () => {
     const row = activityDays(1, now)[0];

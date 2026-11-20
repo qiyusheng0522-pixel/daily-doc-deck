@@ -30,3 +30,10 @@ export function concernDistribution(rows: Activity[]) {
   const memory = Math.round(total * .46), attention = Math.round(total * .28), orientation = Math.round(total * .16);
   return [{ name: "记忆关注", value: memory }, { name: "注意力关注", value: attention }, { name: "定向力关注", value: orientation }, { name: "其他关注", value: total - memory - attention - orientation }];
 }
+export function activityRanking(rows: Activity[], previousRows: Activity[]) {
+  return [...new Set(rows.map(r => r.city))].map(name => {
+    const totals = activityTotals(rows.filter(r => r.city === name));
+    const previous = activityTotals(previousRows.filter(r => r.city === name));
+    return { name, ...totals, changes: Object.fromEntries(Object.entries(totals).map(([key, value]) => [key, value - previous[key as keyof typeof previous]])) as typeof totals };
+  }).sort((a, b) => b.screened - a.screened);
+}
