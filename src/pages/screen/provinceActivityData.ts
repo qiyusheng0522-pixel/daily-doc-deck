@@ -18,14 +18,14 @@ export function activityDays(days: number, now = new Date()) {
     });
   }).flat();
 }
-export function activityTotals(rows: Activity[]) {
-  return rows.reduce((sum, r) => ({ screened: sum.screened + r.screened, positive: sum.positive + r.positive, negative: sum.negative + r.negative, low: sum.low + r.low, medium: sum.medium + r.medium, high: sum.high + r.high, pending: sum.pending + r.pending }), { screened: 0, positive: 0, negative: 0, low: 0, medium: 0, high: 0, pending: 0 });
+export function activityTotals(rows?: Activity[] | null) {
+  return (rows ?? []).reduce((sum, r) => ({ screened: sum.screened + r.screened, positive: sum.positive + r.positive, negative: sum.negative + r.negative, low: sum.low + r.low, medium: sum.medium + r.medium, high: sum.high + r.high, pending: sum.pending + r.pending }), { screened: 0, positive: 0, negative: 0, low: 0, medium: 0, high: 0, pending: 0 });
 }
-export function activityTrend(rows: Activity[]) {
+export function activityTrend(rows: Activity[] = []) {
   const dates = [...new Set(rows.map(r => r.time.slice(0, 10)))].sort();
   return dates.map(date => ({ date: date.slice(5), ...activityTotals(rows.filter(r => r.time.startsWith(date))) }));
 }
-export function concernDistribution(rows: Activity[]) {
+export function concernDistribution(rows: Activity[] = []) {
   const total = activityTotals(rows).positive;
   const memory = Math.round(total * .46), attention = Math.round(total * .28), orientation = Math.round(total * .16);
   return [{ name: "记忆关注", value: memory }, { name: "注意力关注", value: attention }, { name: "定向力关注", value: orientation }, { name: "其他关注", value: total - memory - attention - orientation }];

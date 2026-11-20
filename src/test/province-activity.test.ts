@@ -3,6 +3,13 @@ import { activityDays, activityTotals, activityTrend, concernDistribution } from
 
 describe("province demonstration aggregates", () => {
   const now = new Date(2026, 10, 20, 12, 56);
+  it("handles temporarily missing overview records without crashing", () => {
+    const empty = { screened: 0, positive: 0, negative: 0, low: 0, medium: 0, high: 0, pending: 0 };
+    expect(activityTotals(undefined)).toEqual(empty);
+    expect(activityTotals(null)).toEqual(empty);
+    expect(activityTrend(undefined)).toEqual([]);
+    expect(concernDistribution(undefined).reduce((sum, row) => sum + row.value, 0)).toBe(0);
+  });
   it("keeps positive screening separate from three assessed risk levels", () => {
     const row = activityDays(1, now)[0];
     expect(row.positive).toBe(row.low + row.medium + row.high + row.pending);

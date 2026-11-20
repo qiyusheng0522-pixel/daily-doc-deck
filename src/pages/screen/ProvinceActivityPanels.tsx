@@ -51,7 +51,7 @@ export function ScreeningFeed({ rows, city, onPick }: { rows: Activity[]; city: 
   </Panel>;
 }
 
-export function ProvinceRecent({ rows, overviewRows, city, period }: { rows: Activity[]; overviewRows: Activity[]; city: string; period: Period }) {
+export function ProvinceRecent({ rows = [], overviewRows, city, period }: { rows?: Activity[]; overviewRows?: Activity[]; city: string; period: Period }) {
   const [distribution, setDistribution] = useState<"risk" | "concern">("risk");
   const totals = activityTotals(rows);
   const risks = [{ name: "低风险", value: totals.low }, { name: "中风险", value: totals.medium }, { name: "高风险", value: totals.high }, { name: "待进一步评估", value: totals.pending }];
@@ -77,11 +77,11 @@ export function ProvinceTrend({ rows, city, period, onPeriod }: { rows: Activity
     </Panel>);
 }
 
-function ProvinceOverview({ rows }: { rows: Activity[] }) {
+function ProvinceOverview({ rows }: { rows?: Activity[] }) {
  const totals = activityTotals(rows);
  return (<Panel title="全省筛查概览" sub="近24小时" className="shrink-0">
-      <div className="grid grid-cols-2 gap-x-3 gap-y-4 py-2">{[{ label: "筛查人数", value: totals.screened }, { label: "低风险", value: totals.low }, { label: "中风险", value: totals.medium }, { label: "高风险", value: totals.high }].map(item => <ScreenMetric key={item.label} {...item} />)}</div>
-      <div className="border-t border-scr-line/30 pt-2 text-[16.8px] text-scr-dim"><ScreenMetric compact label="阳性待评估" value={totals.pending} /><p className="mt-1">分级新增按评估结果统计</p></div>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-4 py-2">{[{ label: "筛查人数", value: totals.screened }, { label: "低风险", value: totals.low }, { label: "中风险", value: totals.medium }, { label: "高风险", value: totals.high }].map(item => <ScreenMetric key={item.label} {...item} value={rows ? item.value : "—"} />)}</div>
+      <div className="border-t border-scr-line/30 pt-2 text-[16.8px] text-scr-dim"><ScreenMetric compact label="阳性待评估" value={rows ? totals.pending : "—"} /><p className="mt-1">{rows ? "分级新增按评估结果统计" : "筛查汇总加载中"}</p></div>
     </Panel>);
 }
 
