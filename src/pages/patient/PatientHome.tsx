@@ -4,6 +4,7 @@ import { Brain, Sparkles, Grid2X2, Users, QrCode, ArrowRight, Camera, ClipboardL
 import { Button } from "@/components/ui/button";
 import FamilyTasks from "@/components/patient/FamilyTasks";
 import PatientActionSheet from "@/components/patient/PatientActionSheet";
+import PatientGuideWizard from "@/components/patient/PatientGuideWizard";
 import { useCurrentPatient } from "@/data/patients";
 import doctor from "@/assets/family-doctor.png.asset.json";
 const shortcuts = [
@@ -36,6 +37,6 @@ export default function PatientHome() {
     <Button size="icon" aria-label="快捷入口" title="快捷入口" className="absolute bottom-28 right-3 z-50 h-12 w-12 rounded-full border-2 border-card shadow-card" onClick={() => setShortcutOpen(true)}><Grid2X2 className="h-6 w-6" /></Button>
     <PatientActionSheet open={groupOpen} onOpenChange={setGroupOpen} title="加入认知健康群"><div className="py-4 text-center"><Users className="mx-auto h-10 w-10 text-success" /><h4 className="mt-3 text-lg font-semibold">小市社区认知健康群</h4><div className="mx-auto mt-5 flex aspect-square w-48 flex-col items-center justify-center gap-3 rounded-lg border border-dashed bg-muted"><QrCode className="h-10 w-10 text-muted-foreground" /><p className="text-sm text-muted-foreground">二维码待提供</p></div></div></PatientActionSheet>
     <PatientActionSheet open={shortcutOpen} onOpenChange={setShortcutOpen} title="快捷入口"><div className="grid grid-cols-2 gap-3">{[...shortcuts,{icon:Brain,label:'认知练习',to:'/patient/tasks',tone:'bg-primary/10 text-primary'},{icon:ShieldCheck,label:'我的风险',to:'/patient/risk',tone:'bg-secondary text-secondary-foreground'}].map(item => <Button key={item.to} variant="outline" className="h-16 gap-2 text-sm" onClick={() => { setShortcutOpen(false); navigate(item.to); }}><item.icon className="h-5 w-5 text-primary" />{item.label}</Button>)}</div></PatientActionSheet>
-    <PatientActionSheet open={guideOpen} onOpenChange={setGuideOpen} title="我的健康旅程"><div className="space-y-3">{[{title:'个人档案',desc:'病史、报告与家庭照护信息',to:'/patient/archive'},{title:'健康评估',desc:'睡眠、营养、跌倒与心理自评',to:'/patient/assessment'},{title:'查看风险',desc:'当前评估结果与专业风险分级',to:'/patient/risk'},{title:'居家训练',desc:'训练目标、详细方案与打卡',to:'/patient/plan'}].map((item,i) => <Button key={item.to} variant="outline" className="h-auto w-full justify-start gap-3 p-3 text-left" onClick={() => { setGuideOpen(false); navigate(item.to); }}><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm text-primary">{i+1}</span><span className="min-w-0"><span className="block text-sm font-semibold">{item.title}</span><span className="block whitespace-normal text-xs text-muted-foreground">{item.desc}</span></span><ArrowRight className="ml-auto h-4 w-4 shrink-0" /></Button>)}</div></PatientActionSheet>
+    <PatientGuideWizard open={guideOpen} onOpenChange={setGuideOpen} />
   </div>;
 }
