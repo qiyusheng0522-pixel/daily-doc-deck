@@ -9,7 +9,7 @@ export default function CommunityHome() {
   const navigate = useNavigate();
   const work = useCommunityWork();
   const modules = [
-    { label: "全部患者", count: work.community.filter(p => p.ad8 != null).length, icon: Users, tone: "text-primary bg-primary/10", to: "/community/patients" },
+    { label: "全部患者", count: work.community.length, icon: Users, tone: "text-primary bg-primary/10", to: "/community/patients" },
     { label: "待评估患者", count: work.assessment.length, icon: ClipboardCheck, tone: "text-primary bg-primary/10", to: "/community/patients?work=assessment" },
     { label: "风险患者", count: work.community.filter(communityScreeningAbnormal).length, icon: AlertTriangle, tone: "text-destructive bg-destructive/10", to: "/community/patients?tab=risk" },
     { label: "待训练患者", count: work.training.length, icon: Dumbbell, tone: "text-success bg-success/10", to: "/community/patients?work=training" },

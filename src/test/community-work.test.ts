@@ -5,6 +5,12 @@ import type { Patient, NurseTask, Followup, Referral } from "@/data/patients";
 const patient = (id: string, patch: Partial<Patient> = {}) => ({ id, name: id, community_stage: "新接收", cognitive_risk: "中风险", ad8: null, source: "小市社区", gender: "女", ai_plan: null, ...patch } as Patient);
 const trainingPatient = (frequency: string) => patient("训练", { ad8: 2, ai_plan_at: "2026-11-18T00:00:00Z", ai_plan_confirmed_at: "2026-11-19T00:00:00Z", ai_plan: { cycle_weeks: 8, training: [{ activity: "记忆训练", frequency, setting: "站内小组" }] } });
 describe("社区工作台共享任务", () => {
+  it("全部患者包含尚未初筛的社区患者，与初筛名单使用同一批患者", () => {
+    const queues = communityWorkQueues([patient("待评估"), patient("陰性", { ad8: 1 }), patient("陽性", { ad8: 2 })], [], [], [], [], "2026-11-20");
+    expect(queues.community.map(p => p.id)).toEqual(["待评估", "陰性", "陽性"]);
+    expect(queues.community).toHaveLength(3);
+    expect(queues.assessment.map(p => p.id)).toEqual(["待评估"]);
+  });
   it("原有下转待接收事项保留并按患者去重，去处理进入待接收名单", () => {
     const referral = { id: "r1", patient_id: "接收", direction: "下转", status: "待接收", created_at: "2026-11-20" } as Referral;
     const queues = communityWorkQueues([patient("接收", { ad8: 3 })], [referral, { ...referral, id: "r2" }], [], [], [], "2026-11-20");
