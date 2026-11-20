@@ -13,7 +13,7 @@ export function chartColors() {
   const root = document.querySelector(".province-clean") ?? document.documentElement;
   const css = getComputedStyle(root);
   const color = (name: string) => `hsl(${css.getPropertyValue(`--scr-${name}`).trim()})`;
-  return { text: color("text"), dim: color("dim"), cyan: color("cyan"), blue: color("blue"), gold: color("gold"), panel: color("panel"), line: color("line"), bottom: color("map-bottom"), palette: [color("cyan"), color("blue"), color("chart-third"), color("chart-fourth")] };
+  return { text: color("text"), dim: color("dim"), cyan: color("cyan"), blue: color("blue"), gold: color("gold"), panel: color("panel"), line: color("line"), bottom: color("map-bottom") };
 }
 
 export default function ScreenChart({ option, label, onSelect }: { option: EChartsOption; label: string; onSelect?: (name: string) => void }) {
