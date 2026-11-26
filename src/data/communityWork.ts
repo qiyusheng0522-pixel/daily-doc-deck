@@ -1,5 +1,6 @@
 import { planConfirmed } from "@/data/cognitive";
 import { filterCommunityPatients, pendingCommunityReferral } from "@/data/communityReception";
+import { isScreeningNegative } from "@/data/communityPatientPresentation";
 import type { Patient, Referral, NurseTask, Followup } from "@/data/patients";
 
 export const AD8_REQUEST = "AD-8 初筛评估申请";
@@ -28,12 +29,14 @@ export function trainingDueToday(p: Patient, records: Training[], today: string)
 
 export function communityWorkQueues(patients: Patient[], referrals: Referral[], tasks: NurseTask[], followups: Followup[], trainings: Training[], today: string) {
   const community = filterCommunityPatients(patients, referrals, { reception: "全部患者", risk: "全部", source: "全部", gender: "全部", query: "" });
-  const ids = new Set(community.map(p => p.id));
+  // 初筛阴性患者只保留基本信息，不进入宣教、随访、等待办，与患者列表的操作入口保持一致
+  const operational = community.filter(p => !isScreeningNegative(p));
+  const ids = new Set(operational.map(p => p.id));
   const pending = tasks.filter(t => ids.has(t.patient_id) && t.status === "待执行");
   const assessment = community.filter(p => p.ad8 == null);
   const education = pending.filter(t => t.kind === "宣教");
   const followup = followups.filter(f => ids.has(f.patient_id) && f.status !== "已完成");
-  const training = community.filter(p => trainingDueToday(p, trainings, today).length > 0);
+  const training = operational.filter(p => trainingDueToday(p, trainings, today).length > 0);
   const name = (id: string) => community.find(p => p.id === id)?.name ?? "患者";
   const list: CommunityWork[] = [
     ...community.flatMap(p => {

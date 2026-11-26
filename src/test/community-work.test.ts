@@ -51,4 +51,13 @@ describe("社区工作台共享任务", () => {
     expect(queues.list.length).toBe(queues.assessment.length + queues.education.length + queues.followup.length + queues.training.length);
     expect(queues.list[0].to).toContain("action=ad8");
   });
+  it("初筛阴性患者不生成宣教、随访或训练事项，只保留基本信息", () => {
+    const negative = patient("阴性", { ad8: 1, ai_plan_at: "2026-11-18T00:00:00Z", ai_plan_confirmed_at: "2026-11-19T00:00:00Z", ai_plan: { cycle_weeks: 8, training: [{ activity: "记忆训练", frequency: "每日", setting: "站内小组" }] } });
+    const queues = communityWorkQueues([negative], [], [{ id: "宣教", patient_id: "阴性", title: "认知宣教", kind: "宣教", status: "待执行" } as NurseTask], [{ id: "随访", patient_id: "阴性", item: "认知随访", status: "待随访" } as Followup], [], "2026-11-20");
+    expect(queues.community.map(p => p.id)).toEqual(["阴性"]);
+    expect(queues.education).toHaveLength(0);
+    expect(queues.followup).toHaveLength(0);
+    expect(queues.training).toHaveLength(0);
+    expect(queues.list).toHaveLength(0);
+  });
 });

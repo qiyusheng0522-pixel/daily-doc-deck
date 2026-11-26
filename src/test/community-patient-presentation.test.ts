@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { communityPatientAction, missingProfessionalScales, matchesCommunityCategory, matchesScreeningFilter, screeningPresentation } from "@/data/communityPatientPresentation";
+import { communityPatientAction, isScreeningNegative, missingProfessionalScales, matchesCommunityCategory, matchesScreeningFilter, screeningPresentation } from "@/data/communityPatientPresentation";
 
 describe("社区患者筛选与结果分开展示", () => {
   it("缺失初筛进入待评估而不进入阴性", () => {
@@ -43,6 +43,17 @@ describe("社区患者操作入口", () => {
   it("待转诊打开转诊界面，不从初筛阳性推断资格", () => {
     expect(communityPatientAction({ ...p, cognitive_risk: "中风险" }, [], false, false)).toEqual({ label: "待转诊", to: "/community/patients/a?tab=referral&action=refer" });
     expect(communityPatientAction(p, [], false, false).label).not.toBe("待转诊");
+  });
+  it("初筛阴性只保留基本信息，不给宣教、方案或转诊入口", () => {
+    expect(isScreeningNegative({ id: "n", ad8: null })).toBe(false);
+    expect(isScreeningNegative({ id: "n", ad8: 1 })).toBe(true);
+    expect(isScreeningNegative({ id: "n", ad8: 2 })).toBe(false);
+    expect(communityPatientAction({ id: "n", ad8: 1, ai_plan: {}, cognitive_risk: "中风险" }, [], false, true)).toEqual({ label: "查看详情", to: "/community/patients/n?tab=overview" });
+    expect(communityPatientAction({ id: "n", ad8: 0 }, [], false, false)).toEqual({ label: "查看详情", to: "/community/patients/n?tab=overview" });
+  });
+  it("阴性患者仍有上级下转待接收时保留接收入口", () => {
+    const referral = { id: "r", patient_id: "n", direction: "下转", status: "待接收" } as const;
+    expect(communityPatientAction({ id: "n", ad8: 1 }, [referral], false, false).label).toBe("去接收");
   });
   it("已完成量表不再列入未完成他评清单", () => {
     expect(missingProfessionalScales([{ scale: "mmse" }, { scale: "self_sleep" }]).map(s => s.key)).toEqual(["moca", "adl", "iadl", "scd_q9"]);
