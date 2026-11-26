@@ -12,7 +12,7 @@ import { filterCommunityPatients, pendingCommunityReferral, communityScreeningAb
 import type { DoctorPatientFilters } from "@/data/doctorReception";
 import { upwardReferralState } from "@/data/referralApproval";
 import { useCommunityWork } from "@/data/useCommunityWork";
-import { matchesCommunityCategory, matchesScreeningFilter, screeningPresentation, type ScreeningFilter } from "@/data/communityPatientPresentation";
+import { communityPatientAction, matchesCommunityCategory, matchesScreeningFilter, screeningPresentation, type ScreeningFilter } from "@/data/communityPatientPresentation";
 
 const CommunityPatients = () => {
   const [params, setParams] = useSearchParams();
@@ -54,24 +54,21 @@ const CommunityPatients = () => {
     <div className="flex items-center justify-between text-xs text-muted-foreground"><span>{workMode === "assessment" ? "待评估" : workMode === "training" ? "今日待训练" : reception === "待接收" ? "待接收" : riskOnly ? "风险患者" : category === "screen" ? "初筛名单" : "全部患者"} · 共 {list.length} 位</span>{workMode && <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setParams({})}>返回全部名单</Button>}</div>
     <div className="overflow-x-auto bg-card">
       <div role="table" aria-label="社区患者名单" className="min-w-[730px]">
-        <div role="row" className="grid grid-cols-[1.1fr_1fr_.8fr_1fr_106px] gap-3 border-y bg-muted/50 px-3 py-3 text-xs font-medium text-muted-foreground">{["姓名 / 年龄性别", "来源", "初筛结果", "评估风险", "下一步操作"].map(h => <div key={h} role="columnheader">{h}</div>)}</div>
+        <div role="row" className="grid grid-cols-[1.1fr_1fr_.8fr_1fr_106px] gap-3 border-y bg-muted/50 px-3 py-3 text-xs font-medium text-muted-foreground">{["姓名 / 年龄性别", "来源", "初筛结果", "评估风险", "操作"].map(h => <div key={h} role="columnheader">{h}</div>)}</div>
         {work.isLoading && <p className="p-8 text-center text-sm text-muted-foreground">加载中…</p>}
         {!work.isLoading && !list.length && <p className="p-8 text-center text-sm text-muted-foreground">无匹配患者</p>}
         {!work.isLoading && list.map(p => {
           const pending = pendingCommunityReferral(work.referrals, p.id);
           const transfer = upwardReferralState(work.referrals, p.id);
           const display = screeningPresentation(p);
-          const assessing = assessmentIds.has(p.id);
-          const training = trainingIds.has(p.id);
           const detail = `/community/patients/${p.id}`;
-          const label = pending ? "去接收" : assessing ? "去评估" : training ? "去训练" : !display.positive ? "宣教" : !p.cognitive_risk ? "查看评估" : p.cognitive_risk === "低风险" ? "随访" : "查看方案";
-          const to = assessing ? `${detail}?tab=scale&action=ad8` : training ? `${detail}?tab=training` : !display.positive ? `/community/education?patient=${p.id}` : !p.cognitive_risk ? `${detail}?tab=scale` : p.cognitive_risk === "低风险" ? `/community/followup?patient=${p.id}` : `${detail}?tab=plan`;
+          const { label, to } = communityPatientAction(p, work.referrals, transfer === "待审批" || transfer === "已转出", work.education.some(t => t.patient_id === p.id));
           return <div key={p.id} role="row" className="grid grid-cols-[1.1fr_1fr_.8fr_1fr_106px] items-center gap-3 border-b px-3 py-4 transition-colors hover:bg-muted/30">
             <div role="cell" className="min-w-0"><Link to={detail} className="font-semibold text-foreground hover:text-primary">{p.name}</Link><p className="mt-1 text-xs text-muted-foreground">{p.gender} · {p.age}岁</p>{transfer && <p className="mt-1 text-xs text-primary">转诊：{transfer}</p>}</div>
             <div role="cell" className="text-xs text-muted-foreground">{p.source}</div>
             <div role="cell"><span className={`text-xs font-medium ${display.result === "待评估" ? "text-muted-foreground" : display.positive ? "text-warning" : "text-success"}`}>{display.result}</span>{p.ad8 != null && <p className="mt-1 text-xs text-muted-foreground">AD-8 {p.ad8} 分</p>}</div>
             <div role="cell" className={`text-xs ${display.risk === "高风险" ? "text-destructive" : display.risk === "中风险" ? "text-warning" : display.risk === "低风险" ? "text-success" : "text-muted-foreground"}`}>{display.risk}</div>
-            <div role="cell">{pending ? <Button size="sm" variant="outline" className="w-full text-xs text-accent" disabled={receive.isPending} onClick={() => receive.mutate({ referralId: pending.id, patientId: p.id }, { onSuccess: () => toast({ title: "患者已加入社区患者列表" }), onError: e => toast({ title: "接收失败", description: e.message, variant: "destructive" }) })}>{label}</Button> : <Button asChild size="sm" variant="outline" className="w-full text-xs text-accent"><Link to={to}>{label}<ArrowRight className="ml-1 h-3 w-3" /></Link></Button>}</div>
+            <div role="cell">{pending ? <Button size="sm" variant="outline" className="w-full text-xs text-accent" disabled={receive.isPending} onClick={() => receive.mutate({ referralId: pending.id, patientId: p.id }, { onSuccess: () => toast({ title: "接收成功，可点击查看方案" }), onError: e => toast({ title: "接收失败", description: e.message, variant: "destructive" }) })}>{label}</Button> : <Button asChild size="sm" variant="outline" className="w-full text-xs text-accent"><Link to={to}>{label}<ArrowRight className="ml-1 h-3 w-3" /></Link></Button>}</div>
           </div>;
         })}
       </div>

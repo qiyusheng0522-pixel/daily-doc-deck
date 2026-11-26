@@ -5,11 +5,12 @@ import { useScaleAssessments } from "@/data/patients";
 import { assessmentHistory, scaleDefinition } from "@/data/assessmentHistory";
 import { AiReading, HistoryList, MetaRows, ResultBlock, ScaleTable, fmtDate, scoreTone, type ScaleRecord } from "./ScaleRecordView";
 import { cn } from "@/lib/utils";
+import { missingProfessionalScales } from "@/data/communityPatientPresentation";
 
 const ICON: Record<string, React.ElementType> = { 认知功能: Brain, 生活能力: Home, 安全风险: Footprints, 情绪心理: Smile, 睡眠健康: Moon, 营养状态: Utensils };
 
 /** 「量表评估」页签：左侧各量表最新结果，中间逐项详情，右侧结果/说明/历史（可切换历史记录）。 */
-export default function ScaleBrowser({ patientId, initialScale }: { patientId: string; initialScale?: string | null }) {
+export default function ScaleBrowser({ patientId, initialScale, pendingOnly = false }: { patientId: string; initialScale?: string | null; pendingOnly?: boolean }) {
   const { data: records = [], isLoading } = useScaleAssessments(patientId);
   const all = useMemo(() => assessmentHistory(records), [records]);
   const [scale, setScale] = useState<string | null>(initialScale ?? null);
@@ -30,6 +31,11 @@ export default function ScaleBrowser({ patientId, initialScale }: { patientId: s
     <span className="shrink-0 rounded-md bg-muted/60 px-2 py-0.5 text-sm"><b className={scoreTone(x)}>{x.total}</b>{x.max ? <span className="text-xs text-muted-foreground">/{x.max}</span> : null}</span>
   </button>; };
   const Group = ({ title, list }: { title: string; list: ScaleRecord[] }) => list.length ? <Card className="p-3 shadow-soft"><p className="mb-2 flex items-center gap-1.5 text-base font-semibold"><ChevronDown className="h-4 w-4 text-primary" />{title}<span className="text-sm text-muted-foreground">{list.length}</span></p><div className="space-y-1">{list.map(x => <Item key={x.scale} x={x} />)}</div></Card> : null;
+
+  if (pendingOnly) {
+    const pending = missingProfessionalScales(records);
+    return <section className="space-y-3"><h3 className="text-lg font-semibold">未完成他评量表</h3>{isLoading ? <p className="text-sm text-muted-foreground">加载中…</p> : <>{pending.map(s => <div key={s.key} className="flex items-center gap-3 rounded-lg border bg-card p-4"><Brain className="h-6 w-6 shrink-0 text-primary" /><div className="min-w-0 flex-1"><p className="font-semibold">{s.name}</p><p className="mt-1 text-sm text-muted-foreground">{s.desc}</p></div><span className="text-sm text-muted-foreground">待评估 · 由评估医生完成</span></div>)}{!pending.length && <p className="text-sm text-muted-foreground">他评量表均已完成</p>}</>}</section>;
+  }
 
   return <div className="space-y-3">
 

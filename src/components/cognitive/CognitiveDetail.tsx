@@ -90,6 +90,10 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const [edit, setEdit] = useState<null | { kind: "profile" | "assess"; v: Record<string, string> }>(null);
   useEffect(() => {
     if (role === "community" && p && params.get("action") === "ad8") setAd8(AD8_ITEMS.map(() => false));
+    if (role === "community" && p && params.get("action") === "refer" && communityRiskPatient(p)) {
+      const state = upwardReferralState(referrals, p.id);
+      if (state !== "待审批" && state !== "已转出") setSheet("up");
+    }
   }, [role, p?.id, params]);
 
   if (isLoading) return <p className="p-6 text-sm text-muted-foreground">加载中…</p>;
@@ -437,7 +441,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
           </div>
         )}
         {tab === "info" && <><div className="grid gap-3 lg:grid-cols-2">{fullInfoCard}{healthCard}</div>{visitCard}</>}
-                {tab === "scale" && <>{role === "doctor" && <div className="flex justify-end"><Button size="sm" className="h-9" onClick={() => navigate(`/doctor/assess/${p.id}`)}>新增量表评估</Button></div>}{role === "community" && <div className="flex justify-end"><Button size="sm" variant="outline" className="h-9" onClick={() => setAd8(AD8_ITEMS.map(() => false))}>AD-8 初筛评估</Button></div>}<ScaleBrowser patientId={p.id} initialScale={scaleFocus} />{role === "doctor" && <SelfAssessmentResults patientId={p.id} assist />}</>}
+                {tab === "scale" && <>{role === "doctor" && <div className="flex justify-end"><Button size="sm" className="h-9" onClick={() => navigate(`/doctor/assess/${p.id}`)}>新增量表评估</Button></div>}{role === "community" && <div className="flex justify-end"><Button size="sm" variant="outline" className="h-9" onClick={() => setAd8(AD8_ITEMS.map(() => false))}>AD-8 初筛评估</Button></div>}<ScaleBrowser patientId={p.id} initialScale={scaleFocus} pendingOnly={role === "community" && params.get("view") === "pending"} />{role === "doctor" && <SelfAssessmentResults patientId={p.id} assist />}</>}
         {tab === "plan" && (role === "doctor" || role === "community") && <PlanRecords p={p} role={role as "doctor" | "community"} />}
         {tab === "training" && trainingCard}
         {tab === "referral" && referralCard}
