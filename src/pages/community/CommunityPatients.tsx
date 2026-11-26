@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Plus, SlidersHorizontal, RotateCcw, ClipboardCheck, Dumbbell, ArrowRight } from "lucide-react";
 import NewPatientScreening from "@/components/community/NewPatientScreening";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,12 @@ import { useCommunityWork } from "@/data/useCommunityWork";
 import { communityPatientAction, matchesCommunityCategory, matchesScreeningFilter, screeningPresentation, type ScreeningFilter } from "@/data/communityPatientPresentation";
 
 const CommunityPatients = () => {
+  const navigate = useNavigate();
+  const [selectedPatient, setSelectedPatient] = useState(() => sessionStorage.getItem("community-selected-patient"));
+  const selectPatient = (id: string) => {
+    setSelectedPatient(id);
+    sessionStorage.setItem("community-selected-patient", id);
+  };
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
@@ -63,7 +69,10 @@ const CommunityPatients = () => {
           const display = screeningPresentation(p);
           const detail = `/community/patients/${p.id}`;
           const { label, to } = communityPatientAction(p, work.referrals, transfer === "待审批" || transfer === "已转出", work.education.some(t => t.patient_id === p.id));
-          return <div key={p.id} role="row" className="grid grid-cols-[1.1fr_1fr_.8fr_1fr_106px] items-center gap-3 border-b px-3 py-4 transition-colors hover:bg-muted/30">
+          return <div key={p.id} role="row" tabIndex={0} aria-selected={selectedPatient === p.id}
+            onClick={e => { selectPatient(p.id); if (e.target instanceof Element && e.target.closest("a, button")) return; navigate(detail); }}
+            onKeyDown={e => { if (e.target !== e.currentTarget || (e.key !== "Enter" && e.key !== " ")) return; e.preventDefault(); selectPatient(p.id); navigate(detail); }}
+            className={`grid cursor-pointer grid-cols-[1.1fr_1fr_.8fr_1fr_106px] items-center gap-3 border-b px-3 py-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent ${selectedPatient === p.id ? "bg-accent/10 ring-1 ring-inset ring-accent/40" : "hover:bg-accent/5"}`}>
             <div role="cell" className="min-w-0"><Link to={detail} className="font-semibold text-foreground hover:text-primary">{p.name}</Link><p className="mt-1 text-xs text-muted-foreground">{p.gender} · {p.age}岁</p>{transfer && <p className="mt-1 text-xs text-primary">转诊：{transfer}</p>}</div>
             <div role="cell" className="text-xs text-muted-foreground">{p.source}</div>
             <div role="cell"><span className={`text-xs font-medium ${display.result === "待评估" ? "text-muted-foreground" : display.positive ? "text-warning" : "text-success"}`}>{display.result}</span>{p.ad8 != null && <p className="mt-1 text-xs text-muted-foreground">AD-8 {p.ad8} 分</p>}</div>
