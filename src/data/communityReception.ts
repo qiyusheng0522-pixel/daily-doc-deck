@@ -15,9 +15,19 @@ export function pendingCommunityReferral<T extends Pick<Referral, "id" | "patien
   return referrals.find(r => r.patient_id === patientId && r.direction === "下转" && r.status === "待接收");
 }
 
+/** 低风险只需随访与宣教，不进入上级下转接收流程 */
+export function isLowRiskCommunityPatient(p: { cognitive_risk?: string | null }): boolean {
+  return p.cognitive_risk === "低风险";
+}
+
+/** 可执行接收的下转单：低风险患者不提供接收入口 */
+export function receivableCommunityReferral<T extends Pick<Referral, "id" | "patient_id" | "direction" | "status">>(p: { cognitive_risk?: string | null }, referrals: T[], patientId: string): T | undefined {
+  return isLowRiskCommunityPatient(p) ? undefined : pendingCommunityReferral(referrals, patientId);
+}
+
 export function filterCommunityPatients<T extends Pick<Patient, "id" | "name" | "community_stage" | "cognitive_risk" | "source" | "gender"> & { ad8?: number | null }>(patients: T[], referrals: Referral[], filters: DoctorPatientFilters & { abnormal?: boolean; riskOnly?: boolean; screened?: boolean }): T[] {
   return patients.filter(p => {
-    const pending = !!pendingCommunityReferral(referrals, p.id);
+    const pending = !!receivableCommunityReferral(p, referrals, p.id);
     const managed = !!p.community_stage && !pending;
     return (filters.reception === "待接收" ? pending : filters.reception === "在管患者" ? managed : pending || managed)
       && (filters.risk === "全部" || p.cognitive_risk === filters.risk)

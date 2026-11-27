@@ -1,4 +1,4 @@
-import { communityScreeningAbnormal, communityRiskPatient, pendingCommunityReferral } from "@/data/communityReception";
+import { communityScreeningAbnormal, communityRiskPatient, isLowRiskCommunityPatient, receivableCommunityReferral } from "@/data/communityReception";
 import type { Referral } from "@/data/patients";
 import { SCALES } from "@/data/scales";
 
@@ -42,8 +42,8 @@ export function communityPatientAction(
   educationDue: boolean,
 ) {
   const detail = `/community/patients/${p.id}`;
-  if (pendingCommunityReferral(referrals, p.id)) return { label: "去接收", to: `${detail}?tab=plan` };
-  if (isScreeningNegative(p)) return { label: "查看详情", to: `${detail}?tab=overview` };
+  if (receivableCommunityReferral(p, referrals, p.id)) return { label: "去接收", to: `${detail}?tab=plan` };
+  if (isScreeningNegative(p) || isLowRiskCommunityPatient(p)) return { label: "查看详情", to: `${detail}?tab=overview` };
   if (referrals.some(r => r.patient_id === p.id && r.direction === "下转" && r.status === "已接收")) return { label: "查看方案", to: `${detail}?tab=plan` };
   if (transferBusy) return { label: "查看详情", to: `${detail}?tab=overview` };
   if (communityRiskPatient(p)) return { label: "待转诊", to: `${detail}?tab=referral&action=refer` };

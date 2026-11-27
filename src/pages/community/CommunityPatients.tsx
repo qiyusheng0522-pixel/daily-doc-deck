@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { useReceiveReferral } from "@/data/patients";
-import { filterCommunityPatients, pendingCommunityReferral, communityScreeningAbnormal } from "@/data/communityReception";
+import { filterCommunityPatients, receivableCommunityReferral, communityScreeningAbnormal } from "@/data/communityReception";
 import type { DoctorPatientFilters } from "@/data/doctorReception";
 import { upwardReferralState } from "@/data/referralApproval";
 import { useCommunityWork } from "@/data/useCommunityWork";
@@ -36,7 +36,7 @@ const CommunityPatients = () => {
   const assessmentIds = new Set(work.assessment.map(p => p.id));
   const trainingIds = new Set(work.training.map(p => p.id));
   const list = filterCommunityPatients(work.community, work.referrals, { ...filters, query, reception: "全部患者", riskOnly })
-    .filter(p => reception === "全部患者" || (reception === "待接收" ? !!pendingCommunityReferral(work.referrals, p.id) : !pendingCommunityReferral(work.referrals, p.id)))
+    .filter(p => reception === "全部患者" || (reception === "待接收" ? !!receivableCommunityReferral(p, work.referrals, p.id) : !receivableCommunityReferral(p, work.referrals, p.id)))
     .filter(p => matchesCommunityCategory(p, category))
     .filter(p => matchesScreeningFilter(p, result))
     .filter(p => !workMode || (workMode === "assessment" ? assessmentIds : trainingIds).has(p.id));
@@ -64,7 +64,7 @@ const CommunityPatients = () => {
         {work.isLoading && <p className="p-8 text-center text-sm text-muted-foreground">加载中…</p>}
         {!work.isLoading && !list.length && <p className="p-8 text-center text-sm text-muted-foreground">无匹配患者</p>}
         {!work.isLoading && list.map(p => {
-          const pending = pendingCommunityReferral(work.referrals, p.id);
+          const pending = receivableCommunityReferral(p, work.referrals, p.id);
           const transfer = upwardReferralState(work.referrals, p.id);
           const display = screeningPresentation(p);
           const detail = `/community/patients/${p.id}`;

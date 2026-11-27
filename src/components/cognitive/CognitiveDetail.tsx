@@ -14,7 +14,7 @@ import AssessmentHistory from "@/components/cognitive/AssessmentHistory";
 import DoctorBackButton from "@/components/doctor/DoctorBackButton";
 import ReferralApproval from "@/components/cognitive/ReferralApproval";
 import { referralApprovalQueue, upwardReferralState } from "@/data/referralApproval";
-import { communityRiskPatient, pendingCommunityReferral } from "@/data/communityReception";
+import { communityRiskPatient, receivableCommunityReferral } from "@/data/communityReception";
 import { acceptDoctorPatient, pendingDoctorReferral } from "@/data/doctorReception";
 import { Camera, FileText, Cpu, HandHeart, LayoutGrid, User, Target, Layers, BarChart3, ClipboardCheck, Dumbbell, Repeat, ChevronRight, Pencil, ShieldPlus, ShieldCheck, Clock } from "lucide-react";
 import ScaleDetailSheet from "@/components/cognitive/ScaleDetailSheet";
@@ -220,7 +220,7 @@ export default function CognitiveDetail({ role }: { role: Role }) {
   const otherTrainings = trainings.filter(t => (t as { record_type?: string }).record_type !== "设备训练");
   const myRefs = referrals.filter((r) => r.patient_id === p.id);
   const pendingUp = pendingDoctorReferral(myRefs, p.id);
-  const pendingDown = pendingCommunityReferral(myRefs, p.id);
+  const pendingDown = receivableCommunityReferral(p, myRefs, p.id);
   const pendingApproval = referralApprovalQueue(myRefs)[0];
   const transferState = upwardReferralState(myRefs, p.id);
   const transferBusy = transferState === "待审批" || transferState === "已转出";

@@ -55,6 +55,12 @@ describe("社区患者操作入口", () => {
     const referral = { id: "r", patient_id: "n", direction: "下转", status: "待接收" } as const;
     expect(communityPatientAction({ id: "n", ad8: 1 }, [referral], false, false).label).toBe("去接收");
   });
+  it("低风险不进入接收入口，只查看详情", () => {
+    const referral = { id: "r", patient_id: "l", direction: "下转", status: "待接收" } as const;
+    expect(communityPatientAction({ id: "l", ad8: 2, cognitive_risk: "低风险", ai_plan: {} }, [referral], false, false)).toEqual({ label: "查看详情", to: "/community/patients/l?tab=overview" });
+    expect(communityPatientAction({ id: "l", ad8: 2, cognitive_risk: "低风险", ai_plan: {} }, [], false, true)).toEqual({ label: "查看详情", to: "/community/patients/l?tab=overview" });
+    expect(communityPatientAction({ id: "l", ad8: 2, cognitive_risk: "中风险" }, [referral], false, false).label).toBe("去接收");
+  });
   it("已完成量表不再列入未完成他评清单", () => {
     expect(missingProfessionalScales([{ scale: "mmse" }, { scale: "self_sleep" }]).map(s => s.key)).toEqual(["moca", "adl", "iadl", "scd_q9"]);
   });

@@ -1,5 +1,5 @@
 import { planConfirmed } from "@/data/cognitive";
-import { filterCommunityPatients, pendingCommunityReferral } from "@/data/communityReception";
+import { filterCommunityPatients, receivableCommunityReferral } from "@/data/communityReception";
 import { isScreeningNegative } from "@/data/communityPatientPresentation";
 import type { Patient, Referral, NurseTask, Followup } from "@/data/patients";
 
@@ -40,7 +40,7 @@ export function communityWorkQueues(patients: Patient[], referrals: Referral[], 
   const name = (id: string) => community.find(p => p.id === id)?.name ?? "患者";
   const list: CommunityWork[] = [
     ...community.flatMap(p => {
-      const referral = pendingCommunityReferral(referrals, p.id);
+      const referral = receivableCommunityReferral(p, referrals, p.id);
       return referral ? [{ id: `receive-${p.id}`, patientId: p.id, kind: "待接收" as const, title: `${p.name} · 上级下转待接收`, time: referral.created_at.slice(0, 10), to: "/community/patients?tab=new" }] : [];
     }),
     ...assessment.map(p => ({ id: `assessment-${p.id}`, patientId: p.id, kind: "待评估" as const, title: `${p.name} · AD-8 初筛评估`, time: "待评估", to: `/community/patients/${p.id}?tab=scale&action=ad8` })),

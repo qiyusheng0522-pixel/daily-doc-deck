@@ -51,6 +51,12 @@ describe("社区工作台共享任务", () => {
     expect(queues.list.length).toBe(queues.assessment.length + queues.education.length + queues.followup.length + queues.training.length);
     expect(queues.list[0].to).toContain("action=ad8");
   });
+  it("低风险下转单不生成待接收事项，与患者列表操作一致", () => {
+    const referral = { id: "r1", patient_id: "低", direction: "下转", status: "待接收", created_at: "2026-11-20" } as Referral;
+    const queues = communityWorkQueues([patient("低", { ad8: 3, cognitive_risk: "低风险" })], [referral], [], [], [], "2026-11-20");
+    expect(queues.list.filter(t => t.kind === "待接收")).toHaveLength(0);
+    expect(queues.community.map(p => p.id)).toEqual(["低"]);
+  });
   it("初筛阴性患者不生成宣教、随访或训练事项，只保留基本信息", () => {
     const negative = patient("阴性", { ad8: 1, ai_plan_at: "2026-11-18T00:00:00Z", ai_plan_confirmed_at: "2026-11-19T00:00:00Z", ai_plan: { cycle_weeks: 8, training: [{ activity: "记忆训练", frequency: "每日", setting: "站内小组" }] } });
     const queues = communityWorkQueues([negative], [], [{ id: "宣教", patient_id: "阴性", title: "认知宣教", kind: "宣教", status: "待执行" } as NurseTask], [{ id: "随访", patient_id: "阴性", item: "认知随访", status: "待随访" } as Followup], [], "2026-11-20");
