@@ -59,4 +59,10 @@ describe("社区患者接收与筛选", () => {
     expect(filterCommunityPatients([low], [lowReferral], { ...defaults, reception: "待接收" })).toEqual([]);
     expect(filterCommunityPatients([low], [lowReferral], { ...defaults, reception: "在管患者" }).map(p => p.id)).toEqual(["low"]);
   });
+  it("阴性与未确定风险患者不进入待接收名单", () => {
+    const negative = { ...patients[0], ad8: 1, community_stage: "新接收" as const };
+    const unknown = { ...negative, ad8: 2, cognitive_risk: null };
+    expect(filterCommunityPatients([negative], [referral], { ...defaults, reception: "待接收" })).toEqual([]);
+    expect(filterCommunityPatients([unknown], [referral], { ...defaults, reception: "待接收" })).toEqual([]);
+  });
 });

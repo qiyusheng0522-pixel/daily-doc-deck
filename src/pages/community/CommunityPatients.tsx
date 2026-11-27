@@ -51,8 +51,8 @@ const CommunityPatients = () => {
     </div>
     <div className="flex flex-wrap items-center gap-2">
       <div className="relative min-w-[160px] flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input aria-label="搜索患者姓名" value={query} onChange={e => setQuery(e.target.value)} placeholder="搜索患者姓名" className="bg-card pl-9 text-xs" /></div>
-      <div className="w-36"><FilterSelect label="评估结果" value={result} options={["全部", "待评估", "阴性", "阳性"]} allLabel="全部结果" onChange={v => setResult(v as ScreeningFilter)} /></div>
-      {riskOnly && <div className="w-36"><FilterSelect label="风险等级" value={filters.risk} options={["全部", "低风险", "中风险", "高风险"]} allLabel="全部风险" onChange={v => setFilters(f => ({ ...f, risk: v }))} /></div>}
+      <div className="w-36"><FilterSelect label="初筛状态" value={result} options={["全部", "阳性", "阴性", "待评估"]} allLabel="全部初筛状态" onChange={v => setResult(v as ScreeningFilter)} /></div>
+      {(riskOnly || category === "all") && <div className="w-36"><FilterSelect label="评估风险" value={filters.risk} options={["全部", "低风险", "中风险", "高风险"]} allLabel="全部评估风险" onChange={v => setFilters(f => ({ ...f, risk: v }))} /></div>}
       <Button size="sm" variant={more || extras ? "secondary" : "outline"} className="text-xs" aria-expanded={more} onClick={() => setMore(!more)}><SlidersHorizontal className="mr-1 h-4 w-4" />更多筛选{extras ? ` · ${extras}` : ""}</Button>
       <Button size="icon" variant="ghost" title="重置筛选" aria-label="重置筛选" onClick={clearFilters}><RotateCcw className="h-4 w-4" /></Button>
     </div>

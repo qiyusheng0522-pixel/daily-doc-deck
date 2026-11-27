@@ -10,7 +10,7 @@ describe("社区患者筛选与结果分开展示", () => {
   it("AD-8 1分阴性，2分阳性，不从阳性推断评估风险", () => {
     expect(matchesScreeningFilter({ id: "a", ad8: 1 }, "阴性")).toBe(true);
     expect(matchesScreeningFilter({ id: "a", ad8: 2 }, "阳性")).toBe(true);
-    expect(screeningPresentation({ id: "a", ad8: 2 }).risk).toBe("待进一步评估");
+    expect(screeningPresentation({ id: "a", ad8: 2 }).risk).toBe("—");
   });
   it("阳性风险只读取已保存分级，阴性不混入评估风险", () => {
     for (const risk of ["低风险", "中风险", "高风险"]) expect(screeningPresentation({ id: "a", ad8: 2, cognitive_risk: risk }).risk).toBe(risk);
@@ -32,17 +32,21 @@ describe("社区患者筛选与结果分开展示", () => {
 describe("社区患者操作入口", () => {
   const p = { id: "a", ad8: 3 };
   it("查看详情打开概览", () => expect(communityPatientAction({ ...p, mmse: 25 }, [], false, false)).toEqual({ label: "查看详情", to: "/community/patients/a?tab=overview" }));
-  it("待评估打开未完成他评量表", () => expect(communityPatientAction(p, [], false, false)).toEqual({ label: "待评估", to: "/community/patients/a?tab=scale&view=pending" }));
-  it("查看方案打开方案记录", () => expect(communityPatientAction({ ...p, ai_plan: {} }, [], false, false)).toEqual({ label: "查看方案", to: "/community/patients/a?tab=plan" }));
+  it("只有未完成初筛才进入AD-8待评估", () => expect(communityPatientAction({ id: "a", ad8: null }, [], false, false)).toEqual({ label: "待评估", to: "/community/patients/a?tab=scale&action=ad8" }));
+  it("阳性无分级不显示待评估，也不从方案推断风险", () => expect(communityPatientAction({ ...p, ai_plan: {} }, [], false, false)).toEqual({ label: "查看详情", to: "/community/patients/a?tab=overview" }));
   it("接收后操作改为查看方案", () => {
     const referral = { id: "r", patient_id: "a", direction: "下转", status: "待接收" } as const;
-    expect(communityPatientAction(p, [referral], false, false).label).toBe("去接收");
-    expect(communityPatientAction(p, [{ ...referral, status: "已接收" }], false, false)).toEqual({ label: "查看方案", to: "/community/patients/a?tab=plan" });
+    const assessed = { ...p, cognitive_risk: "中风险" };
+    expect(communityPatientAction(assessed, [referral], false, false).label).toBe("去接收");
+    expect(communityPatientAction(assessed, [{ ...referral, status: "已接收" }], false, false)).toEqual({ label: "查看方案", to: "/community/patients/a?tab=plan" });
   });
-  it("宣教打开已选患者的宣教库", () => expect(communityPatientAction(p, [], false, true)).toEqual({ label: "宣教", to: "/community/education?patient=a" }));
-  it("待转诊打开转诊界面，不从初筛阳性推断资格", () => {
-    expect(communityPatientAction({ ...p, cognitive_risk: "中风险" }, [], false, false)).toEqual({ label: "待转诊", to: "/community/patients/a?tab=referral&action=refer" });
-    expect(communityPatientAction(p, [], false, false).label).not.toBe("待转诊");
+  it("暂不显示宣教或随访操作", () => {
+    expect(communityPatientAction(p, [], false, true).label).toBe("查看详情");
+    expect(communityPatientAction({ ...p, cognitive_risk: "中风险" }, [], false, true).label).toBe("转诊");
+  });
+  it("中高风险打开转诊界面，不从初筛阳性推断资格", () => {
+    for (const risk of ["中风险", "高风险"]) expect(communityPatientAction({ ...p, cognitive_risk: risk }, [], false, false)).toEqual({ label: "转诊", to: "/community/patients/a?tab=referral&action=refer" });
+    expect(communityPatientAction(p, [], false, false).label).toBe("查看详情");
   });
   it("初筛阴性只保留基本信息，不给宣教、方案或转诊入口", () => {
     expect(isScreeningNegative({ id: "n", ad8: null })).toBe(false);
@@ -51,9 +55,9 @@ describe("社区患者操作入口", () => {
     expect(communityPatientAction({ id: "n", ad8: 1, ai_plan: {}, cognitive_risk: "中风险" }, [], false, true)).toEqual({ label: "查看详情", to: "/community/patients/n?tab=overview" });
     expect(communityPatientAction({ id: "n", ad8: 0 }, [], false, false)).toEqual({ label: "查看详情", to: "/community/patients/n?tab=overview" });
   });
-  it("阴性患者仍有上级下转待接收时保留接收入口", () => {
+  it("阴性即使有下转单及中风险旧值也只能查看详情", () => {
     const referral = { id: "r", patient_id: "n", direction: "下转", status: "待接收" } as const;
-    expect(communityPatientAction({ id: "n", ad8: 1 }, [referral], false, false).label).toBe("去接收");
+    expect(communityPatientAction({ id: "n", ad8: 1, cognitive_risk: "中风险" }, [referral], false, false).label).toBe("查看详情");
   });
   it("低风险不进入接收入口，只查看详情", () => {
     const referral = { id: "r", patient_id: "l", direction: "下转", status: "待接收" } as const;

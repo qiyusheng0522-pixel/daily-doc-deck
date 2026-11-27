@@ -27,7 +27,8 @@ export function isScreeningNegative(p: ScreeningPatient): boolean {
 export function screeningPresentation(p: ScreeningPatient) {
   if (p.ad8 == null) return { result: "待评估", risk: "—", positive: false };
   const positive = communityScreeningAbnormal(p);
-  return { result: positive ? "阳性" : "阴性", risk: positive ? p.cognitive_risk || "待进一步评估" : "—", positive };
+  const risk = positive && ["低风险", "中风险", "高风险"].includes(p.cognitive_risk ?? "") ? p.cognitive_risk : "—";
+  return { result: positive ? "阳性" : "阴性", risk, positive };
 }
 
 export function missingProfessionalScales(records: { scale: string }[]) {
@@ -39,16 +40,14 @@ export function communityPatientAction(
   p: ScreeningPatient & { ai_plan?: unknown; mmse?: number | null; moca?: number | null; scd_q9?: number | null; adl?: number | null },
   referrals: Pick<Referral, "id" | "patient_id" | "direction" | "status">[],
   transferBusy: boolean,
-  educationDue: boolean,
+  _educationDue: boolean,
 ) {
   const detail = `/community/patients/${p.id}`;
-  if (receivableCommunityReferral(p, referrals, p.id)) return { label: "去接收", to: `${detail}?tab=plan` };
+  if (p.ad8 == null) return { label: "待评估", to: `${detail}?tab=scale&action=ad8` };
   if (isScreeningNegative(p) || isLowRiskCommunityPatient(p)) return { label: "查看详情", to: `${detail}?tab=overview` };
+  if (receivableCommunityReferral(p, referrals, p.id)) return { label: "去接收", to: `${detail}?tab=plan` };
+  if (!communityRiskPatient(p)) return { label: "查看详情", to: `${detail}?tab=overview` };
   if (referrals.some(r => r.patient_id === p.id && r.direction === "下转" && r.status === "已接收")) return { label: "查看方案", to: `${detail}?tab=plan` };
   if (transferBusy) return { label: "查看详情", to: `${detail}?tab=overview` };
-  if (communityRiskPatient(p)) return { label: "待转诊", to: `${detail}?tab=referral&action=refer` };
-  if (educationDue) return { label: "宣教", to: `/community/education?patient=${p.id}` };
-  if (p.ai_plan) return { label: "查看方案", to: `${detail}?tab=plan` };
-  if (p.ad8 == null || (communityScreeningAbnormal(p) && !p.cognitive_risk && [p.mmse, p.moca, p.scd_q9, p.adl].every(v => v == null))) return { label: "待评估", to: `${detail}?tab=scale&view=pending` };
-  return { label: "查看详情", to: `${detail}?tab=overview` };
+  return { label: "转诊", to: `${detail}?tab=referral&action=refer` };
 }
